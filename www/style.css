@@ -14,7 +14,12 @@ body {
 }
 
 .scroll-area {
-  overscroll-behavior-y: contain;
+  /* Bu öğe uygulamanın gerçek dikey kaydırıcısıdır. `contain`, iOS'taki
+     lastik/esneme efektini öğenin içinde bırakır; `none` ise üst sınırda
+     içeriğin aşağı çekilip beyaz boşluk göstermesini de engeller. */
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 /* Native klavye açıkken (native-ux.js) alt menü klavyeyle çakışmasın diye gizlenir. */
 .keyboard-open .bottom-nav{display:none}
