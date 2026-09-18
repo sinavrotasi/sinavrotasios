@@ -396,7 +396,8 @@ function saveProgress() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   scheduleCloudSync();
   updateHeader();
-  if (state.view === 'home' || state.view === 'profile' || state.view === 'mistakes') render();
+  const pickerOpen = document.activeElement?.id === 'notifReminderTimeInput';
+  if (!pickerOpen && (state.view === 'home' || state.view === 'profile' || state.view === 'mistakes')) render();
 }
 
 // Bekleyen (debounce'lanmış) senkronizasyonu hemen tetikler. Sekme kapatılırken/gizlenirken
@@ -1693,6 +1694,9 @@ function bindViewEvents() {
   });
   document.getElementById('notifReminderTimeInput')?.addEventListener('change', event => {
     setReminderTime(event.target.value);
+  });
+  document.getElementById('notifReminderTimeInput')?.addEventListener('blur', () => {
+    if (state.view === 'profile') render();
   });
 
   app.querySelectorAll('[data-flow-range]').forEach(button => {

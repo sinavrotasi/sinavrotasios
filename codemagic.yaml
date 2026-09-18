@@ -636,6 +636,12 @@ workflows:
             -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string sinavrotasi" \
             "$PLIST_PATH"
 
+            - name: Generate splash/icon assets
+        script: |
+          set -euo pipefail
+          npm install @capacitor/assets --save-dev
+          npx @capacitor/assets generate --iosProject ios/App --assetPath resources
+
       - name: Sync Capacitor
         script: |
           set -euo pipefail
