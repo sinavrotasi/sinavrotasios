@@ -1,12 +1,7 @@
 {
   "appId": "com.sinavrotasi.mebgys",
-  "appName": "SınavRotası (Dev)",
+  "appName": "SınavRotası",
   "webDir": "www",
-  "server": {
-    "url": "https://sinavrotasi.github.io/sinavrotasios/www/",
-    "cleartext": false,
-    "androidScheme": "https"
-  },
   "ios": {
     "scrollEnabled": false
   },
