@@ -58,25 +58,7 @@
             </div>
           </div>
         </div>
-        <!-- SERİ ŞERİDİ — updateHeader() (app.js) bu id'leri dolduruyor.
-             streakCount/streakHeadline/streakSub/streakDots boşsa (henüz JS çalışmadıysa)
-             makul varsayılan metinler gösterir; ilk render'da anında güncellenir. -->
-        <div class="streak-strip" id="streakStrip">
-          <div class="streak-strip-top">
-            <div class="st-badge">
-              <div class="st-medal-wrap">
-                <svg class="st-medal-ring" viewBox="0 0 40 40" aria-hidden="true"><circle class="st-medal-ring-bg" cx="20" cy="20" r="17"/><circle class="st-medal-ring-fill" cx="20" cy="20" r="17"/></svg>
-                <div class="st-medal-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/></svg></div>
-              </div>
-              <div class="num"><b id="streakCount">0</b><span>GÜN</span></div>
-            </div>
-            <div class="st-mid">
-              <div class="st-headline" id="streakHeadline">Bugün ilk sorunu çöz</div>
-              <div class="st-sub" id="streakSub">Serine başla.</div>
-            </div>
-          </div>
-          <div class="streak-strip-days" id="streakDots"></div>
-        </div>
+        <!-- Seri / "Bugün 1 soru çöz" şeridi geçici olarak pasife alındı. -->
       </header>
       <main id="app" class="app-scroll"></main>
     </div>
@@ -242,6 +224,6 @@
        sessizce kaybolur. app-guard.js'ten önce yükleniyor. -->
   <script src="auth-common.js"></script>
   <script src="app-guard.js"></script>
-  <script src="app.js?v=142"></script>
+  <script src="app.js?v=144"></script>
 </body>
 </html>

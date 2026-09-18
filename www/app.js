@@ -164,7 +164,7 @@ let searchScrollTop = null;
 // çağrıldığı için "Cannot access before initialization" hatasıyla TÜM
 // app.js'in çökmesine (ve dolayısıyla ana ekranın boş kalmasına) neden
 // oluyordu. Bkz. sohbet geçmişi — jsdom ile simüle edilip doğrulandı.
-const DEFAULT_NOTIFICATION_PREFS = { dailyReminder: true, streakWarning: true, srsDue: false, examCountdown: true, reminderTime: '20:00' };
+const DEFAULT_NOTIFICATION_PREFS = { dailyReminder: true, reminderTime: '20:00' };
 if (!window.SRProgressSync) throw new Error('İlerleme senkronizasyon modülü yüklenemedi.');
 let progress = loadProgress();
 
@@ -269,7 +269,14 @@ function sanitizeProgress(saved, fallbackUserId = null) {
     lastActivity: (saved.lastActivity && typeof saved.lastActivity === 'object') ? saved.lastActivity : null,
     // Eski kayıtlarda notificationPrefs hiç yoktu; varsayılanlarla birleştirip
     // eksik anahtarları (ör. yeni eklenen bir hatırlatma türü) tamamlıyoruz.
-    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS, ...((saved.notificationPrefs && typeof saved.notificationPrefs === 'object') ? saved.notificationPrefs : {}) }
+    notificationPrefs: {
+      dailyReminder: typeof saved.notificationPrefs?.dailyReminder === 'boolean'
+        ? saved.notificationPrefs.dailyReminder
+        : DEFAULT_NOTIFICATION_PREFS.dailyReminder,
+      reminderTime: /^([01]\d|2[0-3]):[0-5]\d$/.test(saved.notificationPrefs?.reminderTime || '')
+        ? saved.notificationPrefs.reminderTime
+        : DEFAULT_NOTIFICATION_PREFS.reminderTime
+    }
   };
   sanitized.seenBitmap = typeof saved.seenBitmap === 'string' ? saved.seenBitmap : '';
   window.SRProgressSync.ensureClocks(sanitized);
@@ -1577,14 +1584,11 @@ function renderNotificationSettingsCard() {
     </div>`;
   return `<section class="profile-goal-card">
     <div class="profile-goal-head"><span>BİLDİRİMLER</span></div>
-    <p class="profile-goal-desc">Çalışma ritmini korumana yardımcı hatırlatmaları aç veya kapat.</p>
+    <p class="profile-goal-desc">Günlük çalışma hatırlatıcını aç, kapat veya saatini değiştir.</p>
     ${toggleRow('dailyReminder', 'Günlük çalışma hatırlatıcısı', 'Seçtiğin saatte, her gün')}
-    ${toggleRow('streakWarning', 'Seri uyarısı', 'Seriyi bozmadan hemen önce')}
-    ${toggleRow('srsDue', 'Tekrar zamanı geldi', 'Vadesi gelen Leitner kartları için')}
-    ${toggleRow('examCountdown', 'Sınav geri sayımı', '30 / 14 / 7 / 3 / 1 gün kala')}
     <div class="notif-time-row">
       <span class="notif-time-label">Hatırlatma saati</span>
-      <input type="time" id="notifReminderTimeInput" class="notif-time-input" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati">
+      <input type="time" id="notifReminderTimeInput" class="notif-time-input" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati">
     </div>
   </section>`;
 }
