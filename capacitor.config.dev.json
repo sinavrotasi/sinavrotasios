@@ -3,13 +3,14 @@
   "appName": "SınavRotası (Dev)",
   "webDir": "www",
   "server": {
-    "url": "https://rahmetlibaskankennedy.github.io/sinavrotasios/www/",
+    "url": "https://sinavrotasi.github.io/sinavrotasios/www/",
     "cleartext": false,
     "androidScheme": "https"
   },
   "plugins": {
     "SplashScreen": {
-      "launchAutoHide": false
+      "launchAutoHide": true,
+      "launchShowDuration": 3000
     },
     "Keyboard": {
       "resize": "none"
