@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#071f49">
 <title>SınavRotası — Hoş geldin</title>
 <style>
@@ -98,6 +98,13 @@ body{
     padding:0 25px max(12px,env(safe-area-inset-bottom));
   }
 }
+html,
+body,
+.app {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
 </style>
 </head>
 <body>
@@ -140,12 +147,165 @@ body{
 <script src="vendor/capacitor/keyboard.js"></script>
 <script src="native-ux.js"></script>
 <script>
-(()=>{'use strict';
-// Native (Capacitor) kabukta açılış ekranını kapat — index.html/login.html/signup.html
-// ile aynı davranış. Web'de window.NativeUX yoksa hiçbir şey yapmaz.
-window.NativeUX?.init({ statusBarStyle: 'LIGHT' });
-window.NativeUX?.hideSplash();
-const SEEN_KEY='sr_onboarding_seen_v1';
-const app=document.getElementById('app'),slides=[...document.querySelectorAll('.slide')],nav=document.querySelector('.steps'),next=document.getElementById('next'),back=document.getElementById('back'),skip=document.getElementById('skip');let current=0;const labels=['Çalış ve öğren','Tekrar ve pekiştirme','Deneme ve düzen','Motivasyon ve gelişim'];slides.forEach((slide,i)=>{slide.querySelector('h1,h2').id='title'+(i+1);const btn=document.createElement('button');btn.type='button';btn.className='step';btn.setAttribute('aria-label',(i+1)+'. slayt: '+labels[i]);btn.innerHTML='<span></span>';btn.onclick=()=>show(i);nav.append(btn)});function show(i){current=Math.max(0,Math.min(3,i));app.classList.toggle('light',current%2===1);document.querySelector('meta[name="theme-color"]').content=current%2?'#ffffff':'#071f49';slides.forEach((s,n)=>{s.hidden=n!==current;s.classList.toggle('active',n===current)});[...nav.children].forEach((b,n)=>{if(n===current)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current')});document.querySelector('.page-number').textContent='0'+(current+1)+' / 04';back.hidden=current===0;skip.hidden=current===3;next.querySelector('span').textContent=current===3?'SınavRotası’na başlayalım':'Devam et'}function finish(){try{localStorage.setItem(SEEN_KEY,'1')}catch(e){}window.location.href='login.html'}next.onclick=()=>current<3?show(current+1):finish();back.onclick=()=>show(current-1);skip.onclick=finish;document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();show(current+1)}if(e.key==='ArrowLeft'){e.preventDefault();show(current-1)}});let x=null,y=null;app.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;x=e.clientX;y=e.clientY});app.addEventListener('pointerup',e=>{if(x===null)return;const dx=e.clientX-x,dy=e.clientY-y;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy))show(current+(dx<0?1:-1));x=null;y=null});app.addEventListener('pointercancel',()=>{x=null;y=null});show(0)})();
+(() => {
+  'use strict';
+
+  // Native Capacitor kabuğunda açılış ekranını kapatır.
+  // Web ortamında NativeUX yoksa herhangi bir işlem yapmaz.
+  window.NativeUX?.init({
+    statusBarStyle: 'LIGHT'
+  });
+
+  window.NativeUX?.hideSplash();
+
+  const SEEN_KEY = 'sr_onboarding_seen_v1';
+
+  const app = document.getElementById('app');
+  const slides = [...document.querySelectorAll('.slide')];
+  const nav = document.querySelector('.steps');
+  const next = document.getElementById('next');
+  const back = document.getElementById('back');
+  const skip = document.getElementById('skip');
+
+  const labels = [
+    'Çalış ve öğren',
+    'Tekrar ve pekiştirme',
+    'Deneme ve düzen',
+    'Motivasyon ve gelişim'
+  ];
+
+  let current = 0;
+
+  slides.forEach((slide, index) => {
+    const heading = slide.querySelector('h1, h2');
+
+    if (heading) {
+      heading.id = 'title' + (index + 1);
+    }
+
+    const button = document.createElement('button');
+
+    button.type = 'button';
+    button.className = 'step';
+    button.setAttribute(
+      'aria-label',
+      `${index + 1}. slayt: ${labels[index]}`
+    );
+    button.innerHTML = '<span></span>';
+
+    button.onclick = () => show(index);
+
+    nav.append(button);
+  });
+
+  function show(index) {
+    current = Math.max(0, Math.min(slides.length - 1, index));
+
+    app.classList.toggle('light', current % 2 === 1);
+
+    document.querySelector('meta[name="theme-color"]').content =
+      current % 2 ? '#ffffff' : '#071f49';
+
+    slides.forEach((slide, slideIndex) => {
+      const isActive = slideIndex === current;
+
+      slide.hidden = !isActive;
+      slide.classList.toggle('active', isActive);
+    });
+
+    // Her slayt açıldığında içeriği en üstten başlatır.
+    slides[current].scrollTop = 0;
+
+    [...nav.children].forEach((button, buttonIndex) => {
+      if (buttonIndex === current) {
+        button.setAttribute('aria-current', 'step');
+      } else {
+        button.removeAttribute('aria-current');
+      }
+    });
+
+    document.querySelector('.page-number').textContent =
+      `0${current + 1} / 04`;
+
+    back.hidden = current === 0;
+    skip.hidden = current === slides.length - 1;
+
+    next.querySelector('span').textContent =
+      current === slides.length - 1
+        ? 'SınavRotası’na başlayalım'
+        : 'Devam et';
+  }
+
+  function finish() {
+    try {
+      localStorage.setItem(SEEN_KEY, '1');
+    } catch (error) {
+      // localStorage kullanılamıyorsa yönlendirmeye devam eder.
+    }
+
+    window.location.href = 'login.html';
+  }
+
+  next.onclick = () => {
+    if (current < slides.length - 1) {
+      show(current + 1);
+    } else {
+      finish();
+    }
+  };
+
+  back.onclick = () => show(current - 1);
+  skip.onclick = finish;
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      show(current + 1);
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      show(current - 1);
+    }
+  });
+
+  let pointerX = null;
+  let pointerY = null;
+
+  app.addEventListener('pointerdown', event => {
+    if (event.target.closest('button')) {
+      return;
+    }
+
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+  });
+
+  app.addEventListener('pointerup', event => {
+    if (pointerX === null || pointerY === null) {
+      return;
+    }
+
+    const differenceX = event.clientX - pointerX;
+    const differenceY = event.clientY - pointerY;
+
+    if (
+      Math.abs(differenceX) > 55 &&
+      Math.abs(differenceX) > Math.abs(differenceY)
+    ) {
+      show(current + (differenceX < 0 ? 1 : -1));
+    }
+
+    pointerX = null;
+    pointerY = null;
+  });
+
+  app.addEventListener('pointercancel', () => {
+    pointerX = null;
+    pointerY = null;
+  });
+
+  show(0);
+})();
 </script>
 </body></html>
