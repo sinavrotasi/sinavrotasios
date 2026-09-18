@@ -1,13 +1,19 @@
 {
   "appId": "com.sinavrotasi.mebgys",
-  "appName": "SınavRotası",
+  "appName": "SınavRotası (Dev)",
   "webDir": "www",
   "server": {
+    "url": "https://sinavrotasi.github.io/sinavrotasios/www/",
+    "cleartext": false,
     "androidScheme": "https"
+  },
+  "ios": {
+    "scrollEnabled": false
   },
   "plugins": {
     "SplashScreen": {
-      "launchAutoHide": false
+      "launchAutoHide": true,
+      "launchShowDuration": 3000
     },
     "Keyboard": {
       "resize": "none"
