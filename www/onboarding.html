@@ -61,7 +61,9 @@ body{
   min-height:0;
   overflow-y:auto;
   overflow-x:hidden;
-  overscroll-behavior-y:contain;
+  /* `contain` iOS'taki lastik/esneme efektini bu iç kaydırıcıda koruyordu. */
+  overscroll-behavior-y:none;
+  touch-action:pan-y;
   -webkit-overflow-scrolling:touch;
   scrollbar-width:none;
 }
