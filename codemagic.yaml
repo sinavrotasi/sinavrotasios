@@ -27,6 +27,49 @@ workflows:
           set -euo pipefail
           npx cap add ios
 
+      - name: Disable UIScrollView bounce natively
+        script: |
+          set -euo pipefail
+
+          APPDELEGATE_PATH="$CM_BUILD_DIR/ios/App/App/AppDelegate.swift"
+
+          if [ ! -f "$APPDELEGATE_PATH" ]; then
+            echo "ERROR: AppDelegate.swift not found."
+            exit 1
+          fi
+
+          MARKER="Called when the application becomes active again after inactive state"
+
+          if ! grep -q "$MARKER" "$APPDELEGATE_PATH"; then
+            echo "ERROR: Expected AppDelegate.swift template comment not found. Capacitor template may have changed."
+            exit 1
+          fi
+
+          perl -i -pe "s/(\Q$MARKER\E)/\$1\n        disableAllBounces()/" "$APPDELEGATE_PATH"
+
+          cat >> "$APPDELEGATE_PATH" << 'EOF'
+
+extension AppDelegate {
+    func disableAllBounces() {
+        guard let window = self.window else { return }
+        disableBounces(in: window)
+    }
+
+    private func disableBounces(in view: UIView) {
+        if let scrollView = view as? UIScrollView {
+            scrollView.bounces = false
+        }
+        for subview in view.subviews {
+            disableBounces(in: subview)
+        }
+    }
+}
+EOF
+
+          echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
+          echo "---"
+          tail -20 "$APPDELEGATE_PATH"
+
       - name: Configure iOS deep link
         script: |
           set -euo pipefail
@@ -286,6 +329,49 @@ workflows:
         script: |
           set -euo pipefail
           npx cap add ios
+
+      - name: Disable UIScrollView bounce natively
+        script: |
+          set -euo pipefail
+
+          APPDELEGATE_PATH="$CM_BUILD_DIR/ios/App/App/AppDelegate.swift"
+
+          if [ ! -f "$APPDELEGATE_PATH" ]; then
+            echo "ERROR: AppDelegate.swift not found."
+            exit 1
+          fi
+
+          MARKER="Called when the application becomes active again after inactive state"
+
+          if ! grep -q "$MARKER" "$APPDELEGATE_PATH"; then
+            echo "ERROR: Expected AppDelegate.swift template comment not found. Capacitor template may have changed."
+            exit 1
+          fi
+
+          perl -i -pe "s/(\Q$MARKER\E)/\$1\n        disableAllBounces()/" "$APPDELEGATE_PATH"
+
+          cat >> "$APPDELEGATE_PATH" << 'EOF'
+
+extension AppDelegate {
+    func disableAllBounces() {
+        guard let window = self.window else { return }
+        disableBounces(in: window)
+    }
+
+    private func disableBounces(in view: UIView) {
+        if let scrollView = view as? UIScrollView {
+            scrollView.bounces = false
+        }
+        for subview in view.subviews {
+            disableBounces(in: subview)
+        }
+    }
+}
+EOF
+
+          echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
+          echo "---"
+          tail -20 "$APPDELEGATE_PATH"
 
       - name: Configure iOS deep link
         script: |
@@ -596,6 +682,49 @@ workflows:
         script: |
           set -euo pipefail
           npx cap add ios
+
+      - name: Disable UIScrollView bounce natively
+        script: |
+          set -euo pipefail
+
+          APPDELEGATE_PATH="$CM_BUILD_DIR/ios/App/App/AppDelegate.swift"
+
+          if [ ! -f "$APPDELEGATE_PATH" ]; then
+            echo "ERROR: AppDelegate.swift not found."
+            exit 1
+          fi
+
+          MARKER="Called when the application becomes active again after inactive state"
+
+          if ! grep -q "$MARKER" "$APPDELEGATE_PATH"; then
+            echo "ERROR: Expected AppDelegate.swift template comment not found. Capacitor template may have changed."
+            exit 1
+          fi
+
+          perl -i -pe "s/(\Q$MARKER\E)/\$1\n        disableAllBounces()/" "$APPDELEGATE_PATH"
+
+          cat >> "$APPDELEGATE_PATH" << 'EOF'
+
+extension AppDelegate {
+    func disableAllBounces() {
+        guard let window = self.window else { return }
+        disableBounces(in: window)
+    }
+
+    private func disableBounces(in view: UIView) {
+        if let scrollView = view as? UIScrollView {
+            scrollView.bounces = false
+        }
+        for subview in view.subviews {
+            disableBounces(in: subview)
+        }
+    }
+}
+EOF
+
+          echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
+          echo "---"
+          tail -20 "$APPDELEGATE_PATH"
 
       - name: Configure iOS deep link
         script: |

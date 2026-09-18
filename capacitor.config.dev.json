@@ -8,7 +8,7 @@
     "androidScheme": "https"
   },
   "ios": {
-    "scrollEnabled": false
+    "scrollEnabled": true
   },
   "plugins": {
     "SplashScreen": {

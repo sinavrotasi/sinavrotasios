@@ -3,7 +3,7 @@
   "appName": "SınavRotası",
   "webDir": "www",
   "ios": {
-    "scrollEnabled": false
+    "scrollEnabled": true
   },
   "plugins": {
     "SplashScreen": {
