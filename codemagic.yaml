@@ -49,22 +49,22 @@ workflows:
 
           cat >> "$APPDELEGATE_PATH" << 'EOF'
 
-extension AppDelegate {
-    func disableAllBounces() {
-        guard let window = self.window else { return }
-        disableBounces(in: window)
-    }
+          extension AppDelegate {
+              func disableAllBounces() {
+                  guard let window = self.window else { return }
+                  disableBounces(in: window)
+              }
 
-    private func disableBounces(in view: UIView) {
-        if let scrollView = view as? UIScrollView {
-            scrollView.bounces = false
-        }
-        for subview in view.subviews {
-            disableBounces(in: subview)
-        }
-    }
-}
-EOF
+              private func disableBounces(in view: UIView) {
+                  if let scrollView = view as? UIScrollView {
+                      scrollView.bounces = false
+                  }
+                  for subview in view.subviews {
+                      disableBounces(in: subview)
+                  }
+              }
+          }
+          EOF
 
           echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
           echo "---"
@@ -352,22 +352,22 @@ EOF
 
           cat >> "$APPDELEGATE_PATH" << 'EOF'
 
-extension AppDelegate {
-    func disableAllBounces() {
-        guard let window = self.window else { return }
-        disableBounces(in: window)
-    }
+          extension AppDelegate {
+              func disableAllBounces() {
+                  guard let window = self.window else { return }
+                  disableBounces(in: window)
+              }
 
-    private func disableBounces(in view: UIView) {
-        if let scrollView = view as? UIScrollView {
-            scrollView.bounces = false
-        }
-        for subview in view.subviews {
-            disableBounces(in: subview)
-        }
-    }
-}
-EOF
+              private func disableBounces(in view: UIView) {
+                  if let scrollView = view as? UIScrollView {
+                      scrollView.bounces = false
+                  }
+                  for subview in view.subviews {
+                      disableBounces(in: subview)
+                  }
+              }
+          }
+          EOF
 
           echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
           echo "---"
@@ -705,22 +705,22 @@ EOF
 
           cat >> "$APPDELEGATE_PATH" << 'EOF'
 
-extension AppDelegate {
-    func disableAllBounces() {
-        guard let window = self.window else { return }
-        disableBounces(in: window)
-    }
+          extension AppDelegate {
+              func disableAllBounces() {
+                  guard let window = self.window else { return }
+                  disableBounces(in: window)
+              }
 
-    private func disableBounces(in view: UIView) {
-        if let scrollView = view as? UIScrollView {
-            scrollView.bounces = false
-        }
-        for subview in view.subviews {
-            disableBounces(in: subview)
-        }
-    }
-}
-EOF
+              private func disableBounces(in view: UIView) {
+                  if let scrollView = view as? UIScrollView {
+                      scrollView.bounces = false
+                  }
+                  for subview in view.subviews {
+                      disableBounces(in: subview)
+                  }
+              }
+          }
+          EOF
 
           echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
           echo "---"
