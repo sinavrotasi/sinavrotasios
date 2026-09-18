@@ -1,5 +1,21 @@
 :root{--navy:#071f49;--navy2:#123b77;--blue:#2d7ef7;--red:#e93238;--red2:#fff0f1;--green:#1f9d62;--green2:#eaf8f0;--amber:#d99019;--text:#10213f;--muted:#778196;--line:#e7ebf1;--bg:#f5f7fb;--white:#fff;--shadow:0 12px 32px rgba(13,33,68,.09);--keyboard-height:0px}
 *{box-sizing:border-box}
+/* iOS çift dokunma yakınlaştırmasını ve sayfa kaymasını engelle */
+html,
+body,
+.phone {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+  overscroll-behavior: none;
+}
+
+.scroll-area {
+  overscroll-behavior-y: contain;
+}
 /* Native klavye açıkken (native-ux.js) alt menü klavyeyle çakışmasın diye gizlenir. */
 .keyboard-open .bottom-nav{display:none}
 html,body{margin:0;min-height:100%;width:100%;max-width:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:var(--bg);overflow-x:hidden}
