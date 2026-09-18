@@ -1034,7 +1034,7 @@ body{background:var(--bg)}
 .search-input-wrap{ display:flex; align-items:center; gap:10px; height:46px; border:1.5px solid var(--line); border-radius:13px; padding:0 14px; margin-bottom:14px; background:#f6f8fb; flex-shrink:0; }
 .search-input-wrap:focus-within{ border-color:var(--blue); background:#fff; box-shadow:0 0 0 3px rgba(45,126,247,.1); }
 .search-input-wrap svg{ width:17px; height:17px; color:var(--muted); flex-shrink:0; }
-.search-input{ border:none; outline:none; flex:1; min-width:0; background:transparent; font-size:14px; color:var(--text); }
+.search-input{ border:none; outline:none; flex:1; min-width:0; background:transparent; font-size:16px; color:var(--text); }
 .search-input::placeholder{ color:#a7b0c0; }
 
 /* ================= AUTH (ÜYELİK / GİRİŞ) — normal, responsive web page (phone mockup DEĞİL) ================= */
