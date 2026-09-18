@@ -7,6 +7,10 @@
     "cleartext": false,
     "androidScheme": "https"
   },
+  "ios": {
+    "scrollEnabled": false,
+    "contentInset": "never"
+  },
   "plugins": {
     "SplashScreen": {
       "launchAutoHide": true,
