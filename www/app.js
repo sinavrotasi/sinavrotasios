@@ -970,7 +970,10 @@ function renderBankProgressWidget(stats) {
     <div class="bank-progress-main">
       <div class="bank-progress-head">
         <div><span>GENEL İLERLEME</span><strong class="bank-progress-percent">%${bankPct}</strong></div>
-        <div class="bank-progress-title"><h4>Soru Bankası İlerlemen</h4><small>${stats.totalQuestionCount ? `${stats.totalQuestionCount.toLocaleString('tr-TR')} sorudan yaklaşık ${Math.min(stats.uniqueSolved, stats.totalQuestionCount).toLocaleString('tr-TR')} farklı soru çözdün` : `${stats.solvedQuestions} soru çözümü yaptın`}</small></div>
+        <div class="bank-progress-title"><h4>Soru Bankası İlerlemen</h4><small>${stats.totalQuestionCount ? (() => {
+          const solvedCount = Math.min(stats.uniqueSolved, stats.totalQuestionCount);
+          return `${stats.totalQuestionCount.toLocaleString('tr-TR')} sorudan ${solvedCount.toLocaleString('tr-TR')}'${turkishAccusativeSuffix(solvedCount)} çözdün`;
+        })() : `${stats.solvedQuestions} soru çözümü yaptın`}</small></div>
       </div>
       <div class="bank-progress-path">
         <div class="bank-progress-track">
@@ -1591,18 +1594,28 @@ function renderNotificationSettingsCard() {
   </section>`;
 }
 
+// Ad Soyad'ın baş harflerinden avatar için iki harf üretir (ör. "Sait Yıldırım" -> S, Y).
+// Tek kelimelik isimlerde (ör. sadece email'den türetilen ad) ikinci harf boş kalır.
+function getAvatarInitials(fullName) {
+  const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return { first: '?', second: '' };
+  const first = parts[0].charAt(0).toUpperCase();
+  const second = parts.length > 1 ? parts[parts.length - 1].charAt(0).toUpperCase() : '';
+  return { first, second };
+}
+
 function profileView() {
   const stats = getStats();
   const user = window.currentUser;
   const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Aday';
   const email = user?.email || '';
-  const initial = fullName.trim().charAt(0).toUpperCase() || '?';
+  const { first: avatarFirst, second: avatarSecond } = getAvatarInitials(fullName);
   const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || '';
   const badges = getBadges(stats);
   return `<section class="screen content-screen">
   <div class="profile-header-row">
     <article class="profile-summary">
-      <div class="profile-summary-avatar">${escapeHtml(initial)}</div>
+      <div class="profile-summary-avatar"><span class="avatar-letter-1">${escapeHtml(avatarFirst)}</span><span class="avatar-letter-2">${escapeHtml(avatarSecond)}</span></div>
       <div>
         <strong>${escapeHtml(fullName)}</strong><span>${escapeHtml(email)}</span>
         <button class="profile-role-chip" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button>
@@ -1682,6 +1695,17 @@ function bindViewEvents() {
   const profileGoalSaveButton = document.getElementById('profileDailyGoalSaveButton');
   profileGoalSaveButton?.addEventListener('click', () => { if (profileGoalInput) setDailyGoal(profileGoalInput.value); });
   profileGoalInput?.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); profileGoalSaveButton?.click(); } });
+  // O-09 (2026-09-19): Kaydet'e basmadan boş bir alana dokunulduğunda input
+  // focus'u bırakıyor ama native (Capacitor) klavyesi açık kalıyordu — çünkü
+  // "Kaydet" ile kapanma aslında setDailyGoal() -> saveProgress() -> render()
+  // zincirinin input'u DOM'dan tamamen kaldırmasının yan etkisiydi, kapanışı
+  // sağlayan asıl bir eylem yoktu. clearSearchState()'teki gibi blur anında
+  // native klavyeyi açıkça kapatıyoruz.
+  profileGoalInput?.addEventListener('blur', () => {
+    window.NativeUX?.hideKeyboard?.();
+    document.body.classList.remove('keyboard-open');
+    document.documentElement.style.setProperty('--keyboard-height', '0px');
+  });
 
   // Bildirim tercihi anahtarları — tam re-render yerine sadece dokunulan
   // butonu güncelliyoruz ki dokunuş anında görsel geri bildirim gecikmesiz olsun.
