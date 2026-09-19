@@ -5,7 +5,7 @@
 function friendlyAuthError(message = '') {
   if (/Invalid login credentials/i.test(message)) return 'E-posta veya şifre hatalı.';
   if (/User already registered/i.test(message)) return 'Bu e-posta ile zaten bir hesap var.';
-  if (/Password should be at least|password.*(weak|requirement)/i.test(message)) return 'Şifre en az 8 karakter olmalı; büyük harf, küçük harf, rakam ve sembol içermeli.';
+  if (/Password should be at least|Password should contain|password.*(weak|requirement)/i.test(message)) return 'Şifre en az 8 karakter olmalı; büyük harf, küçük harf, rakam ve sembol içermeli.';
   if (/Email not confirmed/i.test(message)) return 'Lütfen e-postana gelen doğrulama bağlantısına tıkla.';
   if (/provider is not enabled/i.test(message)) return 'Bu giriş yöntemi şu anda kullanılamıyor. Lütfen e-posta ile devam et.';
   if (/redirect_to.*not allowed|requested path is invalid/i.test(message)) return 'Bu giriş yöntemi henüz yapılandırılmadı.';
@@ -19,14 +19,19 @@ function setFormBusy(button, busy, idleLabel) {
 }
 
 function passwordRequirementError(password) {
-  if (typeof password !== 'string' || password.length < 8) {
-    return 'Şifre en az 8 karakter olmalı.';
-  }
-  if (!/[a-zçğıöşü]/.test(password)) return 'Şifre en az bir küçük harf içermeli.';
-  if (!/[A-ZÇĞİÖŞÜ]/.test(password)) return 'Şifre en az bir büyük harf içermeli.';
-  if (!/\d/.test(password)) return 'Şifre en az bir rakam içermeli.';
-  if (!/[^A-Za-z0-9ÇĞİÖŞÜçğıöşü]/.test(password)) return 'Şifre en az bir sembol içermeli.';
-  return '';
+  const value = typeof password === 'string' ? password : '';
+  // Tüm eksikleri tek seferde toplarız; ilk eksikte durmayız.
+  const missing = [];
+  if (value.length < 8) missing.push('en az 8 karakter');
+  if (!/[a-zçğıöşü]/.test(value)) missing.push('küçük harf');
+  if (!/[A-ZÇĞİÖŞÜ]/.test(value)) missing.push('büyük harf');
+  if (!/\d/.test(value)) missing.push('rakam');
+  if (!/[^A-Za-z0-9ÇĞİÖŞÜçğıöşü]/.test(value)) missing.push('sembol');
+  if (!missing.length) return '';
+  const list = missing.length === 1
+    ? missing[0]
+    : `${missing.slice(0, -1).join(', ')} ve ${missing[missing.length - 1]}`;
+  return `Şifre şunları içermeli: ${list}.`;
 }
 
 // Recovery durumu bir JS değişkeninde değil sessionStorage'da tutulur, çünkü
