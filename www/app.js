@@ -186,6 +186,7 @@ const iconPaths = {
   arrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
   arrowLeft: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
   target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  compass: '<path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/>',
   book: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>',
   trophy: '<path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"/><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"/><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"/>',
   flame: '<path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/>',
@@ -977,11 +978,8 @@ function renderBankProgressWidget(stats) {
           <span class="bank-progress-dot" style="left:${bankPct}%"></span>
         </div>
         <div class="bank-progress-labels">
-          <div class="bp-tick"><span class="bp-tick-mark"></span><span class="bp-label-start">Başlangıç</span></div>
-          <div class="bp-tick"><span class="bp-tick-mark"></span><span>%25</span></div>
-          <div class="bp-tick"><span class="bp-tick-mark"></span><span>%50</span></div>
-          <div class="bp-tick"><span class="bp-tick-mark"></span><span>%75</span></div>
-          <div class="bp-tick"><span class="bp-tick-mark"></span><span>%100</span></div>
+          <div class="bp-tick bp-tick-mid"><span class="bp-tick-mark"></span><span>%50</span></div>
+          <div class="bp-tick bp-tick-end"><span class="bp-tick-mark"></span><span>%100</span></div>
         </div>
       </div>
     </div>
@@ -1010,7 +1008,7 @@ function homeView() {
     
     <!-- BUGÜNKÜ ROTA BUTONU -->
     <button class="cta-btn" id="openRouteSheetButton" type="button">
-      <div class="cta-icon">${svg('target')}</div><div><strong>Bugünkü Rota</strong><span>Önerilen planı gör veya özelleştir</span></div><span class="chevron-w">${svg('arrow')}</span>
+      <div class="cta-icon">${svg('compass')}</div><div><strong>Bugünkü Rota</strong><span>Önerilen planı gör veya özelleştir</span></div><span class="chevron-w">${svg('arrow')}</span>
     </button>
     ${state.totalDueFlashcards > 0 ? `
     <button class="cta-btn cta-btn-flashcards" id="openDueFlashcardsButton" type="button">

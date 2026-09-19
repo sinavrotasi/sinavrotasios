@@ -38,12 +38,9 @@ body{background:var(--bg)}
 .app-scroll{width:100%;max-width:100%;min-width:0;padding-bottom:82px}
 
 .screen{padding:10px 14px 12px}
-/* Koyu header'dan beyaz karta geçiş sert bir duvar gibi durmasın diye ilk
-   kart hafifçe header'ın altına sokulur ve üst köşe yarıçapı header'ınkiyle
-   (22px) eşleştirilir — tek parça, kesintisiz bir yüzey gibi okunur. */
-.home-screen{padding-top:0}
-.home-screen .bank-progress-card{margin-top:-10px;border-radius:22px 22px 16px 16px;box-shadow:0 -8px 16px rgba(7,31,73,.10),0 4px 12px rgba(13,33,68,.05)}
-.home-screen{padding-top:6px}
+/* İlk kart header'ın kavisinin altına sokulmaz; header ile arasında net bir
+   boşluk kalır (kart görünümü .bank-progress-card'dan gelir). */
+.home-screen{padding-top:14px}
 
 /* HEADER */
 .app-header{flex-shrink:0;position:relative;z-index:10;color:#fff;background:#061229;padding:calc(max(6px,env(safe-area-inset-top)) + 10px) 14px 10px;border-radius:0 0 22px 22px}
@@ -153,13 +150,12 @@ body{background:var(--bg)}
 .bank-progress-track{position:relative;height:6px;background:#eef1f6;border-radius:4px;margin:10px 6px 12px}
 .bank-progress-track-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--red),var(--navy));border-radius:4px}
 .bank-progress-dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px #fff,0 1px 4px rgba(0,0,0,.15);transform:translate(-50%,-50%)}
-.bank-progress-labels{display:flex;justify-content:space-between;padding:0 6px}
-.bp-tick{display:flex;flex-direction:column;align-items:center;gap:5px}
-.bp-tick:first-child{align-items:flex-start}
-.bp-tick:last-child{align-items:flex-end}
+.bank-progress-labels{position:relative;height:26px;margin:0 6px}
+.bp-tick{position:absolute;top:0;display:flex;flex-direction:column;align-items:center;gap:5px}
+.bp-tick-mid{left:50%;transform:translateX(-50%)}
+.bp-tick-end{right:0;align-items:flex-end}
 .bp-tick-mark{width:1px;height:8px;background:#d6dbe4}
 .bank-progress-labels span{font-size:9.5px;font-weight:600;color:var(--muted)}
-.bp-label-start{color:var(--text);font-weight:700}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-radius:14px;padding:10px 4px 9px;margin-bottom:10px;box-shadow:0 4px 12px rgba(13,33,68,.03)}
 .stats.stats-3{grid-template-columns:repeat(3,1fr)}
 .stat{text-align:center;position:relative;padding:0 4px;display:flex;flex-direction:column;align-items:center;gap:4px}
