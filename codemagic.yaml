@@ -38,10 +38,17 @@ workflows:
             exit 1
           fi
 
-          MARKER="Called when the application becomes active again after inactive state"
+          # O-13 (2026-09-20): Eski script bir YORUM satırını arıyordu
+          # ("Called when the application becomes active again after inactive
+          # state"). Capacitor bu yorumu değiştirince script kırıldı. Onun
+          # yerine gerçek bir UIApplicationDelegate metod imzasını
+          # hedefliyoruz — Apple'ın kendi UIKit API'si, Capacitor'ın şablon
+          # güncellemesiyle değişmesi beklenmez.
+          MARKER='func applicationDidBecomeActive(_ application: UIApplication) {'
 
-          if ! grep -q "$MARKER" "$APPDELEGATE_PATH"; then
-            echo "ERROR: Expected AppDelegate.swift template comment not found. Capacitor template may have changed."
+          if ! grep -qF "$MARKER" "$APPDELEGATE_PATH"; then
+            echo "ERROR: applicationDidBecomeActive(_:) AppDelegate.swift içinde bulunamadı."
+            echo "Capacitor şablonu bu fonksiyonun imzasını da değiştirmiş olabilir — AppDelegate.swift'i elle kontrol edin."
             exit 1
           fi
 
@@ -341,10 +348,17 @@ workflows:
             exit 1
           fi
 
-          MARKER="Called when the application becomes active again after inactive state"
+          # O-13 (2026-09-20): Eski script bir YORUM satırını arıyordu
+          # ("Called when the application becomes active again after inactive
+          # state"). Capacitor bu yorumu değiştirince script kırıldı. Onun
+          # yerine gerçek bir UIApplicationDelegate metod imzasını
+          # hedefliyoruz — Apple'ın kendi UIKit API'si, Capacitor'ın şablon
+          # güncellemesiyle değişmesi beklenmez.
+          MARKER='func applicationDidBecomeActive(_ application: UIApplication) {'
 
-          if ! grep -q "$MARKER" "$APPDELEGATE_PATH"; then
-            echo "ERROR: Expected AppDelegate.swift template comment not found. Capacitor template may have changed."
+          if ! grep -qF "$MARKER" "$APPDELEGATE_PATH"; then
+            echo "ERROR: applicationDidBecomeActive(_:) AppDelegate.swift içinde bulunamadı."
+            echo "Capacitor şablonu bu fonksiyonun imzasını da değiştirmiş olabilir — AppDelegate.swift'i elle kontrol edin."
             exit 1
           fi
 
@@ -694,10 +708,17 @@ workflows:
             exit 1
           fi
 
-          MARKER="Called when the application becomes active again after inactive state"
+          # O-13 (2026-09-20): Eski script bir YORUM satırını arıyordu
+          # ("Called when the application becomes active again after inactive
+          # state"). Capacitor bu yorumu değiştirince script kırıldı. Onun
+          # yerine gerçek bir UIApplicationDelegate metod imzasını
+          # hedefliyoruz — Apple'ın kendi UIKit API'si, Capacitor'ın şablon
+          # güncellemesiyle değişmesi beklenmez.
+          MARKER='func applicationDidBecomeActive(_ application: UIApplication) {'
 
-          if ! grep -q "$MARKER" "$APPDELEGATE_PATH"; then
-            echo "ERROR: Expected AppDelegate.swift template comment not found. Capacitor template may have changed."
+          if ! grep -qF "$MARKER" "$APPDELEGATE_PATH"; then
+            echo "ERROR: applicationDidBecomeActive(_:) AppDelegate.swift içinde bulunamadı."
+            echo "Capacitor şablonu bu fonksiyonun imzasını da değiştirmiş olabilir — AppDelegate.swift'i elle kontrol edin."
             exit 1
           fi
 
