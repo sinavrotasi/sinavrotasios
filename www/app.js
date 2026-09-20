@@ -1052,28 +1052,63 @@ function bankView() {
   // görünür kılıyor.
   const completedExams = getCompletedKadroExams();
   const completedExamsHtml = completedExams.length ? `
-    <div class="section-head" style="margin-top:18px"><h3>Çözülen Denemeler</h3></div>
+    <div class="bank-section-head"><h3>Çözülen Denemeler</h3></div>
     <div class="solved-exams-list">
       ${completedExams.map(test => {
         const percentage = test.total ? Math.round((test.score / test.total) * 100) : 0;
         return `<div class="solved-exam-row">
-          <div class="solved-exam-row-top">
-            <span class="solved-exam-title">${escapeHtml(test.title)}</span>
-            <span class="solved-exam-score">${test.score}/${test.total}</span>
+          <div class="bank-exam-icon" aria-hidden="true">${svg('statTrials')}</div>
+          <div class="bank-exam-content">
+            <div class="solved-exam-row-top">
+              <span class="solved-exam-title">${escapeHtml(test.title)}</span>
+              <span class="solved-exam-score">${test.score}/${test.total}</span>
+            </div>
+            <span class="solved-exam-caption">%${percentage} başarı • ${formatCompletedDate(test.completedAt)}</span>
+            <div class="solved-exam-progress" aria-label="Başarı oranı %${percentage}">
+              <i style="width:${Math.max(0, Math.min(100, percentage))}%"></i>
+            </div>
           </div>
-          <span class="solved-exam-caption">%${percentage} başarı • ${formatCompletedDate(test.completedAt)}</span>
         </div>`;
       }).join('')}
     </div>` : '';
 
-  return `<section class="screen content-screen">
-    <div class="page-heading"><h2>Deneme Sınavları</h2><p>Aktif soru bankalarından oluşan denemelerle performansını ölç.</p></div>
-    <div class="metric-strip"><div><strong>${stats.completedMocks}</strong><span>Tamamlanan deneme</span></div><div><strong>%${stats.accuracy}</strong><span>Genel doğruluk</span></div></div>
-    <article class="practice-card">
-      <div class="practice-card-icon">${svg('target')}</div>
-      <div><h3>Kadro Bazlı Gerçek Sınav</h3><p>Seçtiğin kadronun konu ağırlıklarına göre otomatik deneme oluştur.</p></div>
-      <button class="reader-primary" id="startKadroExamButton" type="button">Başlat</button>
+  return `<section class="screen content-screen bank-screen">
+    <div class="page-heading bank-page-heading">
+      <h2>Deneme Sınavları</h2>
+      <p>Aktif soru bankalarından oluşan denemelerle performansını ölç.</p>
+    </div>
+
+    <div class="bank-metrics">
+      <div class="bank-metric bank-metric-completed">
+        <div class="bank-metric-icon" aria-hidden="true">${svg('statTrials')}</div>
+        <div class="bank-metric-copy">
+          <strong>${stats.completedMocks}</strong>
+          <span>Tamamlanan deneme</span>
+        </div>
+      </div>
+      <div class="bank-metric bank-metric-accuracy">
+        <div class="bank-metric-icon" aria-hidden="true">${svg('target')}</div>
+        <div class="bank-metric-copy">
+          <strong>%${stats.accuracy}</strong>
+          <span>Genel doğruluk</span>
+        </div>
+      </div>
+    </div>
+
+    <article class="bank-practice-card">
+      <div class="bank-practice-top">
+        <div class="bank-practice-icon" aria-hidden="true">${svg('target')}</div>
+        <div class="bank-practice-copy">
+          <h3>Kadro Bazlı Gerçek Sınav</h3>
+          <p>Seçtiğin kadronun konu ağırlıklarına göre otomatik deneme oluştur.</p>
+        </div>
+      </div>
+      <button class="bank-start-button" id="startKadroExamButton" type="button">
+        <span class="bank-start-play" aria-hidden="true"></span>
+        <span>Başlat</span>
+      </button>
     </article>
+
     ${completedExamsHtml}
   </section>`;
 }
