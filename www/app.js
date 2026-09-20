@@ -1596,6 +1596,56 @@ function renderNotificationSettingsCard() {
 
 // Ad Soyad'ın baş harflerinden avatar için iki harf üretir (ör. "Sait Yıldırım" -> S, Y).
 // Tek kelimelik isimlerde (ör. sadece email'den türetilen ad) ikinci harf boş kalır.
+// Header'daki kadro rozetinin yerini alan günlük motivasyon sözleri.
+// Asıl kaynak Supabase (app_settings.motivational_phrases) — admin panelden
+// mağaza onayı beklemeden güncellenebilsin diye. Bu dizi SADECE ağ isteği
+// henüz dönmediğinde veya başarısız olduğunda kullanılan yerel yedektir.
+const MOTIVATIONAL_PHRASES_FALLBACK = [
+  'Bugün 1 adım daha!',
+  'Az kaldı, devam et!',
+  'Sen yapabilirsin!',
+  'Her soru seni güçlendirir.',
+  'Hedefine kilitlen!',
+  'Bugün de çalış, yarın kazan.',
+  'İstikrar kazandırır.',
+  'Bir soru daha, bir adım daha.',
+  'Pes etme, devam et!',
+  'Bugün formundasın!',
+  'Küçük adımlar, büyük başarı.',
+  'Kendine güven!',
+  'Bugün senin günün.',
+  'Disiplin, başarıyı getirir.',
+  'Şimdi çalış, sonra kutla.'
+];
+let motivationalPhrasesCache = null; // Supabase'den geldiyse dolu; yoksa null -> yedek kullanılır.
+
+// Supabase'deki app_settings.motivational_phrases satırını çeker (admin panelde
+// "Ayarlar" sekmesinden yönetiliyor; JSON dizi olarak text/jsonb kolonda tutuluyor).
+// Ağ hatasında veya satır boşsa sessizce yerel yedeğe düşer, uygulamayı bozmaz.
+async function loadMotivationalPhrases() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'motivational_phrases')
+      .maybeSingle();
+    if (error || !data?.value) return;
+    const parsed = JSON.parse(data.value);
+    if (Array.isArray(parsed) && parsed.length) {
+      motivationalPhrasesCache = parsed;
+      if (state.view === 'home') updateHeader();
+    }
+  } catch (err) {
+    console.error('Motivasyon sözleri alınamadı, yerel yedek kullanılıyor:', err);
+  }
+}
+
+function getMotivationalPhrase() {
+  const phrases = motivationalPhrasesCache || MOTIVATIONAL_PHRASES_FALLBACK;
+  const dayIndex = Math.floor(Date.now() / 86400000);
+  return phrases[dayIndex % phrases.length];
+}
+
 function getAvatarInitials(fullName) {
   const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return { first: '?', second: '' };
@@ -1615,7 +1665,7 @@ function profileView() {
   return `<section class="screen content-screen">
   <div class="profile-header-row">
     <article class="profile-summary">
-      <div class="profile-summary-avatar"><span class="avatar-letter-1">${escapeHtml(avatarFirst)}</span><span class="avatar-letter-2">${escapeHtml(avatarSecond)}</span></div>
+      <div class="profile-summary-avatar">${escapeHtml(avatarFirst)}</div>
       <div>
         <strong>${escapeHtml(fullName)}</strong><span>${escapeHtml(email)}</span>
         <button class="profile-role-chip" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button>
@@ -1746,6 +1796,17 @@ function bindViewEvents() {
 
 function updateHeader() {
   const stats = getStats();
+  // Ana sayfa header'ındaki avatar: ad soyadın baş harfleri, seal-5 tasarımıyla
+  // aynı dilde (beyaz çember + navy köşeli kare, döndürülmüş, yan yana harfler).
+  const headerAvatarMark = document.getElementById('userAvatarMark');
+  if (headerAvatarMark) {
+    const headerFullName = window.currentUser?.user_metadata?.full_name || window.currentUser?.email?.split('@')[0] || '';
+    const { first: headerAvatarFirst, second: headerAvatarSecond } = getAvatarInitials(headerFullName);
+    const l1 = headerAvatarMark.querySelector('.avatar-letter-1');
+    const l2 = headerAvatarMark.querySelector('.avatar-letter-2');
+    if (l1) l1.textContent = headerAvatarFirst;
+    if (l2) l2.textContent = headerAvatarSecond;
+  }
   const days = stats.daysUntilExam;
   const examDays = document.getElementById('headerExamDays');
   if (examDays) {
@@ -1762,8 +1823,12 @@ function updateHeader() {
     const continueButton = document.getElementById('headerContinueButton');
     if (continueButton) continueButton.onclick = openRouteSheet;
   }
+  // O-11 (2026-09-19): Kadro rozeti zaten profil ekranındaki
+  // .profile-role-chip'te duruyor — header'da tekrarlamak yerine burada kısa,
+  // motive edici bir söz gösteriyoruz. Her gün aynı söz kalsın diye (rastgele
+  // her render'da değişip göz tırmalamasın) güne göre sabit seçiliyor.
   const roleBadge = document.getElementById('userRoleBadge');
-  if (roleBadge) roleBadge.textContent = ROLES.find(r => r.key === progress.selectedRole)?.label || '';
+  if (roleBadge) roleBadge.textContent = getMotivationalPhrase();
 
   // Seri şeridi (ana sayfa header'ındaki iki üst kartın altında) — index.html'de
   // #streakStrip yoksa bu blok tamamen no-op'tur, uygulamayı bozmaz.
@@ -3848,6 +3913,10 @@ function initializeApp() {
   appInitialized = true;
   render();
   loadCatalogue();
+  // Fire-and-forget: hata olursa loadMotivationalPhrases zaten kendi içinde
+  // yakalayıp yerel yedeğe düşüyor, initializeApp'i (ve dolayısıyla splash
+  // kapanışını) hiçbir şekilde bekletmemeli.
+  loadMotivationalPhrases();
 }
 
 let authHandledOnce = false;
@@ -3855,60 +3924,73 @@ async function handleAuthenticated() {
   if (authHandledOnce) return;
   authHandledOnce = true;
 
-  const currentUserId = window.currentUser?.id || null;
-  if (progress.userId !== currentUserId) {
-    progress = defaultProgress();
-    progress.userId = currentUserId;
-  }
-
-  restoreUnverifiedPurchases();
-  initPremiumModal();
-
-  // Yerel ve bulut ilerlemesini birleştir. Sunucunun körlemesine cihazdaki
-  // verinin üstüne yazılması, çevrimdışı çözümlerin ilk girişte kaybolmasına
-  // neden oluyordu.
-  if (currentUserId) {
-    try {
-      const { data, error } = await supabaseClient
-        .from('profiles')
-        .select('progress, progress_version')
-        .eq('id', currentUserId)
-        .maybeSingle();
-      if (error) {
-        console.error('İlerleme sunucudan okunamadı:', error);
-      } else if (data?.progress) {
-        progress = mergeProgress(progress, sanitizeProgress(data.progress, currentUserId));
-        progress.userId = currentUserId;
-        knownProgressVersion = data.progress_version || 0;
-      }
-    } catch (err) {
-      console.error('İlerleme senkronizasyonu başarısız:', err);
+  // O-10 (2026-09-19): window.NativeUX?.hideSplash() en sonda, tek noktada
+  // çağrılıyordu — aradaki herhangi bir adım (initializeApp dahil) hata
+  // fırlatırsa bu satıra hiç ulaşılmıyor ve splash ekranı sonsuza kadar açık
+  // kalıyordu ("splash açılıyor ama uygulama gelmiyor"). try/finally ile
+  // splash'in her durumda kapanmasını garanti ediyoruz; hata da konsola
+  // basılıyor ki ileride aynı şey sessizce tekrar olmasın.
+  try {
+    const currentUserId = window.currentUser?.id || null;
+    if (progress.userId !== currentUserId) {
+      progress = defaultProgress();
+      progress.userId = currentUserId;
     }
-  }
 
-  // O-08 (2026-09-15): Sunucudaki kadro her zaman önceliklidir.
-  if (window.currentUserRole && progress.selectedRole !== window.currentUserRole) {
-    progress.selectedRole = window.currentUserRole;
-    window.SRProgressSync.touchField(progress, 'selectedRole');
-  }
-  saveProgress();
-  // İlk senkronizasyon: sınav tarihi ve bekleyen kart sayısı henüz gelmediyse
-  // bu çağrı günlük hatırlatıcı/seri uyarısını yine de kurar; diğer ikisi
-  // (sınav geri sayımı, tekrar hatırlatıcısı) kendi verileri gelince yukarıdaki
-  // fetchExamDate/fetchDueFlashcardCounts noktalarında ayrıca senkronize edilir.
-  syncLocalNotificationSchedule();
+    restoreUnverifiedPurchases();
+    initPremiumModal();
 
-  if (progress.selectedRole) {
-    initializeApp();
-  } else if (window.currentUserRoleError) {
-    // Kadro okunamadı ve yerelde de yok: kapıyı açıp yanlışlıkla farklı bir
-    // kadro seçtirmek yerine yeniden deneme ekranı göster.
+    // Yerel ve bulut ilerlemesini birleştir. Sunucunun körlemesine cihazdaki
+    // verinin üstüne yazılması, çevrimdışı çözümlerin ilk girişte kaybolmasına
+    // neden oluyordu.
+    if (currentUserId) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('progress, progress_version')
+          .eq('id', currentUserId)
+          .maybeSingle();
+        if (error) {
+          console.error('İlerleme sunucudan okunamadı:', error);
+        } else if (data?.progress) {
+          progress = mergeProgress(progress, sanitizeProgress(data.progress, currentUserId));
+          progress.userId = currentUserId;
+          knownProgressVersion = data.progress_version || 0;
+        }
+      } catch (err) {
+        console.error('İlerleme senkronizasyonu başarısız:', err);
+      }
+    }
+
+    // O-08 (2026-09-15): Sunucudaki kadro her zaman önceliklidir.
+    if (window.currentUserRole && progress.selectedRole !== window.currentUserRole) {
+      progress.selectedRole = window.currentUserRole;
+      window.SRProgressSync.touchField(progress, 'selectedRole');
+    }
+    saveProgress();
+    // İlk senkronizasyon: sınav tarihi ve bekleyen kart sayısı henüz gelmediyse
+    // bu çağrı günlük hatırlatıcı/seri uyarısını yine de kurar; diğer ikisi
+    // (sınav geri sayımı, tekrar hatırlatıcısı) kendi verileri gelince yukarıdaki
+    // fetchExamDate/fetchDueFlashcardCounts noktalarında ayrıca senkronize edilir.
+    syncLocalNotificationSchedule();
+
+    if (progress.selectedRole) {
+      initializeApp();
+    } else if (window.currentUserRoleError) {
+      // Kadro okunamadı ve yerelde de yok: kapıyı açıp yanlışlıkla farklı bir
+      // kadro seçtirmek yerine yeniden deneme ekranı göster.
+      showProfileLoadError();
+    } else {
+      openRoleGate();
+    }
+  } catch (err) {
+    console.error('Uygulama başlatılamadı:', err);
     showProfileLoadError();
-  } else {
-    openRoleGate();
+  } finally {
+    // Kadro kapısı ya da ana uygulama artık ekranda (ya da en azından hata
+    // ekranı) — native açılış ekranını her durumda kapat.
+    window.NativeUX?.hideSplash();
   }
-  // Kadro kapısı ya da ana uygulama artık ekranda — native açılış ekranını kapat.
-  window.NativeUX?.hideSplash();
 }
 
 document.addEventListener('sinavrotasi:authenticated', handleAuthenticated);

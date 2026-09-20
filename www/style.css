@@ -49,6 +49,10 @@ body{background:var(--bg)}
 .topbar-user{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 .avatar-wrap{position:relative;flex-shrink:0;min-width:54px;min-height:54px;display:flex;align-items:center;justify-content:center}
 .avatar-wrap img{width:48px;height:48px;border-radius:50%;object-fit:cover;display:block}
+.header-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg);border:2px solid var(--white);box-shadow:0 0 0 1px rgba(7,31,73,.35),0 4px 10px rgba(0,0,0,.25)}
+.header-avatar-mark{width:31px;height:31px;border-radius:8px;background:var(--navy);display:flex;align-items:center;justify-content:center;gap:2px;font-family:Arial Black,Impact,sans-serif;font-size:15px;font-weight:950;transform:rotate(-5deg);box-shadow:2px 2px 0 rgba(233,50,56,.25)}
+.header-avatar-mark .avatar-letter-1{color:var(--white);line-height:1}
+.header-avatar-mark .avatar-letter-2{color:var(--red);line-height:1}
 .avatar-dot{position:absolute;top:1px;right:1px;width:12px;height:12px;border-radius:50%;background:#ff4d52;border:2px solid #061229}
 .user-text h1{font-size:14.5px;margin:0 0 2px;font-weight:400}
 .user-text h1 b{font-weight:600}
@@ -960,8 +964,7 @@ body{background:var(--bg)}
 .badge-item small{font-size:8px;font-weight:700;color:var(--text);text-align:center;line-height:1.25}
 .badge-item:not(.unlocked) small{color:#a9b0bd;font-weight:600}
 .delete-account-link{display:block;text-align:center;margin-top:14px;font-size:11px;color:var(--muted);text-decoration:underline}
-.profile-summary-avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;gap:1px;background:var(--navy);color:#fff;font-size:14px;font-weight:800;transform:rotate(-5deg)}
-.avatar-letter-2{color:var(--red)}
+.profile-summary-avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--navy);color:#fff;font-size:16px;font-weight:800}
 .profile-summary strong{display:block;font-size:16px;color:var(--navy);margin-bottom:4px}
 .profile-summary span{display:block;font-size:10.5px;color:var(--muted)}
 
@@ -1307,8 +1310,7 @@ body.auth-page{
   border-radius:20px;
   background:linear-gradient(135deg,#ff6a6d,#e2262c);
   color:#fff;
-  font-size:10px;font-weight:800;letter-spacing:.4px;
-  text-transform:uppercase;
+  font-size:11px;font-weight:700;letter-spacing:.1px;
   box-shadow:0 4px 10px rgba(233,50,56,.35),0 0 0 1px rgba(255,255,255,.14) inset;
 }
 .role-badge::before{
