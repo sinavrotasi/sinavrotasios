@@ -1156,28 +1156,34 @@ function getMistakeCategories() {
 
 function mistakesView() {
   const totalCount = Object.keys(progress.wrongQuestions).length;
-  if (!totalCount) {
-    return `<section class="screen content-screen">
-      <div class="page-heading"><h2>Yanlışlarım</h2><p>Daha önce yanlış yaptığın tüm sorular burada birikir.</p></div>
-      <div class="empty-inline">Henüz yanlış yaptığın bir soru yok.</div>
-    </section>`;
-  }
   const categories = getMistakeCategories();
-  return `<section class="screen content-screen">
-    <div class="page-heading"><span>TEKRAR HAVUZU</span><h2>Yanlışlarım</h2><p>Daha önce yanlış yaptığın tüm sorular burada birikir.</p></div>
-    <article class="practice-card">
-      <div class="practice-card-icon">${svg('flame')}</div>
-      <div><span>TEKRAR HAVUZU</span><h3>${totalCount} soru</h3><p>Tüm yanlış sorularını sırasıyla tekrar çöz.</p></div>
-      <button class="reader-primary" id="startWrongPoolButton" type="button">Başlat</button>
+  return `<section class="screen content-screen mistakes-screen">
+    <div class="mistakes-heading">
+      <div class="mistakes-heading-copy"><span>TEKRAR HAVUZU</span><h2>Yanlışlarım</h2><p>Daha önce yanlış yaptığın tüm sorular<br>burada birikir.</p></div>
+      <svg class="mistakes-art" viewBox="0 0 220 220" fill="none" aria-hidden="true">
+        <defs><linearGradient id="wrongPaper" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#edf1f9"/></linearGradient><linearGradient id="wrongPencil" x2="1"><stop stop-color="#2870bc"/><stop offset=".45" stop-color="#123b77"/><stop offset="1" stop-color="#071f49"/></linearGradient><linearGradient id="wrongRed" x2="1" y2="1"><stop stop-color="#ff9ca6"/><stop offset="1" stop-color="#ff243b"/></linearGradient></defs>
+        <path d="M26 72C1 109 8 155 58 164C123 180 206 158 211 89C218 5 149 1 107 25Z" fill="#fbe9ee"/>
+        <ellipse cx="159" cy="178" rx="52" ry="34" fill="#f3eaf0" opacity=".65"/>
+        <g transform="rotate(12 110 113)"><rect x="52" y="36" width="131" height="164" rx="17" fill="url(#wrongPaper)"/><path d="M73 58h90M73 79h36M73 93h26M102 126h45M102 149h43M102 172h43" stroke="#ccd5e9" stroke-width="4" stroke-linecap="round"/><g fill="#c6d0e5"><circle cx="84" cy="126" r="7"/><circle cx="84" cy="149" r="7"/><circle cx="84" cy="172" r="7"/></g><circle cx="147" cy="99" r="21" stroke="url(#wrongRed)" stroke-width="3.5"/><path d="m139 91 16 16m0-16-16 16" stroke="#ff3349" stroke-width="4" stroke-linecap="round"/></g>
+        <g transform="rotate(25 184 155)"><path d="M175 108v-9a9 9 0 0 1 18 0v9" fill="url(#wrongRed)"/><path d="M175 108h18v76h-18z" fill="url(#wrongPencil)"/><path d="m175 184 9 21 9-21" fill="#ffa3ac"/><path d="m181 198 3 7 3-7" fill="#123b77"/><path d="M175 108h18v6h-18z" fill="#507bc1" opacity=".65"/></g><path d="m28 74-5-10m-2 21-12-6m10 18-12 3" stroke="#ff3349" stroke-width="3.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    ${totalCount ? `<article class="mistakes-pool">
+      <div class="mistakes-pool-icon">${svg('refresh')}</div>
+      <div class="mistakes-pool-copy"><h3>${totalCount} SORU</h3><p>Tüm yanlış sorularını sırasıyla<br>tekrar çöz.</p></div>
+      <button class="mistakes-start" id="startWrongPoolButton" type="button">Başlat <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button>
     </article>
-    <div class="section-head" style="margin-top:18px"><h3>Yanlışlarım</h3></div>
-    <section class="categories">
-      ${categories.map(cat => `<article class="category" role="button" tabindex="0" data-open-mistake-category="${cat.key}">
-        <div class="cat-icon ${cat.iconClass}">${svg(cat.icon)}</div>
-        <div class="cat-copy"><h4>${escapeHtml(cat.title)}</h4><small>${cat.count} soru</small></div>
-        <div class="chevron">${svg('arrow')}</div>
+    <div class="mistakes-section-head"><p><i></i>Konu başlıklarına göre listelenir.</p></div>
+    <section class="mistakes-categories">
+      ${categories.map(cat => `<article class="mistakes-category" role="button" tabindex="0" data-open-mistake-category="${cat.key}">
+        <div class="mistakes-category-icon">${svg(cat.icon)}</div>
+        <div class="mistakes-category-copy"><h4>${escapeHtml(cat.title)}</h4><small>${cat.count} soru</small></div>
+        <div class="mistakes-chevron">${svg('arrow')}</div>
       </article>`).join('')}
-    </section>
+    </section>` : '<div class="mistakes-empty">Henüz yanlış yaptığın bir soru yok.</div>'}
+    <footer class="mistakes-footer" aria-hidden="true">
+      <svg class="mistakes-landscape" viewBox="0 0 400 160" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="wrongHill" x2=".8" y2="1"><stop stop-color="#d4def0"/><stop offset="1" stop-color="#f8fbff"/></linearGradient></defs><path d="M0 30Q70-17 139 32T270 44T400 35V160H0Z" fill="#f0f5fc"/><path d="m204 143 73-86q5-5 9 0l29 30 42-48 43 53v68H186Z" fill="url(#wrongHill)"/><path d="M357 39V12" stroke="#ff97a5" stroke-width="2"/><path d="M358 13c8-7 11 5 19 1v11c-8 6-13-5-19 0" fill="#ffa8b4"/><path d="M76 160Q161 57 226 86T400 159Z" fill="#e8f0fa" opacity=".7"/><path d="M130 160Q260 122 357 39L294 160Z" fill="#f7faff" opacity=".45"/></svg>
+    </footer>
   </section>`;
 }
 
@@ -1262,21 +1268,63 @@ function startWrongPool() {
 
 // --- BİLGİ KARTLARI (KARTLARIM) EKRANLARI ---
 function cardsView() {
-  return `<section class="screen content-screen">
-    <div class="page-heading"><span>KARTLARIM</span><h2>Bilgi Kartları</h2><p>Kategorini seç, soru-cevap kartlarıyla hızlı tekrar yap.</p></div>
-    <section class="categories">
-      ${CARD_CATEGORY_ORDER.map(key => {
-        const meta = getCardCatalogue()[key];
-        const activeCount = meta.documents.filter(d => d.cardFile).length;
-        const metaText = meta.documents.length ? `${meta.documents.length} kaynak • ${activeCount} aktif set` : 'İçerik yakında eklenecek';
-        return `<article class="category" role="button" tabindex="0" data-open-card-category="${key}">
-          <div class="cat-icon ${meta.iconClass}">${svg(meta.icon)}</div>
-          <div class="cat-copy"><h4>${escapeHtml(meta.title)}</h4><p>${escapeHtml(meta.description)}</p><small>${metaText}</small></div>
-          <div class="chevron">${svg('arrow')}</div>
+  const catalogue = getCardCatalogue();
+  const presentation = {
+    'meb-legislation': { title: 'MEB Mevzuatı', description: 'Millî Eğitim Bakanlığı Özel Mevzuatı ve Düzenlemeleri', theme: 'meb', icon: 'schoolbook' },
+    'general-legislation': { title: 'Genel Mevzuat', description: 'Anayasa, Devlet Memurları ve Kamu Yönetimi Kanunları', theme: 'general', icon: 'scale' },
+    'general-culture': { title: 'Ortak Alan Bilgisi', description: 'Dilbilgisi, Tarih, Coğrafya, Yurttaşlık ve Güncel Bilgiler', theme: 'culture', icon: 'landmark' }
+  };
+  const keys = ['meb-legislation', 'general-legislation', 'general-culture'];
+  return `<section class="screen content-screen cards-showcase" aria-label="Bilgi kartları">
+    <header class="cards-showcase-heading"><span>KARTLARIM</span><i aria-hidden="true"></i><h2>Bilgi Kartları</h2><p>Kategorini seç, soru-cevap kartlarıyla hızlı tekrar yap.</p></header>
+    <div class="cards-showcase-stage" data-cards-stage>
+      ${keys.map((key, index) => {
+        const meta = catalogue[key];
+        const design = presentation[key];
+        const documents = meta?.documents || [];
+        const activeCount = documents.filter(d => d.cardFile).length;
+        const metaText = documents.length ? `${documents.length} kaynak · ${activeCount} aktif set` : 'İçerik yakında eklenecek';
+        return `<article class="cards-showcase-card cards-showcase-${design.theme}" data-card-position="${index - 1}" data-card-index="${index}" role="button" tabindex="0" data-open-card-category="${key}" aria-label="${escapeHtml(design.title)}">
+          <div class="cards-showcase-face"><div class="cards-showcase-photo" aria-hidden="true"></div><div class="cards-showcase-shade" aria-hidden="true"></div>
+          <div class="cards-showcase-icon">${svg(design.icon)}</div>
+          <div class="cards-showcase-copy"><h3>${escapeHtml(design.title)}</h3><p>${escapeHtml(design.description)}</p></div>
+          <div class="cards-showcase-bottom"><small>${metaText}</small><span class="cards-showcase-arrow" aria-hidden="true">${svg('arrowRight')}</span></div></div>
         </article>`;
       }).join('')}
-    </section>
+    </div>
+    <div class="cards-showcase-dots" aria-label="Kart seçimi">${keys.map((key, i) => `<button type="button" data-card-select="${i}" aria-label="${escapeHtml(presentation[key].title)} kartını öne getir" aria-pressed="${i === 1}"></button>`).join('')}</div>
   </section>`;
+}
+
+function bindCardsShowcase() {
+  const screen = app.querySelector('.cards-showcase');
+  if (!screen) return;
+  const stage = screen.querySelector('[data-cards-stage]');
+  let selected = 1;
+  const select = index => {
+    selected = (index + 3) % 3;
+    screen.querySelectorAll('[data-card-index]').forEach(card => {
+      const offset = (Number(card.dataset.cardIndex) - selected + 3) % 3;
+      card.dataset.cardPosition = String(offset === 2 ? -1 : offset);
+    });
+    screen.querySelectorAll('[data-card-select]').forEach(dot => dot.setAttribute('aria-pressed', String(Number(dot.dataset.cardSelect) === selected)));
+  };
+  screen.querySelectorAll('[data-card-select]').forEach(dot => dot.addEventListener('click', () => select(Number(dot.dataset.cardSelect))));
+  let startX = null;
+  let startY = null;
+  let dragged = false;
+  stage.addEventListener('touchstart', event => { startX = event.touches[0].clientX; startY = event.touches[0].clientY; dragged = false; }, { passive: true });
+  stage.addEventListener('touchend', event => {
+    if (startX === null) return;
+    const dx = event.changedTouches[0].clientX - startX;
+    const dy = event.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { select(selected + (dx < 0 ? 1 : -1)); dragged = true; }
+    startX = null;
+  }, { passive: true });
+  stage.addEventListener('click', event => { if (dragged) { event.preventDefault(); event.stopImmediatePropagation(); dragged = false; } }, true);
+  stage.addEventListener('keydown', event => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); select(selected + (event.key === 'ArrowRight' ? 1 : -1)); }
+  });
 }
 
 function openCardCategorySheet(categoryKey) {
@@ -1744,6 +1792,7 @@ function render() {
 }
 
 function bindViewEvents() {
+  bindCardsShowcase();
   if (state.catalogueError) document.getElementById('retryLoadButton')?.addEventListener('click', loadCatalogue);
   app.querySelectorAll('[data-open-category]').forEach(element => {
     element.addEventListener('click', () => openTopicSheet(element.dataset.openCategory));
