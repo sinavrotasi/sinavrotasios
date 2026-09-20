@@ -1274,17 +1274,17 @@ function cardsView() {
     'general-legislation': { title: 'Genel Mevzuat', description: 'Anayasa, Devlet Memurları ve Kamu Yönetimi Kanunları', theme: 'general', icon: 'scale' },
     'general-culture': { title: 'Ortak Alan Bilgisi', description: 'Dilbilgisi, Tarih, Coğrafya, Yurttaşlık ve Güncel Bilgiler', theme: 'culture', icon: 'landmark' }
   };
-  const keys = ['meb-legislation', 'general-legislation', 'general-culture'];
+  const keys = ['general-legislation', 'meb-legislation', 'general-culture'];
   return `<section class="screen content-screen cards-showcase" aria-label="Bilgi kartları">
     <header class="cards-showcase-heading"><span>KARTLARIM</span><i aria-hidden="true"></i><h2>Bilgi Kartları</h2><p>Kategorini seç, soru-cevap kartlarıyla hızlı tekrar yap.</p></header>
-    <div class="cards-showcase-stage" data-cards-stage>
+    <div class="cards-showcase-stage">
       ${keys.map((key, index) => {
         const meta = catalogue[key];
         const design = presentation[key];
         const documents = meta?.documents || [];
         const activeCount = documents.filter(d => d.cardFile).length;
         const metaText = documents.length ? `${documents.length} kaynak · ${activeCount} aktif set` : 'İçerik yakında eklenecek';
-        return `<article class="cards-showcase-card cards-showcase-${design.theme}" data-card-position="${index - 1}" data-card-index="${index}" role="button" tabindex="0" data-open-card-category="${key}" aria-label="${escapeHtml(design.title)}">
+        return `<article class="cards-showcase-card cards-showcase-${design.theme}" role="button" tabindex="0" data-open-card-category="${key}" aria-label="${escapeHtml(design.title)}">
           <div class="cards-showcase-face"><div class="cards-showcase-photo" aria-hidden="true"></div><div class="cards-showcase-shade" aria-hidden="true"></div>
           <div class="cards-showcase-icon">${svg(design.icon)}</div>
           <div class="cards-showcase-copy"><h3>${escapeHtml(design.title)}</h3><p>${escapeHtml(design.description)}</p></div>
@@ -1292,39 +1292,8 @@ function cardsView() {
         </article>`;
       }).join('')}
     </div>
-    <div class="cards-showcase-dots" aria-label="Kart seçimi">${keys.map((key, i) => `<button type="button" data-card-select="${i}" aria-label="${escapeHtml(presentation[key].title)} kartını öne getir" aria-pressed="${i === 1}"></button>`).join('')}</div>
-  </section>`;
-}
 
-function bindCardsShowcase() {
-  const screen = app.querySelector('.cards-showcase');
-  if (!screen) return;
-  const stage = screen.querySelector('[data-cards-stage]');
-  let selected = 1;
-  const select = index => {
-    selected = (index + 3) % 3;
-    screen.querySelectorAll('[data-card-index]').forEach(card => {
-      const offset = (Number(card.dataset.cardIndex) - selected + 3) % 3;
-      card.dataset.cardPosition = String(offset === 2 ? -1 : offset);
-    });
-    screen.querySelectorAll('[data-card-select]').forEach(dot => dot.setAttribute('aria-pressed', String(Number(dot.dataset.cardSelect) === selected)));
-  };
-  screen.querySelectorAll('[data-card-select]').forEach(dot => dot.addEventListener('click', () => select(Number(dot.dataset.cardSelect))));
-  let startX = null;
-  let startY = null;
-  let dragged = false;
-  stage.addEventListener('touchstart', event => { startX = event.touches[0].clientX; startY = event.touches[0].clientY; dragged = false; }, { passive: true });
-  stage.addEventListener('touchend', event => {
-    if (startX === null) return;
-    const dx = event.changedTouches[0].clientX - startX;
-    const dy = event.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { select(selected + (dx < 0 ? 1 : -1)); dragged = true; }
-    startX = null;
-  }, { passive: true });
-  stage.addEventListener('click', event => { if (dragged) { event.preventDefault(); event.stopImmediatePropagation(); dragged = false; } }, true);
-  stage.addEventListener('keydown', event => {
-    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); select(selected + (event.key === 'ArrowRight' ? 1 : -1)); }
-  });
+  </section>`;
 }
 
 function openCardCategorySheet(categoryKey) {
@@ -1792,7 +1761,6 @@ function render() {
 }
 
 function bindViewEvents() {
-  bindCardsShowcase();
   if (state.catalogueError) document.getElementById('retryLoadButton')?.addEventListener('click', loadCatalogue);
   app.querySelectorAll('[data-open-category]').forEach(element => {
     element.addEventListener('click', () => openTopicSheet(element.dataset.openCategory));
