@@ -2177,7 +2177,7 @@ body.auth-page{
 
 
 /* Yanlışlarım — yalnızca bu ekran; Denemeler ile aynı yazı ölçeği. */
-.mistakes-screen{position:relative;isolation:isolate;overflow:hidden;min-height:calc(100dvh - 72px);padding-top:16px;background:radial-gradient(ellipse at 42% -10%,#edf4fc 0,transparent 40%),#fbfdff}
+.mistakes-screen{position:relative;isolation:isolate;overflow:hidden;min-height:0;padding-top:16px;background:radial-gradient(ellipse at 42% -10%,#edf4fc 0,transparent 40%),#fbfdff}
 .mistakes-screen button{font-family:inherit}
 .mistakes-screen .mistakes-back{display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:15px;color:var(--navy);background:#fff;box-shadow:0 3px 10px #163b7714;cursor:pointer}
 .mistakes-screen .mistakes-back svg{width:19px;height:19px}
@@ -2308,7 +2308,7 @@ body.auth-page{
 
 
 /* Kartlarım — dikey beyaz kartlar; tüm kurallar bu ekranla sınırlıdır. */
-.cards-showcase{position:relative;isolation:isolate;overflow:hidden;min-height:calc(100dvh - 84px);padding:14px 14px 32px;background:radial-gradient(ellipse at 100% 45%,#dce8f7,transparent 65%),linear-gradient(150deg,#f9fcff,#edf3fa);font-family:inherit}
+.cards-showcase{position:relative;isolation:isolate;overflow:hidden;min-height:0;padding:14px 14px 32px;background:radial-gradient(ellipse at 100% 45%,#dce8f7,transparent 65%),linear-gradient(150deg,#f9fcff,#edf3fa);font-family:inherit}
 .cards-showcase::before{content:'';position:absolute;z-index:-1;right:-35%;top:160px;width:95%;height:90%;background:linear-gradient(145deg,#cbdcf044,#f5f9ff00);border-radius:70% 0 0 0;transform:rotate(15deg);pointer-events:none}
 .cards-showcase .cards-showcase-heading{text-align:left;margin:12px 0 30px;padding:8px 5px;color:var(--navy)}
 .cards-showcase .cards-showcase-heading>span{display:block;margin:0 0 9px;color:var(--red);font-size:8.5px;font-weight:800;letter-spacing:1.25px}
@@ -2387,6 +2387,6 @@ body.auth-page{
 .phone .app-scroll > .cards-showcase::after {
   content:none;
 }
-.phone .mistakes-screen .mistakes-landscape {
-  visibility:hidden;
+.phone .mistakes-screen .mistakes-footer {
+  display:none;
 }
