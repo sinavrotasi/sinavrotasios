@@ -2357,3 +2357,36 @@ body.auth-page{
 .cards-showcase .cards-showcase-stage{width:100%;max-width:none}
 @media(min-width:641px){.cards-showcase{padding-left:20px;padding-right:20px}}
 @media(min-width:1000px){.cards-showcase{padding-left:26px;padding-right:26px;max-width:840px}}
+
+
+/* ================================================================
+   ORTAK SEKME ARKA PLANI — İPEK DALGALAR
+   Ana Sayfa, Denemeler, Kartlarım, Yanlışlarım ve Profil aynı zemini
+   paylaşır. Kartlar, yazılar, ölçüler ve kaydırma kuralları korunur.
+   ================================================================ */
+.phone .scroll-area {
+  background-color:#f5f8fc;
+  background-image:
+    radial-gradient(ellipse 90% 70% at 110% -38%,#fff9 0 73%,transparent 73.5%),
+    radial-gradient(ellipse at 0 20%,#fff9,transparent 60%),
+    radial-gradient(ellipse 100% 60% at 110% 110%,#d3e1f380 0 54%,transparent 54.5%),
+    radial-gradient(ellipse 95% 50% at -12% 106%,#e1eaf680 0 61%,transparent 61.5%),
+    radial-gradient(ellipse at 92% 2%,#e0eafa 0,transparent 44%),
+    linear-gradient(150deg,#fcfdff,#f0f5fc);
+  background-repeat:no-repeat;
+  background-size:100% 100%;
+  background-attachment:scroll;
+}
+/* Sayfa zeminleri ortak arka planı kapatmaz. */
+.phone .scroll-area > .app-scroll,
+.phone .scroll-area > .app-scroll > .screen {
+  background:transparent;
+}
+/* Önceki sayfaya özel dekoratif zeminleri devreden çıkar. */
+.phone .app-scroll > .cards-showcase::before,
+.phone .app-scroll > .cards-showcase::after {
+  content:none;
+}
+.phone .mistakes-screen .mistakes-landscape {
+  visibility:hidden;
+}
