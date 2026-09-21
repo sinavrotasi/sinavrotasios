@@ -2390,3 +2390,13 @@ body.auth-page{
 .phone .mistakes-screen .mistakes-footer {
   display:none;
 }
+
+
+/* Profil: ortak karşılama ve günlük ilerleme alanını yalnızca bu sekmede gizle. */
+.phone .scroll-area:has(> .app-scroll > .screen > .profile-header-row) > .app-header {
+  display: none;
+}
+/* Ortak header gizliyken profil içeriği cihazın üst güvenli alanından başlar. */
+.phone .app-scroll:has(> .screen > .profile-header-row) {
+  padding-top: env(safe-area-inset-top, 0px);
+}
