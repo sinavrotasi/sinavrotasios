@@ -1711,46 +1711,41 @@ function profileView() {
   const user = window.currentUser;
   const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Aday';
   const email = user?.email || '';
-  const { first: avatarFirst, second: avatarSecond } = getAvatarInitials(fullName);
+  const { first: avatarFirst } = getAvatarInitials(fullName);
   const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || '';
   const badges = getBadges(stats);
-  return `<section class="screen content-screen">
-  <div class="profile-header-row">
-    <article class="profile-summary">
-      <div class="profile-summary-avatar">${escapeHtml(avatarFirst)}</div>
-      <div>
-        <strong>${escapeHtml(fullName)}</strong><span>${escapeHtml(email)}</span>
-        <button class="profile-role-chip" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button>
-      </div>
+  const prefs = progress.notificationPrefs || DEFAULT_NOTIFICATION_PREFS;
+  return `<section class="screen content-screen profile-v5">
+    <div class="profile-v5-route" aria-hidden="true"><span></span><i></i><b></b></div>
+    <article class="profile-v5-identity">
+      <div class="profile-v5-avatar">${escapeHtml(avatarFirst)}</div>
+      <div class="profile-v5-user"><strong>${escapeHtml(fullName)}</strong><span>${escapeHtml(email)}</span><button class="profile-role-chip" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button></div>
+      <span class="profile-v5-chevron">${svg('arrow')}</span>
     </article>
-    <section class="profile-goal-card">
-      <div class="profile-goal-head"><span>GÜNLÜK ÇALIŞMA HEDEFİ</span></div>
-      <p class="profile-goal-desc">Her gün çözmek istediğin soru sayısını belirle, ana sayfadaki ilerleme halkası buna göre hesaplanır.</p>
-      <div class="profile-goal-edit">
-        <input type="number" id="profileDailyGoalInput" class="goal-edit-input" min="${DAILY_GOAL_MIN}" max="${DAILY_GOAL_MAX}" step="1" inputmode="numeric" value="${stats.dailyGoal}" aria-label="Günlük hedef soru sayısı">
-        <button class="reader-primary" id="profileDailyGoalSaveButton" type="button">Kaydet</button>
+    <div class="profile-v5-settings">
+      <section class="profile-v5-setting">
+        <div class="profile-v5-setting-icon">${svg('target')}</div>
+        <div><span class="profile-v5-label">GÜNLÜK ÇALIŞMA HEDEFİ</span><p>Her gün çözmek istediğin soru sayısı.</p></div>
+        <div class="profile-v5-goal-control"><input type="number" id="profileDailyGoalInput" min="${DAILY_GOAL_MIN}" max="${DAILY_GOAL_MAX}" step="1" inputmode="numeric" value="${stats.dailyGoal}" aria-label="Günlük hedef soru sayısı"><button id="profileDailyGoalSaveButton" type="button">Kaydet</button></div>
+      </section>
+      <section class="profile-v5-setting">
+        <div class="profile-v5-setting-icon">${svg('bell')}</div>
+        <div><span class="profile-v5-label">BİLDİRİMLER</span><h3>Günlük çalışma hatırlatıcısı</h3><p>Seçtiğin saatte, her gün</p></div>
+        <button type="button" class="notif-switch${prefs.dailyReminder ? ' on' : ''}" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Günlük çalışma hatırlatıcısı"><i></i></button>
+        <input type="time" id="notifReminderTimeInput" class="profile-v5-time" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati">
+      </section>
+    </div>
+    <section class="profile-v5-badges">
+      <div class="profile-v5-section-head"><div><span>ROZETLERİM</span><p>Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</p></div><button type="button" aria-label="Tüm rozetleri gör">Tümünü Gör ${svg('arrow')}</button></div>
+      <div class="badge-grid profile-v5-badge-grid">
+        ${badges.map(badge => `<div class="badge-item${badge.unlocked ? ' unlocked' : ''}"><span class="badge-image-wrap"><img src="${badge.image}" alt="" class="badge-image"></span><small>${badge.unlocked ? escapeHtml(badge.label) : `${badge.value}/${badge.target} ${escapeHtml(badge.unit)}`}</small></div>`).join('')}
       </div>
     </section>
-  </div>
-  ${renderNotificationSettingsCard()}
-  <section class="profile-goal-card">
-    <div class="profile-goal-head"><span>ROZETLERİM</span></div>
-    <p class="profile-goal-desc">Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</p>
-    <div class="badge-grid">
-      ${badges.map(badge => `<div class="badge-item${badge.unlocked ? ' unlocked' : ''}">
-        <span class="badge-image-wrap"><img src="${badge.image}" alt="" class="badge-image"></span>
-        <small>${badge.unlocked ? escapeHtml(badge.label) : `${badge.value}/${badge.target} ${escapeHtml(badge.unit)}`}</small>
-      </div>`).join('')}
-    </div>
-  </section>
-  ${renderWeeklyFlowCard()}
-  <div class="profile-notice">İstatistiklerin hesabına otomatik olarak senkronize ediliyor; başka bir cihazdan giriş yaptığında da seninle gelir.</div>
-  <section class="profile-account-actions">
-    <button class="reset-progress" id="resetProgressButton" type="button">${svg('refresh')}<span>İlerleme verisini sıfırla</span></button>
-    <button class="signout-btn" id="signOutButton" type="button">${svg('lock')}<span>Çıkış Yap</span></button>
-  </section>
-  <a class="delete-account-link" id="deleteAccountLink" href="https://sinavrotasi.github.io/sinavrotasi-legal/hesapsilme.html" target="_blank" rel="noopener">Hesabımı silmek istiyorum</a>
-</section>`;
+    ${renderWeeklyFlowCard()}
+    <div class="profile-notice">İstatistiklerin hesabına otomatik olarak senkronize ediliyor; başka bir cihazdan giriş yaptığında da seninle gelir.</div>
+    <section class="profile-account-actions"><button class="reset-progress" id="resetProgressButton" type="button">${svg('refresh')}<span>İlerleme verisini sıfırla</span></button><button class="signout-btn" id="signOutButton" type="button">${svg('lock')}<span>Çıkış Yap</span></button></section>
+    <a class="delete-account-link" id="deleteAccountLink" href="https://sinavrotasi.github.io/sinavrotasi-legal/hesapsilme.html" target="_blank" rel="noopener">Hesabımı silmek istiyorum</a>
+  </section>`;
 }
 
 function render() {
