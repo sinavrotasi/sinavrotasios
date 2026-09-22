@@ -1715,35 +1715,23 @@ function profileView() {
   const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || '';
   const badges = getBadges(stats);
   const prefs = progress.notificationPrefs || DEFAULT_NOTIFICATION_PREFS;
-  return `<section class="screen content-screen profile-v5">
-    <div class="profile-v5-route" aria-hidden="true"><span></span><i></i><b></b></div>
-    <article class="profile-v5-identity">
-      <div class="profile-v5-avatar">${escapeHtml(avatarFirst)}</div>
-      <div class="profile-v5-user"><strong>${escapeHtml(fullName)}</strong><span>${escapeHtml(email)}</span><button class="profile-role-chip" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button></div>
-      <span class="profile-v5-chevron">${svg('arrow')}</span>
-    </article>
-    <div class="profile-v5-settings">
-      <section class="profile-v5-setting">
-        <div class="profile-v5-setting-icon">${svg('target')}</div>
-        <div><span class="profile-v5-label">GÜNLÜK ÇALIŞMA HEDEFİ</span><p>Her gün çözmek istediğin soru sayısı.</p></div>
-        <div class="profile-v5-goal-control"><input type="number" id="profileDailyGoalInput" min="${DAILY_GOAL_MIN}" max="${DAILY_GOAL_MAX}" step="1" inputmode="numeric" value="${stats.dailyGoal}" aria-label="Günlük hedef soru sayısı"><button id="profileDailyGoalSaveButton" type="button">Kaydet</button></div>
-      </section>
-      <section class="profile-v5-setting">
-        <div class="profile-v5-setting-icon">${svg('bell')}</div>
-        <div><span class="profile-v5-label">BİLDİRİMLER</span><h3>Günlük çalışma hatırlatıcısı</h3><p>Seçtiğin saatte, her gün</p></div>
-        <button type="button" class="notif-switch${prefs.dailyReminder ? ' on' : ''}" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Günlük çalışma hatırlatıcısı"><i></i></button>
-        <input type="time" id="notifReminderTimeInput" class="profile-v5-time" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati">
-      </section>
+  const bell = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a2 2 0 0 1 2 2v.35A6 6 0 0 1 18 10v4l2 3v1H4v-1l2-3v-4a6 6 0 0 1 4-5.65V4a2 2 0 0 1 2-2Z"/><path d="M9 20h6a3 3 0 0 1-6 0Z"/></svg>';
+  return `<section class="screen content-screen profile-final">
+    <header class="pv-hero">
+      <svg class="pv-landscape" viewBox="0 0 940 280" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H940V280H0Z" fill="#0b2348"/><path d="M0 0H940V72C823 12 815 115 709 78S493 155 336 170S105 189 0 45Z" fill="#17365e"/><path d="M0 0H76C129 75 242 89 428 0Z" fill="#264970" opacity=".35"/><path d="M0 48C174 231 281 178 439 153S653 54 743 82S858 27 940 60V280H0Z" fill="#102d54"/><path d="M0 217C233 178 342 178 492 128S712 96 940 179V280H0Z" fill="#071d40" opacity=".5"/><path d="M0 117L238 280H0Z" fill="#ad2b49"/><path d="M940 61C847 32 830 108 718 78S492 155 340 177" stroke="#345580" stroke-width="4" fill="none" opacity=".5"/></svg>
+      <div class="pv-brand">Sınav<span>Rotası</span></div><span class="pv-tagline">Hedefine giden yol burada.</span>
+      <svg class="pv-route" viewBox="0 0 180 92" fill="none" aria-hidden="true"><path d="M5 90C34 62 61 81 103 77C141 73 105 60 101 55C82 35 127 36 145 33C153 31 153 23 153 20" stroke="#f24056" stroke-width="2" stroke-dasharray="8 6"/><path d="M153 5C144 5 142 14 146 20L153 30L160 20C164 14 162 5 153 5Z" fill="#ef344d"/><circle cx="153" cy="14" r="3.5" fill="#18345c"/></svg>
+      <span class="pv-motto">Daha fazla<br>çalış, daha ileri git.</span>
+    </header>
+    <article class="pv-id"><div class="pv-avatar">${escapeHtml(avatarFirst)}</div><div class="pv-person"><strong>${escapeHtml(fullName)}</strong><span class="pv-email">${escapeHtml(email)}</span><button class="pv-role" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button></div><button class="pv-role-arrow" type="button" aria-label="Kadro değiştir" data-profile-role>${svg('arrow')}</button></article>
+    <div class="pv-settings">
+      <section class="pv-setting"><span class="pv-medallion">${svg('target')}</span><h3 class="pv-heading">GÜNLÜK ÇALIŞMA HEDEFİ</h3><p class="pv-desc">Her gün çözmek istediğin soru sayısını belirle, ana sayfadaki ilerleme halkası buna göre hesaplanır.</p><div class="pv-goal"><input id="profileDailyGoalInput" type="number" min="${DAILY_GOAL_MIN}" max="${DAILY_GOAL_MAX}" step="1" inputmode="numeric" value="${stats.dailyGoal}" aria-label="Günlük hedef soru sayısı"><button class="pv-save" id="profileDailyGoalSaveButton" type="button">Kaydet</button></div></section>
+      <section class="pv-setting"><span class="pv-medallion">${bell}</span><h3 class="pv-heading">BİLDİRİMLER</h3><p class="pv-desc">Günlük çalışma hatırlatıcını aç, kapat veya saatini değiştir.</p><div class="pv-reminder"><div><strong>Günlük çalışma hatırlatıcısı</strong><small>Seçtiğin saatte, her gün</small></div><button class="notif-switch${prefs.dailyReminder ? ' on' : ''}" type="button" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Günlük çalışma hatırlatıcısı"><i></i></button></div><label class="pv-time" for="notifReminderTimeInput">Hatırlatma saati<input type="time" id="notifReminderTimeInput" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati"></label></section>
     </div>
-    <section class="profile-v5-badges">
-      <div class="profile-v5-section-head"><div><span>ROZETLERİM</span><p>Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</p></div><button type="button" aria-label="Tüm rozetleri gör">Tümünü Gör ${svg('arrow')}</button></div>
-      <div class="badge-grid profile-v5-badge-grid">
-        ${badges.map(badge => `<div class="badge-item${badge.unlocked ? ' unlocked' : ''}"><span class="badge-image-wrap"><img src="${badge.image}" alt="" class="badge-image"></span><small>${badge.unlocked ? escapeHtml(badge.label) : `${badge.value}/${badge.target} ${escapeHtml(badge.unit)}`}</small></div>`).join('')}
-      </div>
-    </section>
+    <section class="pv-badges"><div class="pv-badge-head"><strong>ROZETLERİM</strong><button id="profileBadgesToggle" type="button" aria-expanded="false" aria-controls="profileBadgesGrid">Tümünü Gör ${svg('arrow')}</button></div><p>Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</p><div class="pv-badge-grid" id="profileBadgesGrid">${badges.map(badge => `<div class="badge-item${badge.unlocked ? ' unlocked' : ''}"><span class="badge-image-wrap"><img src="${badge.image}" alt="${escapeHtml(badge.label)}" class="badge-image" loading="lazy"></span><small>${badge.unlocked ? escapeHtml(badge.label) : `${badge.value}/${badge.target} ${escapeHtml(badge.unit)}`}</small><span class="pv-badge-detail" hidden>${escapeHtml(badge.label)}</span></div>`).join('')}</div></section>
     ${renderWeeklyFlowCard()}
-    <div class="profile-notice">İstatistiklerin hesabına otomatik olarak senkronize ediliyor; başka bir cihazdan giriş yaptığında da seninle gelir.</div>
-    <section class="profile-account-actions"><button class="reset-progress" id="resetProgressButton" type="button">${svg('refresh')}<span>İlerleme verisini sıfırla</span></button><button class="signout-btn" id="signOutButton" type="button">${svg('lock')}<span>Çıkış Yap</span></button></section>
+    <div class="pv-sync">${svg('refresh')}<span>İstatistiklerin hesabına otomatik olarak senkronize ediliyor; başka bir cihazdan giriş yaptığında da seninle gelir.</span></div>
+    <section class="pv-actions"><button class="reset-progress" id="resetProgressButton" type="button">${svg('refresh')}<span>İlerleme verisini sıfırla</span></button><button class="signout-btn" id="signOutButton" type="button">${svg('lock')}<span>Çıkış Yap</span></button></section>
     <a class="delete-account-link" id="deleteAccountLink" href="https://sinavrotasi.github.io/sinavrotasi-legal/hesapsilme.html" target="_blank" rel="noopener">Hesabımı silmek istiyorum</a>
   </section>`;
 }
@@ -1756,6 +1744,14 @@ function render() {
 }
 
 function bindViewEvents() {
+  app.querySelector('[data-profile-role]')?.addEventListener('click', () => document.getElementById('changeRoleButton')?.click());
+  document.getElementById('profileBadgesToggle')?.addEventListener('click', event => {
+    const button = event.currentTarget;
+    const expanded = button.getAttribute('aria-expanded') !== 'true';
+    button.setAttribute('aria-expanded', String(expanded));
+    button.innerHTML = `${expanded ? 'Daralt' : 'Tümünü Gör'} ${svg('arrow')}`;
+    app.querySelectorAll('.pv-badge-detail').forEach(label => { label.hidden = !expanded; });
+  });
   if (state.catalogueError) document.getElementById('retryLoadButton')?.addEventListener('click', loadCatalogue);
   app.querySelectorAll('[data-open-category]').forEach(element => {
     element.addEventListener('click', () => openTopicSheet(element.dataset.openCategory));

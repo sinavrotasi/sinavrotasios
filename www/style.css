@@ -2392,13 +2392,116 @@ body.auth-page{
 }
 
 
-/* PROFİL V5 — Rota Kimliği. Haftalık Akışın mevcut kuralları değiştirilmez. */
-.phone .scroll-area:has(> .app-scroll > .profile-v5) > .app-header{display:none}
-.phone .app-scroll:has(> .profile-v5){padding-top:env(safe-area-inset-top,0px)}
-.profile-v5{padding:0 14px calc(96px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#eaf2fc 0,#f6f9fe 20%,#f5f8fc 100%)}
-.profile-v5-route{height:122px;margin:0 -14px -45px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 18% -55%,#234b86 0,transparent 58%),linear-gradient(140deg,#061a3e,#0c2e63 70%,#173d72);border-radius:0 0 30px 30px}
-.profile-v5-route::before{content:'SınavRotası';position:absolute;left:20px;top:22px;color:#fff;font-size:21px;font-weight:800;letter-spacing:-.6px}.profile-v5-route::after{content:'Hedefine giden yol burada.';position:absolute;left:21px;top:49px;color:#d8e2f4;font-size:10px}.profile-v5-route span{position:absolute;width:120px;height:70px;right:17px;top:25px;border-top:2px dashed #ff4b55;border-radius:70% 55% 0 0;transform:rotate(-13deg)}.profile-v5-route i{position:absolute;width:10px;height:10px;border-radius:50%;right:39px;top:26px;background:#ff4b55;box-shadow:0 0 0 4px #ff4b5530}
-.profile-v5-identity{position:relative;z-index:1;display:flex;align-items:center;gap:13px;min-height:106px;padding:14px 16px 14px 13px;border-radius:22px;background:#fff;box-shadow:0 13px 30px #1029511b;border:1px solid #eef2f8}.profile-v5-avatar{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:linear-gradient(145deg,#123a76,#071f49);border:4px solid #fff;color:#fff;font-size:25px;font-weight:800;box-shadow:0 5px 15px #071f4930}.profile-v5-user{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}.profile-v5-user strong{font-size:18px;color:#071f49}.profile-v5-user>span{font-size:10.5px;color:#7c8aa1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}.profile-v5 .profile-role-chip{margin:4px 0 0;padding:4px 10px;font-size:9px}.profile-v5-chevron{margin-left:auto;color:#73829a}.profile-v5-chevron svg{width:17px;height:17px}
-.profile-v5-settings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.profile-v5-setting{position:relative;min-height:159px;padding:14px 12px;border-radius:18px;background:#fff;border:1px solid #e5ebf4;box-shadow:0 7px 17px #1029510a}.profile-v5-setting-icon{width:31px;height:31px;display:grid;place-items:center;border-radius:10px;margin-bottom:10px;background:#fff0f1;color:#e93238}.profile-v5-setting-icon svg{width:17px}.profile-v5-label,.profile-v5-section-head>div>span{font-size:8px;color:#e93238;font-weight:800;letter-spacing:1px}.profile-v5-setting h3{margin:4px 0 2px;color:#071f49;font-size:11px;line-height:1.2}.profile-v5-setting p{margin:3px 0;color:#78869b;font-size:9px;line-height:1.35}.profile-v5-goal-control{display:flex;gap:6px;position:absolute;left:12px;right:12px;bottom:12px}.profile-v5-goal-control input{width:0;min-width:0;flex:1;border:1px solid #dce4ef;border-radius:9px;background:#f7f9fd;text-align:center;font-size:14px;font-weight:800;color:#071f49}.profile-v5-goal-control button{border:0;border-radius:9px;background:#071f49;color:#fff;padding:0 9px;font-size:9px;font-weight:800}.profile-v5 .notif-switch{position:absolute;right:13px;bottom:50px;transform:scale(.86);transform-origin:right center}.profile-v5-time{position:absolute;left:12px;right:12px;bottom:12px;max-width:calc(100% - 24px);border:1px solid #dce4ef;border-radius:9px;background:#f7f9fd;padding:7px 6px;color:#071f49;text-align:center;font-size:12px;font-weight:800}
-.profile-v5-badges{margin-top:12px;padding:14px 11px 12px;border-radius:18px;background:#fff;border:1px solid #e5ebf4;box-shadow:0 7px 17px #1029510a}.profile-v5-section-head{display:flex;justify-content:space-between;gap:8px}.profile-v5-section-head p{margin:5px 0 11px;color:#78869b;font-size:9px}.profile-v5-section-head button{align-self:flex-start;display:flex;align-items:center;gap:3px;border:0;background:transparent;color:#60718c;font-size:8px;font-weight:700;padding:1px}.profile-v5-section-head button svg{width:12px}.profile-v5-badge-grid{grid-template-columns:repeat(4,1fr);gap:10px 5px}.profile-v5-badge-grid .badge-image-wrap{width:41px;height:41px}.profile-v5-badge-grid .badge-item small{font-size:7.5px;color:#8490a2;white-space:nowrap}
-@media(max-width:360px){.profile-v5-settings{gap:7px}.profile-v5-setting{padding:12px 9px}.profile-v5-goal-control{left:9px;right:9px}.profile-v5-time{left:9px;right:9px;max-width:calc(100% - 18px)}.profile-v5-badge-grid .badge-image-wrap{width:37px;height:37px}}
+
+/* Profil — onaylanan Rota Kimliği; Haftalık Akış orijinaldir. */
+.profile-final .pv-hero{position:relative;height:126px;background:radial-gradient(ellipse at 30% -80%,#416998 0,#163962 52%,transparent 73%),linear-gradient(115deg,#112d55,#071a39);overflow:hidden;border-radius:0 0 26px 26px}
+.profile-final .pv-hero:before{content:'';position:absolute;width:220px;height:64px;background:linear-gradient(120deg,#ba2a4e,#6f284d);bottom:-30px;left:-38px;transform:rotate(26deg)}
+.profile-final .pv-brand{position:absolute;top:25px;left:30px;color:#fff;font-size:23px;font-weight:800;letter-spacing:-.9px}
+.profile-final .pv-brand span{color:#f03843}
+.profile-final .pv-tagline{position:absolute;top:55px;left:51px;color:#c2cee1;font-size:10px}
+.profile-final .pv-route{position:absolute;width:153px;height:83px;right:46px;top:10px;color:#ef4055}
+.profile-final .pv-motto{position:absolute;right:27px;top:56px;font-size:9px;line-height:1.4;color:#d1dbee}
+.profile-final .pv-id{isolation:isolate;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;padding:14px 17px;min-height:88px;margin-top:-45px;margin-bottom:11px;border-radius:19px;background:#fff;box-shadow:0 12px 23px #17395912}
+.profile-final .pv-id:before{content:'';position:absolute;z-index:-1;left:-32px;bottom:-41px;width:135px;height:69px;border-radius:50%;transform:rotate(21deg);background:linear-gradient(20deg,#b91f37,#f54858)}
+.profile-final .pv-avatar{width:73px;height:73px;flex-shrink:0;border-radius:50%;border:4px solid white;background:linear-gradient(140deg,#0e3164,#061b41);color:#fff;box-shadow:0 4px 12px #091e4330;display:grid;place-items:center;font-size:32px;font-weight:700}
+.profile-final .pv-person{min-width:0;flex:1}
+.profile-final .pv-person strong{font-size:17px;display:block;line-height:1.3}
+.profile-final .pv-email{display:block;font-size:11px;color:#8390a5;line-height:1.5;overflow-wrap:anywhere}
+.profile-final .pv-role{margin-top:6px;border:1px solid #f6c8cf;background:linear-gradient(#fff7f8,#ffe8ec);color:#e93238;border-radius:20px;padding:5px 11px;font-size:10px;font-weight:700;box-shadow:0 5px 12px #e9323814}
+.profile-final .pv-id>svg{width:16px;color:#8490a4}
+.profile-final .pv-settings{display:grid;grid-template-columns:1.07fr 1fr;gap:9px}
+.profile-final .pv-setting{position:relative;background:#fff;border:1px solid #e5ebf4;border-radius:15px;padding:12px 11px;min-width:0;display:flex;flex-direction:column;box-shadow:0 5px 14px #0c2b4e04}
+.profile-final .pv-heading{font-size:9px;line-height:1.5;letter-spacing:.25px;font-weight:800;color:#e93238;margin:0 32px 7px 0;min-height:27px}
+.profile-final .pv-medallion{position:absolute;right:10px;top:9px;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:#fff0f3;color:#ed3346}
+.profile-final .pv-medallion svg{width:20px;height:20px}
+.profile-final .pv-desc{font-size:10px;color:#7f8ba0;line-height:1.5;margin:0 0 11px}
+.profile-final .pv-goal{display:flex;gap:7px;margin:auto 0 17px;height:34px}
+.profile-final .pv-goal input{width:0;flex:1;min-width:0;text-align:center;background:#f5f7fb;border:1px solid #d9e0ec;border-radius:9px;color:#071f49;font-size:16px;font-weight:750}
+.profile-final .pv-save{background:#071f49;border:0;border-radius:9px;padding:0 9px;font-size:10px;font-weight:650;color:#fff;box-shadow:0 4px 9px #071f491a}
+.profile-final .pv-reminder{display:flex;align-items:center;gap:5px;margin:1px 0 9px}
+.profile-final .pv-reminder>div{flex:1;min-width:0}
+.profile-final .pv-reminder strong{display:block;font-size:10px;line-height:1.3}
+.profile-final .pv-reminder small{display:block;font-size:8px;color:#8591a3;margin-top:3px}
+.profile-final .pv-time{display:flex;align-items:center;justify-content:space-between;gap:5px;padding-top:9px;border-top:1px dashed #dfe5ee;font-size:9px;color:#8190a6;margin-top:auto}
+.profile-final .pv-time input{width:72px;min-width:0;background:#f6f8fc;border:1px solid #dce3ee;border-radius:7px;color:#071f49;font-size:11px;font-weight:700;padding:4px 2px;text-align:center}
+.profile-final .pv-badges{background:#fff;border:1px solid #e5ebf4;border-radius:15px;padding:12px;margin-top:10px}
+.profile-final .pv-badge-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.profile-final .pv-badge-head strong{font-size:10px;letter-spacing:.6px;color:#e93238}
+.profile-final .pv-badge-head span{font-size:9px;color:#8190a5}
+.profile-final .pv-badges>p{font-size:10px;color:#8490a4;line-height:1.5;margin:7px 0 10px}
+.profile-final .pv-badge-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 4px}
+.profile-final .pv-sync{display:flex;align-items:center;gap:12px;background:#eaf3fb;color:#1d477a;border-radius:12px;padding:13px 12px;font-size:10px;line-height:1.5;margin-top:10px}
+.profile-final .pv-sync svg{flex-shrink:0;width:20px;height:20px}
+.profile-final .pv-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.profile-final .pv-actions button{display:flex;justify-content:center;align-items:center;gap:7px;border:1px solid #dce5ef;border-radius:12px;background:#fff;color:#113c6c;min-height:41px;font-size:10px;font-weight:700;padding:8px 4px}
+.profile-final .pv-actions button:last-child{color:#e93238;background:#fff0f2;border-color:#f6cbd2}
+.profile-final .pv-actions svg{width:19px;height:19px}
+.phone .scroll-area:has(> .app-scroll > .profile-final) > .app-header{display:none}
+.phone .app-scroll:has(> .profile-final){padding:0}
+.phone .scroll-area > .app-scroll > .profile-final{padding:0 14px 10px;min-height:0;background:radial-gradient(ellipse at 100% 38%,#e6effa,transparent 60%),#f6f9fd}
+.profile-final .pv-hero{margin:0 -14px;height:126px;isolation:isolate}
+.profile-final .pv-hero:before{content:none}
+.profile-final .pv-landscape{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+.profile-final .pv-brand{left:8.8%;top:24px;font-size:23px;font-weight:800;letter-spacing:-.9px;line-height:1.2}
+.profile-final .pv-tagline{left:16%;top:51px;font-size:9px;line-height:1.4}
+.profile-final .pv-route{width:36%;right:20%;height:88px;top:12px;filter:drop-shadow(0 0 3px #ef34552a)}
+.profile-final .pv-motto{right:7%;top:55px;font-size:9px}
+.profile-final .pv-id{margin-top:-45px;z-index:1;min-height:88px;gap:16px}
+.profile-final .pv-person{min-width:0}
+.profile-final .pv-role-arrow{display:grid;place-items:center;flex-shrink:0;width:24px;min-height:44px;padding:0;border:0;background:transparent;color:#7c879f;cursor:pointer}
+.profile-final .pv-role-arrow svg{width:18px;height:18px}
+.profile-final .pv-settings{grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:9px}
+.profile-final .pv-setting{min-height:144px}
+.profile-final .pv-heading{font-size:8px;letter-spacing:.35px;margin-right:30px;line-height:1.4;min-height:22px}
+.profile-final .pv-desc{font-size:9.5px;line-height:1.5}
+.profile-final .pv-goal{min-height:34px;height:34px;margin-top:0;margin-bottom:16px}
+.profile-final .pv-goal input{min-height:34px;appearance:textfield;font-size:16px}
+.profile-final .pv-goal input::-webkit-inner-spin-button{appearance:none}
+.profile-final .pv-save{font-size:10px;cursor:pointer}
+.profile-final .pv-reminder{margin-top:auto;gap:6px}
+.profile-final .pv-reminder strong{font-size:9.5px}
+.profile-final .pv-reminder small{font-size:8.5px;line-height:1.35}
+.profile-final .notif-switch{position:relative;width:32px;height:19px;flex-shrink:0;transform:none}
+.profile-final .notif-switch i{top:2px;left:2px;width:15px;height:15px}
+.profile-final .notif-switch.on i{left:15px}
+.profile-final .pv-time{margin-top:0;font-size:9px;flex-wrap:wrap}
+.profile-final .pv-time input{width:67px;min-height:26px;max-width:100%;font-size:11px}
+.profile-final .pv-badge-head button{display:flex;align-items:center;gap:3px;border:0;background:none;color:#8190a5;font:inherit;font-size:9px;cursor:pointer;padding:3px 0}
+.profile-final .pv-badge-head button svg{width:12px;height:12px}
+.profile-final .pv-badge-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 4px}
+.profile-final .pv-badge-grid .badge-item{min-width:0;padding:4px 0;gap:6px}
+.profile-final .pv-badge-grid .badge-image-wrap{width:52px;height:52px;max-width:100%}
+.profile-final .pv-badge-grid small{font-size:9px;line-height:1.3;white-space:normal;color:#8993a2;font-weight:500}
+.profile-final .pv-badge-detail{font-size:9px;text-align:center;color:#63728a}
+.profile-final .pv-badge-detail[hidden]{display:none}
+.profile-final .pv-actions button{margin:0;min-width:0;font-size:10px;line-height:1.35;cursor:pointer}
+.profile-final .pv-actions button svg{flex-shrink:0}
+.profile-final .delete-account-link{margin:8px 0 0;padding:3px 0;font-size:9px}
+@media(max-width:999px){
+ .phone:has(.profile-final)>.scroll-area{border-top:env(safe-area-inset-top,0px) solid #102a50}
+ .phone:has(.profile-final)>.bottom-nav{position:relative;flex:0 0 auto;border-radius:18px 18px 0 0;padding:7px 4px calc(9px + env(safe-area-inset-bottom));height:auto;min-height:68px;box-shadow:0 -4px 16px #112e4b05}
+ .phone:has(.profile-final)>.bottom-nav button{min-height:48px;gap:5px;padding:4px 0 6px;justify-content:flex-start}
+ .phone:has(.profile-final)>.bottom-nav button>svg{width:22px;height:22px}
+ .phone:has(.profile-final)>.bottom-nav button>span{font-size:10px;margin:0}
+ .phone:has(.profile-final)>.bottom-nav button.active>svg{position:static;box-sizing:border-box;transform:none;width:28px;height:28px;padding:5px;border:0;box-shadow:none;margin:-3px 0}
+ .phone:has(.profile-final)>.bottom-nav button.active>span{position:static;transform:none}
+ .phone:has(.profile-final)>.bottom-nav button.active:after{content:'';position:absolute;bottom:0;left:25%;right:25%;height:2px;border-radius:2px;background:#e93238}
+}
+@media(min-width:641px){
+ .profile-final .pv-badge-grid{grid-template-columns:repeat(8,minmax(0,1fr))}
+ .profile-final .pv-heading{font-size:10px;min-height:22px}
+ .profile-final .pv-desc{font-size:11px}
+ .profile-final .pv-setting{padding:16px;min-height:158px}
+}
+@media(min-width:1000px){.phone .app-scroll:has(>.profile-final){padding-bottom:14px}}
+@media(max-width:350px){
+ .profile-final .pv-settings{gap:7px}
+ .profile-final .pv-setting{padding:10px 8px}
+ .profile-final .pv-medallion{right:8px;width:25px;height:25px}
+ .profile-final .pv-medallion svg{width:16px;height:16px}
+ .profile-final .pv-heading{font-size:7.5px;margin-right:24px}
+ .profile-final .pv-time{font-size:8px;gap:2px}
+ .profile-final .pv-time input{width:61px}
+ .profile-final .pv-brand{font-size:21px}
+ .profile-final .pv-motto{font-size:8px;right:4%}
+}
