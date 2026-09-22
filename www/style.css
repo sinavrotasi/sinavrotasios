@@ -2400,7 +2400,7 @@ body.auth-page{
 .profile-final .pv-brand span{color:#f03843}
 .profile-final .pv-tagline{position:absolute;top:55px;left:51px;color:#c2cee1;font-size:10px}
 .profile-final .pv-route{position:absolute;width:153px;height:83px;right:46px;top:10px;color:#ef4055}
-
+.profile-final .pv-motto{position:absolute;right:27px;top:56px;font-size:9px;line-height:1.4;color:#d1dbee}
 .profile-final .pv-id{isolation:isolate;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;padding:14px 17px;min-height:88px;margin-top:-45px;margin-bottom:11px;border-radius:19px;background:#fff;box-shadow:0 12px 23px #17395912}
 .profile-final .pv-id:before{content:'';position:absolute;z-index:-1;left:-32px;bottom:-41px;width:135px;height:69px;border-radius:50%;transform:rotate(21deg);background:linear-gradient(20deg,#b91f37,#f54858)}
 .profile-final .pv-avatar{width:73px;height:73px;flex-shrink:0;border-radius:50%;border:4px solid white;background:linear-gradient(140deg,#0e3164,#061b41);color:#fff;box-shadow:0 4px 12px #091e4330;display:grid;place-items:center;font-size:32px;font-weight:700}
@@ -2443,13 +2443,13 @@ body.auth-page{
 .profile-final .pv-hero:before{content:none}
 .profile-final .pv-landscape{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
 .profile-final .pv-brand{left:8.8%;top:24px;font-size:23px;font-weight:800;letter-spacing:-.9px;line-height:1.2}
-.profile-final .pv-tagline{left:8.8%;top:51px;font-size:9px;line-height:1.4}
+.profile-final .pv-tagline{left:16%;top:51px;font-size:9px;line-height:1.4}
 .profile-final .pv-route{width:36%;right:20%;height:88px;top:12px;filter:drop-shadow(0 0 3px #ef34552a)}
-
+.profile-final .pv-motto{right:7%;top:55px;font-size:9px}
 .profile-final .pv-id{margin-top:-45px;z-index:1;min-height:88px;gap:16px}
 .profile-final .pv-person{min-width:0}
-
-
+.profile-final .pv-role-arrow{display:grid;place-items:center;flex-shrink:0;width:24px;min-height:44px;padding:0;border:0;background:transparent;color:#7c879f;cursor:pointer}
+.profile-final .pv-role-arrow svg{width:18px;height:18px}
 .profile-final .pv-settings{grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:9px}
 .profile-final .pv-setting{min-height:144px}
 .profile-final .pv-heading{font-size:8px;letter-spacing:.35px;margin-right:30px;line-height:1.4;min-height:22px}
@@ -2466,19 +2466,19 @@ body.auth-page{
 .profile-final .notif-switch.on i{left:15px}
 .profile-final .pv-time{margin-top:0;font-size:9px;flex-wrap:wrap}
 .profile-final .pv-time input{width:67px;min-height:26px;max-width:100%;font-size:11px}
-
-
+.profile-final .pv-badge-head button{display:flex;align-items:center;gap:3px;border:0;background:none;color:#8190a5;font:inherit;font-size:9px;cursor:pointer;padding:3px 0}
+.profile-final .pv-badge-head button svg{width:12px;height:12px}
 .profile-final .pv-badge-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 4px}
 .profile-final .pv-badge-grid .badge-item{min-width:0;padding:4px 0;gap:6px}
 .profile-final .pv-badge-grid .badge-image-wrap{width:52px;height:52px;max-width:100%}
 .profile-final .pv-badge-grid small{font-size:9px;line-height:1.3;white-space:normal;color:#8993a2;font-weight:500}
-
-
+.profile-final .pv-badge-detail{font-size:9px;text-align:center;color:#63728a}
+.profile-final .pv-badge-detail[hidden]{display:none}
 .profile-final .pv-actions button{margin:0;min-width:0;font-size:10px;line-height:1.35;cursor:pointer}
 .profile-final .pv-actions button svg{flex-shrink:0}
 .profile-final .delete-account-link{margin:8px 0 0;padding:3px 0;font-size:9px}
 @media(max-width:999px){
- .phone:has(.profile-final)>.scroll-area{border-top:env(safe-area-inset-top,0px) solid #17365e}
+ .phone:has(.profile-final)>.scroll-area{border-top:env(safe-area-inset-top,0px) solid #102a50}
  .phone:has(.profile-final)>.bottom-nav{position:relative;flex:0 0 auto;border-radius:18px 18px 0 0;padding:7px 4px calc(9px + env(safe-area-inset-bottom));height:auto;min-height:68px;box-shadow:0 -4px 16px #112e4b05}
  .phone:has(.profile-final)>.bottom-nav button{min-height:48px;gap:5px;padding:4px 0 6px;justify-content:flex-start}
  .phone:has(.profile-final)>.bottom-nav button>svg{width:22px;height:22px}
@@ -2503,5 +2503,5 @@ body.auth-page{
  .profile-final .pv-time{font-size:8px;gap:2px}
  .profile-final .pv-time input{width:61px}
  .profile-final .pv-brand{font-size:21px}
- 
+ .profile-final .pv-motto{font-size:8px;right:4%}
 }
