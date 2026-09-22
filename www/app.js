@@ -400,12 +400,12 @@ function logEvent(eventType, eventData) {
   }
 }
 
-function saveProgress({ renderView = true } = {}) {
+function saveProgress({ rerender = true } = {}) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   scheduleCloudSync();
   updateHeader();
   const pickerOpen = document.activeElement?.id === 'notifReminderTimeInput';
-  if (renderView && !pickerOpen && (state.view === 'home' || state.view === 'profile' || state.view === 'mistakes')) render();
+  if (rerender && !pickerOpen && (state.view === 'home' || state.view === 'profile' || state.view === 'mistakes')) render();
 }
 
 // Bekleyen (debounce'lanmış) senkronizasyonu hemen tetikler. Sekme kapatılırken/gizlenirken
@@ -567,7 +567,7 @@ function setNotificationPref(key, value) {
   if (!(key in DEFAULT_NOTIFICATION_PREFS)) return;
   progress.notificationPrefs = { ...progress.notificationPrefs, [key]: value };
   window.SRProgressSync.touchField(progress, 'notificationPrefs');
-  saveProgress({ renderView: state.view !== 'profile' });
+  saveProgress({ rerender: false });
   syncLocalNotificationSchedule();
 }
 
@@ -576,7 +576,7 @@ function setReminderTime(rawValue) {
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(rawValue)) return false;
   progress.notificationPrefs = { ...progress.notificationPrefs, reminderTime: rawValue };
   window.SRProgressSync.touchField(progress, 'notificationPrefs');
-  saveProgress({ renderView: state.view !== 'profile' });
+  saveProgress({ rerender: false });
   syncLocalNotificationSchedule();
   return true;
 }
@@ -741,7 +741,7 @@ function renderWeeklyFlowCard() {
     ? `✨ ${strongest.label} en güçlü ${periodWord}. Sütunlara dokunarak ayrıntıyı görebilirsin.`
     : 'Sütunlara dokunarak ayrıntıyı görebilirsin.');
 
-  return `<section class="profile-goal-card" id="weeklyFlowCard">
+  return `<section class="profile-goal-card">
     <div class="profile-goal-head"><span>HAFTALIK AKIŞ</span></div>
     <p class="profile-goal-desc">Son yedi gündeki çalışma ritmin ve günlük hedeflerin.</p>
     <div class="flow-toolbar">
@@ -1156,34 +1156,42 @@ function getMistakeCategories() {
 
 function mistakesView() {
   const totalCount = Object.keys(progress.wrongQuestions).length;
-  const categories = getMistakeCategories();
-  return `<section class="screen content-screen mistakes-screen">
-    <div class="mistakes-heading">
-      <div class="mistakes-heading-copy"><span>TEKRAR HAVUZU</span><h2>Yanlışlarım</h2><p>Daha önce yanlış yaptığın tüm sorular<br>burada birikir.</p></div>
-      <svg class="mistakes-art" viewBox="0 0 220 220" fill="none" aria-hidden="true">
-        <defs><linearGradient id="wrongPaper" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#edf1f9"/></linearGradient><linearGradient id="wrongPencil" x2="1"><stop stop-color="#2870bc"/><stop offset=".45" stop-color="#123b77"/><stop offset="1" stop-color="#071f49"/></linearGradient><linearGradient id="wrongRed" x2="1" y2="1"><stop stop-color="#ff9ca6"/><stop offset="1" stop-color="#ff243b"/></linearGradient></defs>
-        <path d="M26 72C1 109 8 155 58 164C123 180 206 158 211 89C218 5 149 1 107 25Z" fill="#fbe9ee"/>
-        <ellipse cx="159" cy="178" rx="52" ry="34" fill="#f3eaf0" opacity=".65"/>
-        <g transform="rotate(12 110 113)"><rect x="52" y="36" width="131" height="164" rx="17" fill="url(#wrongPaper)"/><path d="M73 58h90M73 79h36M73 93h26M102 126h45M102 149h43M102 172h43" stroke="#ccd5e9" stroke-width="4" stroke-linecap="round"/><g fill="#c6d0e5"><circle cx="84" cy="126" r="7"/><circle cx="84" cy="149" r="7"/><circle cx="84" cy="172" r="7"/></g><circle cx="147" cy="99" r="21" stroke="url(#wrongRed)" stroke-width="3.5"/><path d="m139 91 16 16m0-16-16 16" stroke="#ff3349" stroke-width="4" stroke-linecap="round"/></g>
-        <g transform="rotate(25 184 155)"><path d="M175 108v-9a9 9 0 0 1 18 0v9" fill="url(#wrongRed)"/><path d="M175 108h18v76h-18z" fill="url(#wrongPencil)"/><path d="m175 184 9 21 9-21" fill="#ffa3ac"/><path d="m181 198 3 7 3-7" fill="#123b77"/><path d="M175 108h18v6h-18z" fill="#507bc1" opacity=".65"/></g><path d="m28 74-5-10m-2 21-12-6m10 18-12 3" stroke="#ff3349" stroke-width="3.5" stroke-linecap="round"/>
-      </svg>
-    </div>
-    ${totalCount ? `<article class="mistakes-pool">
-      <div class="mistakes-pool-icon">${svg('refresh')}</div>
-      <div class="mistakes-pool-copy"><h3>${totalCount} SORU</h3><p>Tüm yanlış sorularını sırasıyla<br>tekrar çöz.</p></div>
-      <button class="mistakes-start" id="startWrongPoolButton" type="button">Başlat <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button>
+  const order = ['general-legislation', 'meb-legislation', 'general-culture'];
+  const categories = getMistakeCategories().sort((a, b) => {
+    const rank = key => order.includes(key) ? order.indexOf(key) : order.length;
+    return rank(a.key) - rank(b.key);
+  });
+  return `<section class="screen content-screen mistakes-screen mistakes-redesign" aria-label="Yanlışlarım">
+    <article class="wrong-review">
+      <div class="wrong-review-copy">
+        <h2>Yanlışlarım</h2>
+        <p>Yaptığın yanlış soruları tekrar<br>çözerek eksiklerini gider<br>ve daha güçlü hâle gel.</p>
+        <div class="wrong-review-count"><strong>${totalCount}</strong> <span>soru</span></div>
+        <button class="wrong-review-start" id="startWrongPoolButton" type="button" ${totalCount ? '' : 'disabled'}>Tekrarı Başlat <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-7-7 7 7-7 7"/></svg></button>
+      </div>
+      <div class="wrong-review-visual" aria-hidden="true">
+        <svg class="wrong-review-paper" viewBox="0 0 230 250" fill="none">
+          <defs><linearGradient id="wr-paper" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#e7edf7"/></linearGradient><linearGradient id="wr-red" x2="1" y2="1"><stop stop-color="#ff555a"/><stop offset="1" stop-color="#e41126"/></linearGradient></defs>
+          <circle cx="163" cy="67" r="59" fill="#7393bb" opacity=".09"/><circle cx="57" cy="159" r="48" fill="#7393bb" opacity=".10"/>
+          <g transform="rotate(7 119 130)"><path d="M61 48h122q13 0 12 15l-3 156q0 14-15 14H48q-14 0-12-15L47 64q1-16 14-16Z" fill="#b8c6da"/><path d="M58 46h123q12 0 11 14l-3 154q0 14-14 14H46q-14 0-12-15L45 61q1-15 13-15Z" fill="url(#wr-paper)"/>
+          <circle cx="77" cy="87" r="15" fill="url(#wr-red)"/><path d="m71 81 12 12m0-12L71 93" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M107 81h49m-49 14h33M105 128h47m-47 14h32M102 175h44m-44 14h27" stroke="#b3bfd2" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="74" cy="132" r="13" stroke="#acb9ce" stroke-width="4"/><circle cx="71" cy="177" r="13" stroke="#acb9ce" stroke-width="4"/></g>
+          <g transform="rotate(34 176 152)"><path d="M165 90v-9q0-11 11-11t11 11v9" fill="url(#wr-red)"/><path d="M165 90h22v101h-22z" fill="url(#wr-red)"/><path d="M165 89h22v8h-22z" fill="#f8ddd8"/><path d="M180 97h7v94h-7z" fill="#d80f24" opacity=".45"/><path d="m165 191 11 27 11-27" fill="#ffc0ac"/><path d="m172 209 4 9 4-9" fill="#102b4f"/></g>
+          <path d="m37 46-11-10m30 0-2-15M29 64l-14-1" stroke="#ff3547" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <div class="wrong-review-motto">Hatalar<br>daha güçlü<br>bir sen için.<i></i></div>
+      </div>
     </article>
-    <div class="mistakes-section-head"><p><i></i>Konu başlıklarına göre listelenir.</p></div>
-    <section class="mistakes-categories">
-      ${categories.map(cat => `<article class="mistakes-category" role="button" tabindex="0" data-open-mistake-category="${cat.key}">
-        <div class="mistakes-category-icon">${svg(cat.icon)}</div>
-        <div class="mistakes-category-copy"><h4>${escapeHtml(cat.title)}</h4><small>${cat.count} soru</small></div>
-        <div class="mistakes-chevron">${svg('arrow')}</div>
-      </article>`).join('')}
-    </section>` : '<div class="mistakes-empty">Henüz yanlış yaptığın bir soru yok.</div>'}
-    <footer class="mistakes-footer" aria-hidden="true">
-      <svg class="mistakes-landscape" viewBox="0 0 400 160" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="wrongHill" x2=".8" y2="1"><stop stop-color="#d4def0"/><stop offset="1" stop-color="#f8fbff"/></linearGradient></defs><path d="M0 30Q70-17 139 32T270 44T400 35V160H0Z" fill="#f0f5fc"/><path d="m204 143 73-86q5-5 9 0l29 30 42-48 43 53v68H186Z" fill="url(#wrongHill)"/><path d="M357 39V12" stroke="#ff97a5" stroke-width="2"/><path d="M358 13c8-7 11 5 19 1v11c-8 6-13-5-19 0" fill="#ffa8b4"/><path d="M76 160Q161 57 226 86T400 159Z" fill="#e8f0fa" opacity=".7"/><path d="M130 160Q260 122 357 39L294 160Z" fill="#f7faff" opacity=".45"/></svg>
-    </footer>
+    <h3 class="wrong-category-heading">Kategoriye göre çalış</h3>
+    <section class="wrong-category-list" aria-label="Yanlış soru kategorileri">
+      ${categories.length ? categories.map(cat => `<article class="wrong-category ${cat.key === 'general-legislation' ? 'wrong-red' : cat.key === 'meb-legislation' ? 'wrong-blue' : 'wrong-navy'}" role="button" tabindex="0" data-open-mistake-category="${escapeHtml(cat.key)}">
+        <div class="wrong-category-icon" aria-hidden="true">${svg(cat.icon)}</div>
+        <div class="wrong-category-copy"><h4>${escapeHtml(cat.key === 'general-legislation' ? 'Genel Mevzuat' : cat.title)}</h4><p>Yanlış yaptığın soruları tekrar çöz.</p></div>
+        <span class="wrong-category-count">${cat.count} soru</span>
+        <span class="wrong-category-arrow" aria-hidden="true">${svg('arrow')}</span>
+      </article>`).join('') : '<div class="mistakes-empty">Henüz yanlış yaptığın bir soru yok.</div>'}
+    </section>
   </section>`;
 }
 
@@ -1721,14 +1729,13 @@ function profileView() {
       <svg class="pv-landscape" viewBox="0 0 940 280" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H940V280H0Z" fill="#0b2348"/><path d="M0 0H940V72C823 12 815 115 709 78S493 155 336 170S105 189 0 45Z" fill="#17365e"/><path d="M0 0H76C129 75 242 89 428 0Z" fill="#264970" opacity=".35"/><path d="M0 48C174 231 281 178 439 153S653 54 743 82S858 27 940 60V280H0Z" fill="#102d54"/><path d="M0 217C233 178 342 178 492 128S712 96 940 179V280H0Z" fill="#071d40" opacity=".5"/><path d="M0 117L238 280H0Z" fill="#ad2b49"/><path d="M940 61C847 32 830 108 718 78S492 155 340 177" stroke="#345580" stroke-width="4" fill="none" opacity=".5"/></svg>
       <div class="pv-brand">Sınav<span>Rotası</span></div><span class="pv-tagline">Hedefine giden yol burada.</span>
       <svg class="pv-route" viewBox="0 0 180 92" fill="none" aria-hidden="true"><path d="M5 90C34 62 61 81 103 77C141 73 105 60 101 55C82 35 127 36 145 33C153 31 153 23 153 20" stroke="#f24056" stroke-width="2" stroke-dasharray="8 6"/><path d="M153 5C144 5 142 14 146 20L153 30L160 20C164 14 162 5 153 5Z" fill="#ef344d"/><circle cx="153" cy="14" r="3.5" fill="#18345c"/></svg>
-      <span class="pv-motto">Daha fazla<br>çalış, daha ileri git.</span>
     </header>
-    <article class="pv-id"><div class="pv-avatar">${escapeHtml(avatarFirst)}</div><div class="pv-person"><strong>${escapeHtml(fullName)}</strong><span class="pv-email">${escapeHtml(email)}</span><button class="pv-role" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button></div><button class="pv-role-arrow" type="button" aria-label="Kadro değiştir" data-profile-role>${svg('arrow')}</button></article>
+    <article class="pv-id"><div class="pv-avatar">${escapeHtml(avatarFirst)}</div><div class="pv-person"><strong>${escapeHtml(fullName)}</strong><span class="pv-email">${escapeHtml(email)}</span><button class="pv-role" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button></div></article>
     <div class="pv-settings">
       <section class="pv-setting"><span class="pv-medallion">${svg('target')}</span><h3 class="pv-heading">GÜNLÜK ÇALIŞMA HEDEFİ</h3><p class="pv-desc">Her gün çözmek istediğin soru sayısını belirle, ana sayfadaki ilerleme halkası buna göre hesaplanır.</p><div class="pv-goal"><input id="profileDailyGoalInput" type="number" min="${DAILY_GOAL_MIN}" max="${DAILY_GOAL_MAX}" step="1" inputmode="numeric" value="${stats.dailyGoal}" aria-label="Günlük hedef soru sayısı"><button class="pv-save" id="profileDailyGoalSaveButton" type="button">Kaydet</button></div></section>
       <section class="pv-setting"><span class="pv-medallion">${bell}</span><h3 class="pv-heading">BİLDİRİMLER</h3><p class="pv-desc">Günlük çalışma hatırlatıcını aç, kapat veya saatini değiştir.</p><div class="pv-reminder"><div><strong>Günlük çalışma hatırlatıcısı</strong><small>Seçtiğin saatte, her gün</small></div><button class="notif-switch${prefs.dailyReminder ? ' on' : ''}" type="button" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Günlük çalışma hatırlatıcısı"><i></i></button></div><label class="pv-time" for="notifReminderTimeInput">Hatırlatma saati<input type="time" id="notifReminderTimeInput" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati"></label></section>
     </div>
-    <section class="pv-badges"><div class="pv-badge-head"><strong>ROZETLERİM</strong><button id="profileBadgesToggle" type="button" aria-expanded="false" aria-controls="profileBadgesGrid">Tümünü Gör ${svg('arrow')}</button></div><p>Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</p><div class="pv-badge-grid" id="profileBadgesGrid">${badges.map(badge => `<div class="badge-item${badge.unlocked ? ' unlocked' : ''}"><span class="badge-image-wrap"><img src="${badge.image}" alt="${escapeHtml(badge.label)}" class="badge-image" loading="lazy"></span><small>${badge.unlocked ? escapeHtml(badge.label) : `${badge.value}/${badge.target} ${escapeHtml(badge.unit)}`}</small><span class="pv-badge-detail" hidden>${escapeHtml(badge.label)}</span></div>`).join('')}</div></section>
+    <section class="pv-badges"><div class="pv-badge-head"><strong>ROZETLERİM</strong></div><p>Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</p><div class="pv-badge-grid" id="profileBadgesGrid">${badges.map(badge => `<div class="badge-item${badge.unlocked ? ' unlocked' : ''}"><span class="badge-image-wrap"><img src="${badge.image}" alt="${escapeHtml(badge.label)}" class="badge-image" loading="eager"></span><small>${badge.unlocked ? escapeHtml(badge.label) : `${badge.value}/${badge.target} ${escapeHtml(badge.unit)}`}</small></div>`).join('')}</div></section>
     ${renderWeeklyFlowCard()}
     <div class="pv-sync">${svg('refresh')}<span>İstatistiklerin hesabına otomatik olarak senkronize ediliyor; başka bir cihazdan giriş yaptığında da seninle gelir.</span></div>
     <section class="pv-actions"><button class="reset-progress" id="resetProgressButton" type="button">${svg('refresh')}<span>İlerleme verisini sıfırla</span></button><button class="signout-btn" id="signOutButton" type="button">${svg('lock')}<span>Çıkış Yap</span></button></section>
@@ -1744,14 +1751,6 @@ function render() {
 }
 
 function bindViewEvents() {
-  app.querySelector('[data-profile-role]')?.addEventListener('click', () => document.getElementById('changeRoleButton')?.click());
-  document.getElementById('profileBadgesToggle')?.addEventListener('click', event => {
-    const button = event.currentTarget;
-    const expanded = button.getAttribute('aria-expanded') !== 'true';
-    button.setAttribute('aria-expanded', String(expanded));
-    button.innerHTML = `${expanded ? 'Daralt' : 'Tümünü Gör'} ${svg('arrow')}`;
-    app.querySelectorAll('.pv-badge-detail').forEach(label => { label.hidden = !expanded; });
-  });
   if (state.catalogueError) document.getElementById('retryLoadButton')?.addEventListener('click', loadCatalogue);
   app.querySelectorAll('[data-open-category]').forEach(element => {
     element.addEventListener('click', () => openTopicSheet(element.dataset.openCategory));
@@ -1814,33 +1813,23 @@ function bindViewEvents() {
   document.getElementById('notifReminderTimeInput')?.addEventListener('change', event => {
     setReminderTime(event.target.value);
   });
-
   bindWeeklyFlowEvents();
+
 }
 
-
-// Grafik etkileşimleri rozetler ve diğer profil öğelerini yeniden oluşturmaz.
-function updateWeeklyFlowCard() {
-  const card = document.getElementById('weeklyFlowCard');
-  if (!card) return;
-  const scrollArea = document.getElementById('scroll-area');
-  const scrollTop = scrollArea?.scrollTop;
-  const hadFocus = card.contains(document.activeElement);
-  card.outerHTML = renderWeeklyFlowCard();
-  bindWeeklyFlowEvents();
-  if (hadFocus) {
-    document.querySelector('#weeklyFlowCard .flow-tab.active')?.focus({ preventScroll: true });
-  }
-  if (scrollArea && scrollTop !== undefined) scrollArea.scrollTop = scrollTop;
-}
-
+// Haftalık seçimler yalnızca kendi kartını günceller; rozet DOM'u korunur.
 function bindWeeklyFlowEvents() {
   app.querySelectorAll('[data-flow-range]').forEach(button => {
     button.addEventListener('click', () => {
       if (state.weeklyFlowRange === button.dataset.flowRange) return;
+      const card = button.closest('.profile-goal-card');
+      if (!card) return;
       state.weeklyFlowRange = button.dataset.flowRange;
       state.weeklyFlowNote = '';
-      updateWeeklyFlowCard();
+      const top = scrollArea.scrollTop;
+      card.outerHTML = renderWeeklyFlowCard();
+      bindWeeklyFlowEvents();
+      scrollArea.scrollTop = top;
     });
   });
   app.querySelectorAll('[data-flow-bar]').forEach(button => {
@@ -1849,7 +1838,7 @@ function bindWeeklyFlowEvents() {
       const bar = bars[Number(button.dataset.flowBar)];
       if (!bar) return;
       state.weeklyFlowNote = bar.detail;
-      const note = document.querySelector('#weeklyFlowCard .flow-note');
+      const note = button.closest('.profile-goal-card')?.querySelector('.flow-note');
       if (note) note.textContent = bar.detail;
     });
   });
