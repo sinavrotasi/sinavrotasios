@@ -400,12 +400,12 @@ function logEvent(eventType, eventData) {
   }
 }
 
-function saveProgress() {
+function saveProgress({ renderView = true } = {}) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   scheduleCloudSync();
   updateHeader();
   const pickerOpen = document.activeElement?.id === 'notifReminderTimeInput';
-  if (!pickerOpen && (state.view === 'home' || state.view === 'profile' || state.view === 'mistakes')) render();
+  if (renderView && !pickerOpen && (state.view === 'home' || state.view === 'profile' || state.view === 'mistakes')) render();
 }
 
 // Bekleyen (debounce'lanmış) senkronizasyonu hemen tetikler. Sekme kapatılırken/gizlenirken
@@ -567,7 +567,7 @@ function setNotificationPref(key, value) {
   if (!(key in DEFAULT_NOTIFICATION_PREFS)) return;
   progress.notificationPrefs = { ...progress.notificationPrefs, [key]: value };
   window.SRProgressSync.touchField(progress, 'notificationPrefs');
-  saveProgress();
+  saveProgress({ renderView: state.view !== 'profile' });
   syncLocalNotificationSchedule();
 }
 
@@ -576,7 +576,7 @@ function setReminderTime(rawValue) {
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(rawValue)) return false;
   progress.notificationPrefs = { ...progress.notificationPrefs, reminderTime: rawValue };
   window.SRProgressSync.touchField(progress, 'notificationPrefs');
-  saveProgress();
+  saveProgress({ renderView: state.view !== 'profile' });
   syncLocalNotificationSchedule();
   return true;
 }
@@ -741,7 +741,7 @@ function renderWeeklyFlowCard() {
     ? `✨ ${strongest.label} en güçlü ${periodWord}. Sütunlara dokunarak ayrıntıyı görebilirsin.`
     : 'Sütunlara dokunarak ayrıntıyı görebilirsin.');
 
-  return `<section class="profile-goal-card">
+  return `<section class="profile-goal-card" id="weeklyFlowCard">
     <div class="profile-goal-head"><span>HAFTALIK AKIŞ</span></div>
     <p class="profile-goal-desc">Son yedi gündeki çalışma ritmin ve günlük hedeflerin.</p>
     <div class="flow-toolbar">
@@ -1814,16 +1814,33 @@ function bindViewEvents() {
   document.getElementById('notifReminderTimeInput')?.addEventListener('change', event => {
     setReminderTime(event.target.value);
   });
-  document.getElementById('notifReminderTimeInput')?.addEventListener('blur', () => {
-    if (state.view === 'profile') render();
-  });
 
+  bindWeeklyFlowEvents();
+}
+
+
+// Grafik etkileşimleri rozetler ve diğer profil öğelerini yeniden oluşturmaz.
+function updateWeeklyFlowCard() {
+  const card = document.getElementById('weeklyFlowCard');
+  if (!card) return;
+  const scrollArea = document.getElementById('scroll-area');
+  const scrollTop = scrollArea?.scrollTop;
+  const hadFocus = card.contains(document.activeElement);
+  card.outerHTML = renderWeeklyFlowCard();
+  bindWeeklyFlowEvents();
+  if (hadFocus) {
+    document.querySelector('#weeklyFlowCard .flow-tab.active')?.focus({ preventScroll: true });
+  }
+  if (scrollArea && scrollTop !== undefined) scrollArea.scrollTop = scrollTop;
+}
+
+function bindWeeklyFlowEvents() {
   app.querySelectorAll('[data-flow-range]').forEach(button => {
     button.addEventListener('click', () => {
       if (state.weeklyFlowRange === button.dataset.flowRange) return;
       state.weeklyFlowRange = button.dataset.flowRange;
       state.weeklyFlowNote = '';
-      render();
+      updateWeeklyFlowCard();
     });
   });
   app.querySelectorAll('[data-flow-bar]').forEach(button => {
@@ -1832,7 +1849,8 @@ function bindViewEvents() {
       const bar = bars[Number(button.dataset.flowBar)];
       if (!bar) return;
       state.weeklyFlowNote = bar.detail;
-      render();
+      const note = document.querySelector('#weeklyFlowCard .flow-note');
+      if (note) note.textContent = bar.detail;
     });
   });
 }
