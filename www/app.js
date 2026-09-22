@@ -400,12 +400,12 @@ function logEvent(eventType, eventData) {
   }
 }
 
-function saveProgress({ renderView = true } = {}) {
+function saveProgress({ rerender = true } = {}) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   scheduleCloudSync();
   updateHeader();
   const pickerOpen = document.activeElement?.id === 'notifReminderTimeInput';
-  if (renderView && !pickerOpen && (state.view === 'home' || state.view === 'profile' || state.view === 'mistakes')) render();
+  if (rerender && !pickerOpen && (state.view === 'home' || state.view === 'profile' || state.view === 'mistakes')) render();
 }
 
 // Bekleyen (debounce'lanmış) senkronizasyonu hemen tetikler. Sekme kapatılırken/gizlenirken
@@ -567,7 +567,7 @@ function setNotificationPref(key, value) {
   if (!(key in DEFAULT_NOTIFICATION_PREFS)) return;
   progress.notificationPrefs = { ...progress.notificationPrefs, [key]: value };
   window.SRProgressSync.touchField(progress, 'notificationPrefs');
-  saveProgress({ renderView: state.view !== 'profile' });
+  saveProgress({ rerender: false });
   syncLocalNotificationSchedule();
 }
 
@@ -576,7 +576,7 @@ function setReminderTime(rawValue) {
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(rawValue)) return false;
   progress.notificationPrefs = { ...progress.notificationPrefs, reminderTime: rawValue };
   window.SRProgressSync.touchField(progress, 'notificationPrefs');
-  saveProgress({ renderView: state.view !== 'profile' });
+  saveProgress({ rerender: false });
   syncLocalNotificationSchedule();
   return true;
 }
@@ -741,7 +741,7 @@ function renderWeeklyFlowCard() {
     ? `✨ ${strongest.label} en güçlü ${periodWord}. Sütunlara dokunarak ayrıntıyı görebilirsin.`
     : 'Sütunlara dokunarak ayrıntıyı görebilirsin.');
 
-  return `<section class="profile-goal-card" id="weeklyFlowCard">
+  return `<section class="profile-goal-card">
     <div class="profile-goal-head"><span>HAFTALIK AKIŞ</span></div>
     <p class="profile-goal-desc">Son yedi gündeki çalışma ritmin ve günlük hedeflerin.</p>
     <div class="flow-toolbar">
@@ -1721,14 +1721,13 @@ function profileView() {
       <svg class="pv-landscape" viewBox="0 0 940 280" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H940V280H0Z" fill="#0b2348"/><path d="M0 0H940V72C823 12 815 115 709 78S493 155 336 170S105 189 0 45Z" fill="#17365e"/><path d="M0 0H76C129 75 242 89 428 0Z" fill="#264970" opacity=".35"/><path d="M0 48C174 231 281 178 439 153S653 54 743 82S858 27 940 60V280H0Z" fill="#102d54"/><path d="M0 217C233 178 342 178 492 128S712 96 940 179V280H0Z" fill="#071d40" opacity=".5"/><path d="M0 117L238 280H0Z" fill="#ad2b49"/><path d="M940 61C847 32 830 108 718 78S492 155 340 177" stroke="#345580" stroke-width="4" fill="none" opacity=".5"/></svg>
       <div class="pv-brand">Sınav<span>Rotası</span></div><span class="pv-tagline">Hedefine giden yol burada.</span>
       <svg class="pv-route" viewBox="0 0 180 92" fill="none" aria-hidden="true"><path d="M5 90C34 62 61 81 103 77C141 73 105 60 101 55C82 35 127 36 145 33C153 31 153 23 153 20" stroke="#f24056" stroke-width="2" stroke-dasharray="8 6"/><path d="M153 5C144 5 142 14 146 20L153 30L160 20C164 14 162 5 153 5Z" fill="#ef344d"/><circle cx="153" cy="14" r="3.5" fill="#18345c"/></svg>
-      <span class="pv-motto">Daha fazla<br>çalış, daha ileri git.</span>
     </header>
-    <article class="pv-id"><div class="pv-avatar">${escapeHtml(avatarFirst)}</div><div class="pv-person"><strong>${escapeHtml(fullName)}</strong><span class="pv-email">${escapeHtml(email)}</span><button class="pv-role" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button></div><button class="pv-role-arrow" type="button" aria-label="Kadro değiştir" data-profile-role>${svg('arrow')}</button></article>
+    <article class="pv-id"><div class="pv-avatar">${escapeHtml(avatarFirst)}</div><div class="pv-person"><strong>${escapeHtml(fullName)}</strong><span class="pv-email">${escapeHtml(email)}</span><button class="pv-role" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button></div></article>
     <div class="pv-settings">
       <section class="pv-setting"><span class="pv-medallion">${svg('target')}</span><h3 class="pv-heading">GÜNLÜK ÇALIŞMA HEDEFİ</h3><p class="pv-desc">Her gün çözmek istediğin soru sayısını belirle, ana sayfadaki ilerleme halkası buna göre hesaplanır.</p><div class="pv-goal"><input id="profileDailyGoalInput" type="number" min="${DAILY_GOAL_MIN}" max="${DAILY_GOAL_MAX}" step="1" inputmode="numeric" value="${stats.dailyGoal}" aria-label="Günlük hedef soru sayısı"><button class="pv-save" id="profileDailyGoalSaveButton" type="button">Kaydet</button></div></section>
       <section class="pv-setting"><span class="pv-medallion">${bell}</span><h3 class="pv-heading">BİLDİRİMLER</h3><p class="pv-desc">Günlük çalışma hatırlatıcını aç, kapat veya saatini değiştir.</p><div class="pv-reminder"><div><strong>Günlük çalışma hatırlatıcısı</strong><small>Seçtiğin saatte, her gün</small></div><button class="notif-switch${prefs.dailyReminder ? ' on' : ''}" type="button" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Günlük çalışma hatırlatıcısı"><i></i></button></div><label class="pv-time" for="notifReminderTimeInput">Hatırlatma saati<input type="time" id="notifReminderTimeInput" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati"></label></section>
     </div>
-    <section class="pv-badges"><div class="pv-badge-head"><strong>ROZETLERİM</strong><button id="profileBadgesToggle" type="button" aria-expanded="false" aria-controls="profileBadgesGrid">Tümünü Gör ${svg('arrow')}</button></div><p>Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</p><div class="pv-badge-grid" id="profileBadgesGrid">${badges.map(badge => `<div class="badge-item${badge.unlocked ? ' unlocked' : ''}"><span class="badge-image-wrap"><img src="${badge.image}" alt="${escapeHtml(badge.label)}" class="badge-image" loading="lazy"></span><small>${badge.unlocked ? escapeHtml(badge.label) : `${badge.value}/${badge.target} ${escapeHtml(badge.unit)}`}</small><span class="pv-badge-detail" hidden>${escapeHtml(badge.label)}</span></div>`).join('')}</div></section>
+    <section class="pv-badges"><div class="pv-badge-head"><strong>ROZETLERİM</strong></div><p>Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</p><div class="pv-badge-grid" id="profileBadgesGrid">${badges.map(badge => `<div class="badge-item${badge.unlocked ? ' unlocked' : ''}"><span class="badge-image-wrap"><img src="${badge.image}" alt="${escapeHtml(badge.label)}" class="badge-image" loading="eager"></span><small>${badge.unlocked ? escapeHtml(badge.label) : `${badge.value}/${badge.target} ${escapeHtml(badge.unit)}`}</small></div>`).join('')}</div></section>
     ${renderWeeklyFlowCard()}
     <div class="pv-sync">${svg('refresh')}<span>İstatistiklerin hesabına otomatik olarak senkronize ediliyor; başka bir cihazdan giriş yaptığında da seninle gelir.</span></div>
     <section class="pv-actions"><button class="reset-progress" id="resetProgressButton" type="button">${svg('refresh')}<span>İlerleme verisini sıfırla</span></button><button class="signout-btn" id="signOutButton" type="button">${svg('lock')}<span>Çıkış Yap</span></button></section>
@@ -1744,14 +1743,6 @@ function render() {
 }
 
 function bindViewEvents() {
-  app.querySelector('[data-profile-role]')?.addEventListener('click', () => document.getElementById('changeRoleButton')?.click());
-  document.getElementById('profileBadgesToggle')?.addEventListener('click', event => {
-    const button = event.currentTarget;
-    const expanded = button.getAttribute('aria-expanded') !== 'true';
-    button.setAttribute('aria-expanded', String(expanded));
-    button.innerHTML = `${expanded ? 'Daralt' : 'Tümünü Gör'} ${svg('arrow')}`;
-    app.querySelectorAll('.pv-badge-detail').forEach(label => { label.hidden = !expanded; });
-  });
   if (state.catalogueError) document.getElementById('retryLoadButton')?.addEventListener('click', loadCatalogue);
   app.querySelectorAll('[data-open-category]').forEach(element => {
     element.addEventListener('click', () => openTopicSheet(element.dataset.openCategory));
@@ -1814,33 +1805,23 @@ function bindViewEvents() {
   document.getElementById('notifReminderTimeInput')?.addEventListener('change', event => {
     setReminderTime(event.target.value);
   });
-
   bindWeeklyFlowEvents();
+
 }
 
-
-// Grafik etkileşimleri rozetler ve diğer profil öğelerini yeniden oluşturmaz.
-function updateWeeklyFlowCard() {
-  const card = document.getElementById('weeklyFlowCard');
-  if (!card) return;
-  const scrollArea = document.getElementById('scroll-area');
-  const scrollTop = scrollArea?.scrollTop;
-  const hadFocus = card.contains(document.activeElement);
-  card.outerHTML = renderWeeklyFlowCard();
-  bindWeeklyFlowEvents();
-  if (hadFocus) {
-    document.querySelector('#weeklyFlowCard .flow-tab.active')?.focus({ preventScroll: true });
-  }
-  if (scrollArea && scrollTop !== undefined) scrollArea.scrollTop = scrollTop;
-}
-
+// Haftalık seçimler yalnızca kendi kartını günceller; rozet DOM'u korunur.
 function bindWeeklyFlowEvents() {
   app.querySelectorAll('[data-flow-range]').forEach(button => {
     button.addEventListener('click', () => {
       if (state.weeklyFlowRange === button.dataset.flowRange) return;
+      const card = button.closest('.profile-goal-card');
+      if (!card) return;
       state.weeklyFlowRange = button.dataset.flowRange;
       state.weeklyFlowNote = '';
-      updateWeeklyFlowCard();
+      const top = scrollArea.scrollTop;
+      card.outerHTML = renderWeeklyFlowCard();
+      bindWeeklyFlowEvents();
+      scrollArea.scrollTop = top;
     });
   });
   app.querySelectorAll('[data-flow-bar]').forEach(button => {
@@ -1849,7 +1830,7 @@ function bindWeeklyFlowEvents() {
       const bar = bars[Number(button.dataset.flowBar)];
       if (!bar) return;
       state.weeklyFlowNote = bar.detail;
-      const note = document.querySelector('#weeklyFlowCard .flow-note');
+      const note = button.closest('.profile-goal-card')?.querySelector('.flow-note');
       if (note) note.textContent = bar.detail;
     });
   });
