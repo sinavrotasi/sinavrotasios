@@ -1283,7 +1283,7 @@ function cardsView() {
     'general-culture': { title: 'Ortak Alan Bilgisi', description: 'Dilbilgisi, Tarih, Coğrafya, Yurttaşlık ve Güncel Bilgiler', theme: 'culture', icon: 'landmark' }
   };
   const keys = ['general-legislation', 'meb-legislation', 'general-culture'];
-  return `<section class="screen content-screen cards-showcase cards-porcelain" aria-label="Bilgi kartları">
+  return `<section class="screen content-screen cards-showcase" aria-label="Bilgi kartları">
     <header class="cards-showcase-heading"><span>KARTLARIM</span><i aria-hidden="true"></i><h2>Bilgi Kartları</h2><p>Kategorini seç, soru-cevap kartlarıyla hızlı tekrar yap.</p></header>
     <div class="cards-showcase-stage">
       ${keys.map((key, index) => {
@@ -1296,7 +1296,7 @@ function cardsView() {
           <div class="cards-showcase-face"><div class="cards-showcase-photo" aria-hidden="true"></div><div class="cards-showcase-shade" aria-hidden="true"></div>
           <div class="cards-showcase-icon">${svg(design.icon)}</div>
           <div class="cards-showcase-copy"><h3>${escapeHtml(design.title)}</h3><p>${escapeHtml(design.description)}</p></div>
-          <div class="cards-showcase-bottom"><small><span class="porcelain-meta-icon" aria-hidden="true">${svg('schoolbook')}</span>${metaText}</small><span class="cards-showcase-arrow" aria-hidden="true">${svg('arrow')}</span></div></div>
+          <div class="cards-showcase-bottom"><small>${metaText}</small><span class="cards-showcase-arrow" aria-hidden="true">${svg('arrowRight')}</span></div></div>
         </article>`;
       }).join('')}
     </div>
