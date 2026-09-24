@@ -206,6 +206,7 @@ const iconPaths = {
   circleCheckBig: '<path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/>',
   award: '<path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/>',
   calendar: '<path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>',
+  flashcards: '<rect x="6" y="5" width="13" height="15" rx="2.5"/><path d="M9 5V3.5A1.5 1.5 0 0 1 10.5 2H19a3 3 0 0 1 3 3v11a2 2 0 0 1-2 2h-1"/><path d="M9.5 10h6"/><path d="M9.5 14h4"/>',
 };
 
 function svg(name, className = 'ui-icon') {
@@ -1352,7 +1353,7 @@ function cardsView() {
         <span class="smart-card smart-card-back"></span>
         <span class="smart-card smart-card-mid"></span>
         <span class="smart-card smart-card-front">
-          ${svg('schoolbook')}
+          ${svg('flashcards')}
           <span class="smart-repeat-badge">${svg('refresh')}</span>
         </span>
         <i class="smart-orbit smart-orbit-blue"></i>
@@ -1360,9 +1361,6 @@ function cardsView() {
       </div>
     </article>
 
-    <div class="cards-set-head">
-      <h3>Kart Setlerim</h3>
-    </div>
 
     <div class="cards-set-list">
       ${rows.map(row => `<article class="cards-set-card" data-open-card-category="${row.key}" role="button" tabindex="0" aria-label="${escapeHtml(row.design.title)}">

@@ -2623,3 +2623,127 @@ body.auth-page{
 .cards-dashboard .smart-repeat-badge{position:absolute;right:-8px;bottom:-8px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#ff626b,#e93238);color:#fff;border:3px solid #edf4ff;box-shadow:0 7px 14px rgba(233,50,56,.28);transform:rotate(7deg)}
 .cards-dashboard .smart-repeat-badge svg{width:13px;height:13px;stroke-width:2.4}
 .cards-dashboard .cards-set-head{justify-content:flex-start}
+
+
+/* ===== KARTLARIM v3 — kompakt yerleşim / safe-area / alt menü ===== */
+.cards-dashboard{
+  padding-top:calc(30px + env(safe-area-inset-top));
+}
+.cards-dashboard-heading{
+  min-height:108px;
+  padding-top:2px;
+}
+.cards-smart-review{
+  min-height:166px;
+  margin-bottom:10px;
+  padding:15px 142px 15px 16px;
+  border-radius:19px;
+}
+.cards-smart-copy h3{
+  margin:0 0 6px;
+  font-size:22px;
+  line-height:1.02;
+}
+.cards-smart-copy p{
+  max-width:250px;
+  font-size:10px;
+  line-height:1.42;
+}
+.cards-smart-start{
+  min-height:36px;
+  margin-top:11px;
+  padding:0 16px;
+  font-size:11px;
+}
+.cards-dashboard .cards-smart-art{
+  right:13px;
+  top:27px;
+  width:108px;
+  height:98px;
+}
+.cards-dashboard .smart-card{
+  width:62px;
+  height:78px;
+  border-radius:13px;
+}
+.cards-dashboard .smart-card-back{top:10px}
+.cards-dashboard .smart-card-mid{right:14px;top:5px}
+.cards-dashboard .smart-card-front{
+  right:28px;
+  top:0;
+  transform:rotate(-5deg);
+}
+.cards-dashboard .smart-card-front>svg{
+  width:27px;
+  height:27px;
+  stroke-width:1.85;
+}
+.cards-dashboard .smart-repeat-badge{
+  right:-7px;
+  bottom:-7px;
+  width:25px;
+  height:25px;
+  border-width:2.5px;
+}
+.cards-dashboard .smart-repeat-badge svg{
+  width:12px;
+  height:12px;
+}
+.cards-dashboard .smart-orbit-blue{
+  width:105px;
+  height:33px;
+  right:-3px;
+  top:42px;
+}
+.cards-dashboard .smart-orbit-red{
+  width:90px;
+  height:30px;
+  right:7px;
+  top:49px;
+}
+.cards-dashboard .cards-set-list{
+  margin-top:0;
+}
+@media(max-width:999px){
+  .bottom-nav{
+    height:calc(64px + env(safe-area-inset-bottom));
+    padding:4px 4px calc(4px + env(safe-area-inset-bottom));
+  }
+  .app-scroll{
+    padding-bottom:calc(80px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav button{
+    min-height:52px;
+    padding:1px 2px 3px;
+    gap:2px;
+  }
+  .bottom-nav button>svg{
+    width:20px;
+    height:20px;
+  }
+  .bottom-nav button.active>svg{
+    top:-15px;
+    width:20px;
+    height:20px;
+    padding:7px;
+    border-width:3px;
+  }
+  .bottom-nav button.active>span{
+    bottom:3px;
+  }
+}
+@media(max-width:370px){
+  .cards-dashboard{
+    padding-top:calc(26px + env(safe-area-inset-top));
+  }
+  .cards-smart-review{
+    min-height:158px;
+    padding-right:125px;
+  }
+  .cards-dashboard .cards-smart-art{
+    right:4px;
+    top:29px;
+    transform:scale(.88);
+    transform-origin:right top;
+  }
+}
