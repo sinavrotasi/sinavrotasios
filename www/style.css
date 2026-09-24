@@ -4025,3 +4025,36 @@ body.auth-page{
     font-weight:500;
   }
 }
+
+
+/* 2026-09-24 — Yanlışlarım premium ikon seti: kalıcı inline SVG'lerle uyumlu son görünüm. */
+.mistakes-reference .mistakes-ref-heading-art{
+  width:112px;
+  height:98px;
+  right:-1px;
+  top:4px;
+  filter:drop-shadow(0 9px 15px rgba(23,79,156,.10));
+}
+.mistakes-reference .mistakes-ref-hero-art{
+  width:112px;
+  height:112px;
+  right:4px;
+  top:17px;
+  bottom:auto;
+  filter:drop-shadow(0 12px 18px rgba(0,12,38,.20));
+}
+.mistakes-reference .metric-wrong .mistakes-ref-metric-icon{
+  color:#fff;
+  background:linear-gradient(145deg,#ff7880 0%,#f43c4e 52%,#e72639 100%);
+  box-shadow:0 7px 14px rgba(233,50,56,.20),inset 0 1px 0 rgba(255,255,255,.35);
+}
+.mistakes-reference .metric-repeat .mistakes-ref-metric-icon{
+  color:#fff;
+  background:linear-gradient(145deg,#6db8ff 0%,#3d96ff 45%,#1975ef 100%);
+  box-shadow:0 7px 14px rgba(45,126,247,.20),inset 0 1px 0 rgba(255,255,255,.35);
+}
+.mistakes-reference .mistakes-ref-metric-icon svg{stroke-width:1.9}
+@media(max-width:370px){
+  .mistakes-reference .mistakes-ref-heading-art{width:100px;height:90px;right:0;top:5px}
+  .mistakes-reference .mistakes-ref-hero-art{width:98px;height:98px;right:2px;top:20px}
+}
