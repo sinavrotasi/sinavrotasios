@@ -1159,41 +1159,108 @@ function getMistakeCategories() {
 
 function mistakesView() {
   const totalCount = Object.keys(progress.wrongQuestions).length;
+  const repeatCount = totalCount;
   const order = ['general-legislation', 'meb-legislation', 'general-culture'];
   const categories = getMistakeCategories().sort((a, b) => {
     const rank = key => order.includes(key) ? order.indexOf(key) : order.length;
     return rank(a.key) - rank(b.key);
   });
-  return `<section class="screen content-screen mistakes-screen mistakes-redesign" aria-label="Yanlışlarım">
-    <article class="wrong-review">
-      <div class="wrong-review-copy">
+  const maxCategoryCount = Math.max(1, ...categories.map(cat => cat.count));
+  const presentation = {
+    'general-legislation': { title: 'Genel Mevzuat', icon: 'scale', tone: 'red' },
+    'meb-legislation': { title: 'MEB Mevzuatı', icon: 'schoolbook', tone: 'blue' },
+    'general-culture': { title: 'Ortak Alan Bilgisi', icon: 'landmark', tone: 'violet' },
+    other: { title: 'Diğer Sorular', icon: 'book', tone: 'green' }
+  };
+
+  const headingArt = `<svg class="mistakes-ref-heading-art" viewBox="0 0 190 150" fill="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="mh-blue" x1="30" y1="14" x2="170" y2="140" gradientUnits="userSpaceOnUse"><stop stop-color="#66adff"/><stop offset="1" stop-color="#2d7ef7"/></linearGradient>
+      <linearGradient id="mh-paper" x1="42" y1="16" x2="145" y2="128" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#eef4fc"/></linearGradient>
+    </defs>
+    <circle cx="112" cy="65" r="62" stroke="#2d7ef7" stroke-opacity=".08"/><circle cx="112" cy="65" r="47" stroke="#2d7ef7" stroke-opacity=".07"/>
+    <g transform="translate(78 25) rotate(8 45 52)"><rect x="12" y="12" width="79" height="96" rx="16" fill="url(#mh-blue)" opacity=".94"/><rect width="79" height="96" rx="16" fill="url(#mh-paper)"/><path d="M22 30h35M22 42h27" stroke="#d7e1ef" stroke-width="6" stroke-linecap="round"/><path d="m31 58 22 22M53 58 31 80" stroke="#ff3d4d" stroke-width="8" stroke-linecap="round"/></g>
+    <g transform="translate(119 54) rotate(10 34 42)"><rect x="10" y="10" width="61" height="78" rx="14" fill="#2d7ef7"/><rect width="61" height="78" rx="14" fill="url(#mh-paper)"/><path d="m19 43 10 10 19-24" stroke="#2d7ef7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <path d="M109 26c18-17 44-13 55 5" stroke="#2d7ef7" stroke-width="4" stroke-linecap="round"/><path d="m158 25 9 7-10 5" fill="#2d7ef7"/>
+    <path d="M166 12v9M174 18l7-4M172 26l8 4" stroke="#2d7ef7" stroke-width="3" stroke-linecap="round"/>
+  </svg>`;
+
+  const heroArt = `<svg class="mistakes-ref-hero-art" viewBox="0 0 220 180" fill="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="mr-paper" x1="38" y1="25" x2="145" y2="145" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#eef4fb"/></linearGradient>
+      <linearGradient id="mr-back" x1="55" y1="40" x2="160" y2="155" gradientUnits="userSpaceOnUse"><stop stop-color="#5da7ff"/><stop offset="1" stop-color="#2567d9"/></linearGradient>
+      <linearGradient id="mr-red-arrow" x1="160" y1="95" x2="201" y2="147" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6b70"/><stop offset="1" stop-color="#ff3545"/></linearGradient>
+      <linearGradient id="mr-blue-arrow" x1="26" y1="82" x2="75" y2="139" gradientUnits="userSpaceOnUse"><stop stop-color="#62b5ff"/><stop offset="1" stop-color="#2d7ef7"/></linearGradient>
+    </defs>
+    <circle cx="120" cy="88" r="70" stroke="#fff" stroke-opacity=".035"/><circle cx="120" cy="88" r="51" stroke="#fff" stroke-opacity=".035"/>
+    <g transform="translate(75 30) rotate(8 57 65)"><rect x="14" y="14" width="105" height="127" rx="18" fill="url(#mr-back)" opacity=".82"/><rect width="105" height="127" rx="18" fill="url(#mr-paper)"/><path d="m26 37 11 11m0-11L26 48m0 22 11 11m0-11L26 81m0 21 11 11m0-11-11 11" stroke="#ff3446" stroke-width="6" stroke-linecap="round"/><path d="M51 42h30M51 75h30M51 108h30" stroke="#bcc9dc" stroke-width="7" stroke-linecap="round"/></g>
+    <path d="M68 75c-24 11-37 35-29 58 8 20 31 29 53 22" stroke="url(#mr-blue-arrow)" stroke-width="10" stroke-linecap="round"/><path d="M35 92 30 70l22 4" fill="#4ca4ff"/>
+    <path d="M150 145c23 0 40-15 43-36 2-14-3-27-13-36" stroke="url(#mr-red-arrow)" stroke-width="10" stroke-linecap="round"/><path d="m176 80 7-22 17 16" fill="#ff5a62"/>
+    <path d="M156 33c18-13 40-5 49 12" stroke="#2d7ef7" stroke-width="3" stroke-linecap="round" opacity=".95"/>
+  </svg>`;
+
+  const metricWrongIcon = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="7.7" stroke="currentColor" stroke-width="1.8"/><path d="m9.2 9.2 5.6 5.6m0-5.6-5.6 5.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+  const metricRepeatIcon = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19.2 8.1A7.8 7.8 0 0 0 5.4 6.5L3 9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 4.8V9h4.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.8 15.9a7.8 7.8 0 0 0 13.8 1.6L21 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 19.2V15h-4.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  const categoryHtml = categories.map(cat => {
+    const design = presentation[cat.key] || { title: cat.title, icon: cat.icon || 'book', tone: 'green' };
+    // Yanlışlar havuzu yalnızca henüz çözülmemiş soruları tuttuğu için burada
+    // "tamamlandı" sayısı uydurulmuyor. Görseldeki üçlü alt satır korunurken
+    // gerçek havuz verisi kullanılır: kalan/tekrar = aktif yanlış sayısı.
+    const completed = 0;
+    const remaining = cat.count;
+    const repeat = cat.count;
+    const pct = totalCount ? Math.max(8, Math.round((cat.count / totalCount) * 100)) : 0;
+    const width = Math.max(8, Math.round((cat.count / maxCategoryCount) * 76));
+    return `<article class="mistakes-ref-topic tone-${design.tone}" role="button" tabindex="0" data-open-mistake-category="${escapeHtml(cat.key)}" aria-label="${escapeHtml(design.title)} yanlışlarını çalış">
+      <div class="mistakes-ref-topic-icon" aria-hidden="true">${svg(design.icon)}</div>
+      <div class="mistakes-ref-topic-main">
+        <div class="mistakes-ref-topic-top">
+          <div><h4>${escapeHtml(design.title)}</h4><p>${cat.count} yanlış soru</p></div>
+          <span class="mistakes-ref-work"><span class="mistakes-ref-play" aria-hidden="true"></span>Çalış</span>
+        </div>
+        <div class="mistakes-ref-progress"><i style="width:${width}%"></i><strong>%${pct}</strong></div>
+        <div class="mistakes-ref-topic-stats">
+          <span class="is-done">${svg('check')}<b>${completed}</b> Tamamlandı</span>
+          <span class="is-left">${svg('book')}<b>${remaining}</b> Kalan</span>
+          <span class="is-repeat">${svg('refresh')}<b>${repeat}</b> Tekrar</span>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+
+  return `<section class="screen content-screen mistakes-screen mistakes-reference" aria-label="Yanlışlarım">
+    <header class="mistakes-ref-heading">
+      <div class="mistakes-ref-heading-copy">
         <h2>Yanlışlarım</h2>
-        <p>Yaptığın yanlış soruları tekrar<br>çözerek eksiklerini gider<br>ve daha güçlü hâle gel.</p>
-        <div class="wrong-review-count"><strong>${totalCount}</strong> <span>soru</span></div>
-        <button class="wrong-review-start" id="startWrongPoolButton" type="button" ${totalCount ? '' : 'disabled'}>Tekrarı Başlat <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16m-7-7 7 7-7 7"/></svg></button>
+        <p>Yaptığın hatalardan öğren,<br>her denemede daha güçlü ol.</p>
       </div>
-      <div class="wrong-review-visual" aria-hidden="true">
-        <svg class="wrong-review-paper" viewBox="0 0 230 250" fill="none">
-          <defs><linearGradient id="wr-paper" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#e7edf7"/></linearGradient><linearGradient id="wr-red" x2="1" y2="1"><stop stop-color="#ff555a"/><stop offset="1" stop-color="#e41126"/></linearGradient></defs>
-          <circle cx="163" cy="67" r="59" fill="#7393bb" opacity=".09"/><circle cx="57" cy="159" r="48" fill="#7393bb" opacity=".10"/>
-          <g transform="rotate(7 119 130)"><path d="M61 48h122q13 0 12 15l-3 156q0 14-15 14H48q-14 0-12-15L47 64q1-16 14-16Z" fill="#b8c6da"/><path d="M58 46h123q12 0 11 14l-3 154q0 14-14 14H46q-14 0-12-15L45 61q1-15 13-15Z" fill="url(#wr-paper)"/>
-          <circle cx="77" cy="87" r="15" fill="url(#wr-red)"/><path d="m71 81 12 12m0-12L71 93" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
-          <path d="M107 81h49m-49 14h33M105 128h47m-47 14h32M102 175h44m-44 14h27" stroke="#b3bfd2" stroke-width="6" stroke-linecap="round"/>
-          <circle cx="74" cy="132" r="13" stroke="#acb9ce" stroke-width="4"/><circle cx="71" cy="177" r="13" stroke="#acb9ce" stroke-width="4"/></g>
-          <g transform="rotate(34 176 152)"><path d="M165 90v-9q0-11 11-11t11 11v9" fill="url(#wr-red)"/><path d="M165 90h22v101h-22z" fill="url(#wr-red)"/><path d="M165 89h22v8h-22z" fill="#f8ddd8"/><path d="M180 97h7v94h-7z" fill="#d80f24" opacity=".45"/><path d="m165 191 11 27 11-27" fill="#ffc0ac"/><path d="m172 209 4 9 4-9" fill="#102b4f"/></g>
-          <path d="m37 46-11-10m30 0-2-15M29 64l-14-1" stroke="#ff3547" stroke-width="4" stroke-linecap="round"/>
-        </svg>
-        <div class="wrong-review-motto">Hatalar<br>daha güçlü<br>bir sen için.<i></i></div>
+      ${headingArt}
+    </header>
+
+    <section class="mistakes-ref-metrics" aria-label="Yanlış soru özeti">
+      <article class="mistakes-ref-metric metric-wrong">
+        <span class="mistakes-ref-metric-icon">${metricWrongIcon}</span>
+        <div><small>Toplam Yanlış</small><strong>${totalCount}</strong></div>
+      </article>
+      <article class="mistakes-ref-metric metric-repeat">
+        <span class="mistakes-ref-metric-icon">${metricRepeatIcon}</span>
+        <div><small>Tekrar Bekleyen</small><strong>${repeatCount}</strong></div>
+      </article>
+    </section>
+
+    <article class="mistakes-ref-hero">
+      <div class="mistakes-ref-hero-copy">
+        <h3>Bugünün Yanlışları</h3>
+        <p>${repeatCount ? `Bugün tekrar zamanı gelen<br><strong>${repeatCount} soru</strong> seni bekliyor.` : 'Şu an tekrar bekleyen<br>yanlış sorun bulunmuyor.'}</p>
+        <button class="mistakes-ref-start" id="startWrongPoolButton" type="button" ${repeatCount ? '' : 'disabled'}><span class="mistakes-ref-start-play" aria-hidden="true"></span>Gözden Geçir</button>
       </div>
+      ${heroArt}
     </article>
-    <h3 class="wrong-category-heading">Kategoriye göre çalış</h3>
-    <section class="wrong-category-list" aria-label="Yanlış soru kategorileri">
-      ${categories.length ? categories.map(cat => `<article class="wrong-category ${cat.key === 'general-legislation' ? 'wrong-red' : cat.key === 'meb-legislation' ? 'wrong-blue' : 'wrong-navy'}" role="button" tabindex="0" data-open-mistake-category="${escapeHtml(cat.key)}">
-        <div class="wrong-category-icon" aria-hidden="true">${svg(cat.icon)}</div>
-        <div class="wrong-category-copy"><h4>${escapeHtml(cat.key === 'general-legislation' ? 'Genel Mevzuat' : cat.title)}</h4><p>Yanlış yaptığın soruları tekrar çöz.</p></div>
-        <span class="wrong-category-count">${cat.count} soru</span>
-        <span class="wrong-category-arrow" aria-hidden="true">${svg('arrow')}</span>
-      </article>`).join('') : '<div class="mistakes-empty">Henüz yanlış yaptığın bir soru yok.</div>'}
+
+    <h3 class="mistakes-ref-section-title">Konu Bazlı Yanlışlarım</h3>
+    <section class="mistakes-ref-topics" aria-label="Konu bazlı yanlışlar">
+      ${categoryHtml || '<div class="mistakes-ref-empty">Henüz yanlış yaptığın bir soru yok.</div>'}
     </section>
   </section>`;
 }
@@ -1320,15 +1387,7 @@ function cardsView() {
     ? `Tekrar zamanı gelen ${dueCount} kartını öncelik sırasına göre hızlıca gözden geçir.`
     : 'Şu anda tekrarı gelen kartın yok. Kart setlerinden çalışmaya devam ederek tekrar planını oluştur.';
 
-  return `<section class="screen content-screen cards-dashboard" aria-label="Kartlarım">
-    <header class="cards-dashboard-heading">
-      <h2>Kartlarım</h2>
-      <p>Konu kartlarıyla bilgini pekiştir, hedeflerine daha hızlı ulaş.</p>
-      <div class="cards-dashboard-mark" aria-hidden="true">
-        <span></span><span></span><span>${svg('schoolbook')}</span>
-      </div>
-    </header>
-
+  const metricsHtml = `
     <div class="cards-dashboard-metrics">
       <article class="cards-dashboard-metric">
         <div class="cards-dashboard-metric-icon metric-blue">${svg('schoolbook')}</div>
@@ -1338,7 +1397,16 @@ function cardsView() {
         <div class="cards-dashboard-metric-icon metric-red">${svg('refresh')}</div>
         <div><span>Tekrar Bekleyen</span><strong>${dueCount}</strong></div>
       </article>
-    </div>
+    </div>`;
+
+  return `<section class="screen content-screen cards-dashboard" aria-label="Kartlarım">
+    <header class="cards-dashboard-heading">
+      <h2>Kartlarım</h2>
+      <p>Konu kartlarıyla bilgini pekiştir, hedeflerine daha hızlı ulaş.</p>
+      <div class="cards-dashboard-mark" aria-hidden="true">
+        <span></span><span></span><span>${svg('schoolbook')}</span>
+      </div>
+    </header>
 
     <article class="cards-smart-review${dueCount ? '' : ' is-empty'}">
       <div class="cards-smart-copy">
@@ -1350,17 +1418,15 @@ function cardsView() {
         </button>
       </div>
       <div class="cards-smart-art" aria-hidden="true">
-        <span class="smart-card smart-card-back"></span>
-        <span class="smart-card smart-card-mid"></span>
-        <span class="smart-card smart-card-front">
-          ${svg('flashcards')}
-          <span class="smart-repeat-badge">${svg('refresh')}</span>
-        </span>
-        <i class="smart-orbit smart-orbit-blue"></i>
-        <i class="smart-orbit smart-orbit-red"></i>
+        <div class="smart-review-emblem">
+          <span class="smart-review-book">${svg('schoolbook')}</span>
+          <span class="smart-review-loop smart-review-loop-a">${svg('refresh')}</span>
+          <span class="smart-review-loop smart-review-loop-b">${svg('refresh')}</span>
+        </div>
       </div>
     </article>
 
+    ${metricsHtml}
 
     <div class="cards-set-list">
       ${rows.map(row => `<article class="cards-set-card" data-open-card-category="${row.key}" role="button" tabindex="0" aria-label="${escapeHtml(row.design.title)}">
@@ -1859,7 +1925,7 @@ function profileView() {
 function render() {
   const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView };
   const appHeader = document.querySelector('.app-header');
-  if (appHeader) appHeader.classList.toggle('hidden', state.view === 'cards');
+  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes'].includes(state.view));
   app.innerHTML = (views[state.view] || homeView)();
   bindViewEvents();
   updateHeader();
