@@ -1278,29 +1278,87 @@ function startWrongPool() {
 function cardsView() {
   const catalogue = getCardCatalogue();
   const presentation = {
-    'meb-legislation': { title: 'MEB Mevzuatı', description: 'Millî Eğitim Bakanlığı Özel Mevzuatı ve Düzenlemeleri', theme: 'meb', icon: 'schoolbook' },
-    'general-legislation': { title: 'Genel Mevzuat', description: 'Anayasa, Devlet Memurları ve Kamu Yönetimi Kanunları', theme: 'general', icon: 'scale' },
-    'general-culture': { title: 'Ortak Alan Bilgisi', description: 'Dilbilgisi, Tarih, Coğrafya, Yurttaşlık ve Güncel Bilgiler', theme: 'culture', icon: 'landmark' }
+    'general-legislation': { title: 'Genel Mevzuat', icon: 'scale', tone: 'red' },
+    'meb-legislation': { title: 'MEB Mevzuatı', icon: 'schoolbook', tone: 'blue' },
+    'general-culture': { title: 'Ortak Alan Bilgisi', icon: 'landmark', tone: 'violet' }
   };
   const keys = ['general-legislation', 'meb-legislation', 'general-culture'];
-  return `<section class="screen content-screen cards-showcase" aria-label="Bilgi kartları">
-    <header class="cards-showcase-heading"><span>KARTLARIM</span><i aria-hidden="true"></i><h2>Bilgi Kartları</h2><p>Kategorini seç, soru-cevap kartlarıyla hızlı tekrar yap.</p></header>
-    <div class="cards-showcase-stage">
-      ${keys.map((key, index) => {
-        const meta = catalogue[key];
-        const design = presentation[key];
-        const documents = meta?.documents || [];
-        const activeCount = documents.filter(d => d.cardFile).length;
-        const metaText = documents.length ? `${documents.length} kaynak · ${activeCount} aktif set` : 'İçerik yakında eklenecek';
-        return `<article class="cards-showcase-card cards-showcase-${design.theme}" role="button" tabindex="0" data-open-card-category="${key}" aria-label="${escapeHtml(design.title)}">
-          <div class="cards-showcase-face"><div class="cards-showcase-photo" aria-hidden="true"></div><div class="cards-showcase-shade" aria-hidden="true"></div>
-          <div class="cards-showcase-icon">${svg(design.icon)}</div>
-          <div class="cards-showcase-copy"><h3>${escapeHtml(design.title)}</h3><p>${escapeHtml(design.description)}</p></div>
-          <div class="cards-showcase-bottom"><small>${metaText}</small><span class="cards-showcase-arrow" aria-hidden="true">${svg('arrowRight')}</span></div></div>
-        </article>`;
-      }).join('')}
+  const rows = keys.map(key => {
+    const meta = catalogue[key];
+    const design = presentation[key];
+    const documents = meta?.documents || [];
+    const activeCount = documents.filter(doc => doc.topicId || doc.cardFile).length;
+    const totalCount = documents.length;
+    const pct = totalCount ? Math.round((activeCount / totalCount) * 100) : 0;
+    return { key, meta, design, documents, activeCount, totalCount, pct };
+  });
+
+  const totalSets = rows.reduce((sum, row) => sum + row.totalCount, 0);
+  const dueCount = Number(state.totalDueFlashcards || 0);
+  const dueLabel = dueCount > 0 ? `${dueCount} kart` : 'Hazır';
+  const heroTitle = dueCount > 0 ? 'Akıllı Tekrar' : 'Tekrarların Güncel';
+  const heroText = dueCount > 0
+    ? `Tekrar zamanı gelen ${dueCount} kart seni bekliyor. Leitner sistemine göre öncelikli kartlarını çalış.`
+    : 'Şu anda tekrarı gelen kartın yok. Kart setlerinden çalışmaya devam ederek tekrar planını oluştur.';
+
+  return `<section class="screen content-screen cards-dashboard" aria-label="Kartlarım">
+    <header class="cards-dashboard-heading">
+      <h2>Kartlarım</h2>
+      <p>Konu kartlarıyla bilgini pekiştir, hedeflerine daha hızlı ulaş.</p>
+      <div class="cards-dashboard-mark" aria-hidden="true">
+        <span></span><span></span><span>${svg('schoolbook')}</span>
+      </div>
+    </header>
+
+    <div class="cards-dashboard-metrics">
+      <article class="cards-dashboard-metric">
+        <div class="cards-dashboard-metric-icon metric-blue">${svg('schoolbook')}</div>
+        <div><span>Toplam Kart Seti</span><strong>${totalSets}</strong></div>
+      </article>
+      <article class="cards-dashboard-metric">
+        <div class="cards-dashboard-metric-icon metric-red">${svg('refresh')}</div>
+        <div><span>Tekrar Bekleyen</span><strong>${dueCount}</strong></div>
+      </article>
     </div>
 
+    <article class="cards-smart-review${dueCount ? '' : ' is-empty'}">
+      <div class="cards-smart-copy">
+        <span class="cards-smart-eyebrow">${svg('refresh')} GÜNÜN ÖNERİSİ</span>
+        <h3>${heroTitle}</h3>
+        <p>${heroText}</p>
+        <button class="cards-smart-start" id="openDueFlashcardsButton" type="button" ${dueCount ? '' : 'disabled'}>
+          <span class="cards-smart-play" aria-hidden="true"></span>
+          <span>${dueCount ? 'Tekrara Başla' : 'Tekrar Yok'}</span>
+        </button>
+      </div>
+      <div class="cards-smart-art" aria-hidden="true">
+        <span class="smart-card smart-card-back"></span>
+        <span class="smart-card smart-card-mid"></span>
+        <span class="smart-card smart-card-front">${svg('refresh')}</span>
+        <i class="smart-orbit smart-orbit-blue"></i>
+        <i class="smart-orbit smart-orbit-red"></i>
+      </div>
+      <div class="cards-smart-mini">${svg('clock')}<span>${dueLabel}</span><small>Leitner</small></div>
+    </article>
+
+    <div class="cards-set-head">
+      <h3>Kart Setlerim</h3>
+      <span>${svg('chart')} Tüm Kart Setleri</span>
+    </div>
+
+    <div class="cards-set-list">
+      ${rows.map(row => `<article class="cards-set-card" data-open-card-category="${row.key}" role="button" tabindex="0" aria-label="${escapeHtml(row.design.title)}">
+        <div class="cards-set-icon tone-${row.design.tone}">${svg(row.design.icon)}</div>
+        <div class="cards-set-main">
+          <div class="cards-set-title-row">
+            <div><h4>${escapeHtml(row.design.title)}</h4><span>${row.totalCount} kart seti</span></div>
+            <button class="cards-set-work" type="button" tabindex="-1"><span class="cards-set-play"></span>Çalış</button>
+          </div>
+          <div class="cards-set-progress-row"><div class="cards-set-track"><i style="width:${row.pct}%"></i></div><strong>%${row.pct}</strong></div>
+          <div class="cards-set-meta"><span class="meta-active">${svg('check')}<b>${row.activeCount}</b> Aktif</span><span class="meta-divider"></span><span>${svg('book')}<b>${Math.max(0, row.totalCount - row.activeCount)}</b> Hazırlanıyor</span></div>
+        </div>
+      </article>`).join('')}
+    </div>
   </section>`;
 }
 
@@ -1450,12 +1508,12 @@ async function openCardDeck(doc, categoryKey) {
 function refreshDueFlashcardCount() {
   const role = progress.selectedRole;
   const decks = (state.flashcardDecks || []).filter(d => !role || !d.kadrolar || d.kadrolar.includes(role));
-  if (!window.currentUser || !decks.length) { state.totalDueFlashcards = 0; if (state.view === 'home') render(); return; }
+  if (!window.currentUser || !decks.length) { state.totalDueFlashcards = 0; if (state.view === 'home' || state.view === 'cards') render(); return; }
   ContentRepo.fetchDueFlashcardCounts(decks.map(d => d.id))
     .then(counts => {
       state.totalDueFlashcards = Object.values(counts).reduce((sum, n) => sum + n, 0);
       syncLocalNotificationSchedule();
-      if (state.view === 'home') render();
+      if (state.view === 'home' || state.view === 'cards') render();
     })
     .catch(() => {});
 }
@@ -1472,7 +1530,7 @@ async function openDueReviewSession() {
     if (!due.length) {
       showToast('Şu an tekrarı gelen kart yok. 👍');
       state.totalDueFlashcards = 0;
-      if (state.view === 'home') render();
+      if (state.view === 'home' || state.view === 'cards') render();
       return;
     }
     // progressMap: puanlama öncesi mevcut kutu/tarih bilgisi kart id'siyle
@@ -3826,7 +3884,7 @@ async function loadCatalogue() {
         .then(counts => {
           state.totalDueFlashcards = Object.values(counts).reduce((sum, n) => sum + n, 0);
           syncLocalNotificationSchedule();
-          if (state.view === 'home') render();
+          if (state.view === 'home' || state.view === 'cards') render();
         })
         .catch(() => {}); // widget süsleme, sessizce geç
     }
@@ -3836,7 +3894,7 @@ async function loadCatalogue() {
     ContentRepo.fetchTotalQuestionCount()
       .then(total => {
         state.totalQuestionCount = total;
-        if (state.view === 'home') render();
+        if (state.view === 'home' || state.view === 'cards') render();
       })
       .catch(() => {});
     // Sınav tarihi artık paylaşılan/genel bir ayar (bkz. app_settings) —
@@ -3845,7 +3903,7 @@ async function loadCatalogue() {
       .then(examDate => {
         state.sharedExamDate = examDate;
         syncLocalNotificationSchedule();
-        if (state.view === 'home') render();
+        if (state.view === 'home' || state.view === 'cards') render();
       })
       .catch(() => {});
   } catch (error) {
