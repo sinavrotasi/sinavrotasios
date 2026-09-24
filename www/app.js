@@ -769,7 +769,7 @@ function renderWeeklyFlowCard() {
 }
 
 function getStats() {
-  const completedSections = Object.keys(progress.completedSections).filter(key => !key.startsWith('card-deck:')).length;
+  const completedSections = Object.keys(progress.completedSections).filter(key => !key.startsWith('card-deck:') && !key.startsWith('wrong-fixed:')).length;
   const completedMocks = progress.completedTests.filter(test => EXAM_KINDS.includes(test.kind)).length;
   const todayAnswers = Number(progress.dailyAnswers[dateKey()] || 0);
   const dailyGoal = getDailyGoal();
@@ -1146,6 +1146,31 @@ function mistakeCategoryMeta(categoryKey) {
   return categoryCardMeta(categoryKey);
 }
 
+const WRONG_FIXED_PREFIX = 'wrong-fixed:';
+
+function wrongFixedKey(categoryKey, questionId) {
+  return `${WRONG_FIXED_PREFIX}${categoryKey || 'other'}:${String(questionId)}`;
+}
+
+function clearWrongFixedForQuestion(questionId) {
+  const suffix = `:${String(questionId)}`;
+  Object.keys(progress.completedSections || {})
+    .filter(key => key.startsWith(WRONG_FIXED_PREFIX) && key.endsWith(suffix))
+    .forEach(key => window.SRProgressSync.deleteKey(progress, 'completedSections', key));
+}
+
+function getResolvedWrongCountsByCategory() {
+  const counts = {};
+  Object.keys(progress.completedSections || {}).forEach(key => {
+    if (!key.startsWith(WRONG_FIXED_PREFIX)) return;
+    const rest = key.slice(WRONG_FIXED_PREFIX.length);
+    const splitAt = rest.indexOf(':');
+    const categoryKey = splitAt >= 0 ? rest.slice(0, splitAt) : 'other';
+    counts[categoryKey] = (counts[categoryKey] || 0) + 1;
+  });
+  return counts;
+}
+
 function getMistakeCategories() {
   const grouped = getWrongQuestionsGrouped();
   return [...grouped.keys()].map(key => {
@@ -1158,14 +1183,11 @@ function getMistakeCategories() {
 }
 
 function mistakesView() {
-  const totalCount = Object.keys(progress.wrongQuestions).length;
-  const repeatCount = totalCount;
+  const remainingByCategory = Object.fromEntries(getMistakeCategories().map(cat => [cat.key, cat]));
+  const resolvedByCategory = getResolvedWrongCountsByCategory();
+  const categoryKeys = new Set([...Object.keys(remainingByCategory), ...Object.keys(resolvedByCategory)]);
   const order = ['general-legislation', 'meb-legislation', 'general-culture'];
-  const categories = getMistakeCategories().sort((a, b) => {
-    const rank = key => order.includes(key) ? order.indexOf(key) : order.length;
-    return rank(a.key) - rank(b.key);
-  });
-  const maxCategoryCount = Math.max(1, ...categories.map(cat => cat.count));
+
   const presentation = {
     'general-legislation': { title: 'Genel Mevzuat', icon: 'scale', tone: 'red' },
     'meb-legislation': { title: 'MEB Mevzuatı', icon: 'schoolbook', tone: 'blue' },
@@ -1173,30 +1195,51 @@ function mistakesView() {
     other: { title: 'Diğer Sorular', icon: 'book', tone: 'green' }
   };
 
+  const categories = [...categoryKeys].map(key => {
+    const current = remainingByCategory[key];
+    const remaining = current?.count || 0;
+    const completed = resolvedByCategory[key] || 0;
+    const meta = current || mistakeCategoryMeta(key);
+    return {
+      key,
+      title: current?.title || meta?.title || 'Diğer Sorular',
+      icon: current?.icon || meta?.icon || 'book',
+      remaining,
+      completed,
+      total: remaining + completed
+    };
+  }).filter(cat => cat.total > 0).sort((a, b) => {
+    const rank = key => order.includes(key) ? order.indexOf(key) : order.length;
+    return rank(a.key) - rank(b.key);
+  });
+
+  const repeatCount = Object.keys(progress.wrongQuestions).length;
+  const correctedCount = Object.values(resolvedByCategory).reduce((sum, n) => sum + Number(n || 0), 0);
+  const totalWrongCount = repeatCount + correctedCount;
+
   const headingArt = `<svg class="mistakes-ref-heading-art" viewBox="0 0 190 150" fill="none" aria-hidden="true">
     <defs>
-      <linearGradient id="mh-blue" x1="30" y1="14" x2="170" y2="140" gradientUnits="userSpaceOnUse"><stop stop-color="#66adff"/><stop offset="1" stop-color="#2d7ef7"/></linearGradient>
-      <linearGradient id="mh-paper" x1="42" y1="16" x2="145" y2="128" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#eef4fc"/></linearGradient>
+      <linearGradient id="mh-card-blue" x1="76" y1="25" x2="160" y2="126" gradientUnits="userSpaceOnUse"><stop stop-color="#65adff"/><stop offset="1" stop-color="#2b78ef"/></linearGradient>
+      <linearGradient id="mh-card-paper" x1="53" y1="16" x2="139" y2="124" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#eef4fc"/></linearGradient>
+      <linearGradient id="mh-x" x1="95" y1="56" x2="125" y2="88" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6570"/><stop offset="1" stop-color="#ef3043"/></linearGradient>
     </defs>
-    <circle cx="112" cy="65" r="62" stroke="#2d7ef7" stroke-opacity=".08"/><circle cx="112" cy="65" r="47" stroke="#2d7ef7" stroke-opacity=".07"/>
-    <g transform="translate(78 25) rotate(8 45 52)"><rect x="12" y="12" width="79" height="96" rx="16" fill="url(#mh-blue)" opacity=".94"/><rect width="79" height="96" rx="16" fill="url(#mh-paper)"/><path d="M22 30h35M22 42h27" stroke="#d7e1ef" stroke-width="6" stroke-linecap="round"/><path d="m31 58 22 22M53 58 31 80" stroke="#ff3d4d" stroke-width="8" stroke-linecap="round"/></g>
-    <g transform="translate(119 54) rotate(10 34 42)"><rect x="10" y="10" width="61" height="78" rx="14" fill="#2d7ef7"/><rect width="61" height="78" rx="14" fill="url(#mh-paper)"/><path d="m19 43 10 10 19-24" stroke="#2d7ef7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <path d="M109 26c18-17 44-13 55 5" stroke="#2d7ef7" stroke-width="4" stroke-linecap="round"/><path d="m158 25 9 7-10 5" fill="#2d7ef7"/>
-    <path d="M166 12v9M174 18l7-4M172 26l8 4" stroke="#2d7ef7" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="116" cy="69" r="61" stroke="#2d7ef7" stroke-opacity=".08"/><circle cx="116" cy="69" r="45" stroke="#2d7ef7" stroke-opacity=".07"/>
+    <g transform="translate(79 28) rotate(9 42 49)"><rect x="11" y="10" width="76" height="91" rx="16" fill="url(#mh-card-blue)"/><rect width="76" height="91" rx="16" fill="#dbeaff"/></g>
+    <g transform="translate(60 18) rotate(-7 43 50)"><rect width="82" height="98" rx="17" fill="url(#mh-card-paper)"/><path d="M21 29h39M21 42h31" stroke="#d6e1ef" stroke-width="6" stroke-linecap="round"/><circle cx="41" cy="67" r="19" fill="#fff0f2"/><path d="m32 58 18 18m0-18L32 76" stroke="url(#mh-x)" stroke-width="7" stroke-linecap="round"/></g>
+    <path d="M135 34c18-4 31 3 38 16" stroke="#2d7ef7" stroke-width="4" stroke-linecap="round"/><path d="m170 44 7 8-10 2" fill="#2d7ef7"/><path d="M166 16v8M174 20l7-4M173 29l8 3" stroke="#2d7ef7" stroke-width="3" stroke-linecap="round"/>
   </svg>`;
 
   const heroArt = `<svg class="mistakes-ref-hero-art" viewBox="0 0 220 180" fill="none" aria-hidden="true">
     <defs>
-      <linearGradient id="mr-paper" x1="38" y1="25" x2="145" y2="145" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#eef4fb"/></linearGradient>
-      <linearGradient id="mr-back" x1="55" y1="40" x2="160" y2="155" gradientUnits="userSpaceOnUse"><stop stop-color="#5da7ff"/><stop offset="1" stop-color="#2567d9"/></linearGradient>
-      <linearGradient id="mr-red-arrow" x1="160" y1="95" x2="201" y2="147" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6b70"/><stop offset="1" stop-color="#ff3545"/></linearGradient>
-      <linearGradient id="mr-blue-arrow" x1="26" y1="82" x2="75" y2="139" gradientUnits="userSpaceOnUse"><stop stop-color="#62b5ff"/><stop offset="1" stop-color="#2d7ef7"/></linearGradient>
+      <linearGradient id="mr-paper-a" x1="20" y1="30" x2="116" y2="152" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#edf4fb"/></linearGradient>
+      <linearGradient id="mr-paper-b" x1="105" y1="44" x2="196" y2="151" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#eaf3fc"/></linearGradient>
+      <linearGradient id="mr-blue" x1="90" y1="65" x2="163" y2="129" gradientUnits="userSpaceOnUse"><stop stop-color="#59adff"/><stop offset="1" stop-color="#2377ef"/></linearGradient>
+      <linearGradient id="mr-red" x1="38" y1="72" x2="91" y2="125" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6470"/><stop offset="1" stop-color="#ef3043"/></linearGradient>
     </defs>
-    <circle cx="120" cy="88" r="70" stroke="#fff" stroke-opacity=".035"/><circle cx="120" cy="88" r="51" stroke="#fff" stroke-opacity=".035"/>
-    <g transform="translate(75 30) rotate(8 57 65)"><rect x="14" y="14" width="105" height="127" rx="18" fill="url(#mr-back)" opacity=".82"/><rect width="105" height="127" rx="18" fill="url(#mr-paper)"/><path d="m26 37 11 11m0-11L26 48m0 22 11 11m0-11L26 81m0 21 11 11m0-11-11 11" stroke="#ff3446" stroke-width="6" stroke-linecap="round"/><path d="M51 42h30M51 75h30M51 108h30" stroke="#bcc9dc" stroke-width="7" stroke-linecap="round"/></g>
-    <path d="M68 75c-24 11-37 35-29 58 8 20 31 29 53 22" stroke="url(#mr-blue-arrow)" stroke-width="10" stroke-linecap="round"/><path d="M35 92 30 70l22 4" fill="#4ca4ff"/>
-    <path d="M150 145c23 0 40-15 43-36 2-14-3-27-13-36" stroke="url(#mr-red-arrow)" stroke-width="10" stroke-linecap="round"/><path d="m176 80 7-22 17 16" fill="#ff5a62"/>
-    <path d="M156 33c18-13 40-5 49 12" stroke="#2d7ef7" stroke-width="3" stroke-linecap="round" opacity=".95"/>
+    <circle cx="123" cy="88" r="69" stroke="#fff" stroke-opacity=".035"/><circle cx="123" cy="88" r="50" stroke="#fff" stroke-opacity=".035"/>
+    <g transform="translate(43 39) rotate(-9 46 58)"><rect x="9" y="9" width="86" height="111" rx="18" fill="#397cd8" opacity=".75"/><rect width="86" height="111" rx="18" fill="url(#mr-paper-a)"/><path d="M20 29h42M20 41h31" stroke="#d4dfed" stroke-width="6" stroke-linecap="round"/><circle cx="43" cy="72" r="20" fill="#fff0f2"/><path d="m34 63 18 18m0-18L34 81" stroke="url(#mr-red)" stroke-width="7" stroke-linecap="round"/></g>
+    <g transform="translate(121 48) rotate(8 41 53)"><rect x="8" y="8" width="77" height="102" rx="17" fill="#2d7ef7" opacity=".75"/><rect width="77" height="102" rx="17" fill="url(#mr-paper-b)"/><path d="M18 27h37M18 39h29" stroke="#d4dfed" stroke-width="6" stroke-linecap="round"/><circle cx="39" cy="68" r="18" fill="#edf6ff"/><path d="m29 69 7 7 14-17" stroke="url(#mr-blue)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <path d="M97 49c18-18 42-14 54 4" stroke="#4ca4ff" stroke-width="8" stroke-linecap="round"/><path d="m147 45 12 9-13 7" fill="#4ca4ff"/><path d="M93 137c18 13 42 12 59-2" stroke="#ff4f5c" stroke-width="6" stroke-linecap="round" opacity=".95"/>
   </svg>`;
 
   const metricWrongIcon = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="7.7" stroke="currentColor" stroke-width="1.8"/><path d="m9.2 9.2 5.6 5.6m0-5.6-5.6 5.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
@@ -1204,22 +1247,19 @@ function mistakesView() {
 
   const categoryHtml = categories.map(cat => {
     const design = presentation[cat.key] || { title: cat.title, icon: cat.icon || 'book', tone: 'green' };
-    // Yanlışlar havuzu yalnızca henüz çözülmemiş soruları tuttuğu için burada
-    // "tamamlandı" sayısı uydurulmuyor. Görseldeki üçlü alt satır korunurken
-    // gerçek havuz verisi kullanılır: kalan/tekrar = aktif yanlış sayısı.
-    const completed = 0;
-    const remaining = cat.count;
-    const repeat = cat.count;
-    const pct = totalCount ? Math.max(8, Math.round((cat.count / totalCount) * 100)) : 0;
-    const width = Math.max(8, Math.round((cat.count / maxCategoryCount) * 76));
-    return `<article class="mistakes-ref-topic tone-${design.tone}" role="button" tabindex="0" data-open-mistake-category="${escapeHtml(cat.key)}" aria-label="${escapeHtml(design.title)} yanlışlarını çalış">
+    const completed = cat.completed;
+    const remaining = cat.remaining;
+    const repeat = remaining;
+    const pct = cat.total ? Math.round((completed / cat.total) * 100) : 0;
+    const interactionAttrs = remaining
+      ? `role="button" tabindex="0" data-open-mistake-category="${escapeHtml(cat.key)}" aria-label="${escapeHtml(design.title)} yanlışlarını çalış"`
+      : `aria-label="${escapeHtml(design.title)} tamamlandı"`;
+    const workLabel = remaining ? `<span class="mistakes-ref-work"><span class="mistakes-ref-play" aria-hidden="true"></span>Çalış</span>` : `<span class="mistakes-ref-work is-complete">${svg('check')}Tamam</span>`;
+    return `<article class="mistakes-ref-topic tone-${design.tone}${remaining ? '' : ' is-complete'}" ${interactionAttrs}>
       <div class="mistakes-ref-topic-icon" aria-hidden="true">${svg(design.icon)}</div>
       <div class="mistakes-ref-topic-main">
-        <div class="mistakes-ref-topic-top">
-          <div><h4>${escapeHtml(design.title)}</h4><p>${cat.count} yanlış soru</p></div>
-          <span class="mistakes-ref-work"><span class="mistakes-ref-play" aria-hidden="true"></span>Çalış</span>
-        </div>
-        <div class="mistakes-ref-progress"><i style="width:${width}%"></i><strong>%${pct}</strong></div>
+        <div class="mistakes-ref-topic-top"><div><h4>${escapeHtml(design.title)}</h4><p>${remaining} yanlış soru</p></div>${workLabel}</div>
+        <div class="mistakes-ref-progress"><i style="width:${pct}%"></i><strong>%${pct}</strong></div>
         <div class="mistakes-ref-topic-stats">
           <span class="is-done">${svg('check')}<b>${completed}</b> Tamamlandı</span>
           <span class="is-left">${svg('book')}<b>${remaining}</b> Kalan</span>
@@ -1230,38 +1270,13 @@ function mistakesView() {
   }).join('');
 
   return `<section class="screen content-screen mistakes-screen mistakes-reference" aria-label="Yanlışlarım">
-    <header class="mistakes-ref-heading">
-      <div class="mistakes-ref-heading-copy">
-        <h2>Yanlışlarım</h2>
-        <p>Yaptığın hatalardan öğren,<br>her denemede daha güçlü ol.</p>
-      </div>
-      ${headingArt}
-    </header>
-
+    <header class="mistakes-ref-heading"><div class="mistakes-ref-heading-copy"><h2>Yanlışlarım</h2><p>Yaptığın hatalardan öğren,<br>her denemede daha güçlü ol.</p></div>${headingArt}</header>
     <section class="mistakes-ref-metrics" aria-label="Yanlış soru özeti">
-      <article class="mistakes-ref-metric metric-wrong">
-        <span class="mistakes-ref-metric-icon">${metricWrongIcon}</span>
-        <div><small>Toplam Yanlış</small><strong>${totalCount}</strong></div>
-      </article>
-      <article class="mistakes-ref-metric metric-repeat">
-        <span class="mistakes-ref-metric-icon">${metricRepeatIcon}</span>
-        <div><small>Tekrar Bekleyen</small><strong>${repeatCount}</strong></div>
-      </article>
+      <article class="mistakes-ref-metric metric-wrong"><span class="mistakes-ref-metric-icon">${metricWrongIcon}</span><div><small>Toplam Yanlış</small><strong>${totalWrongCount}</strong></div></article>
+      <article class="mistakes-ref-metric metric-repeat"><span class="mistakes-ref-metric-icon">${metricRepeatIcon}</span><div><small>Tekrar Bekleyen</small><strong>${repeatCount}</strong></div></article>
     </section>
-
-    <article class="mistakes-ref-hero">
-      <div class="mistakes-ref-hero-copy">
-        <h3>Bugünün Yanlışları</h3>
-        <p>${repeatCount ? `Bugün tekrar zamanı gelen<br><strong>${repeatCount} soru</strong> seni bekliyor.` : 'Şu an tekrar bekleyen<br>yanlış sorun bulunmuyor.'}</p>
-        <button class="mistakes-ref-start" id="startWrongPoolButton" type="button" ${repeatCount ? '' : 'disabled'}><span class="mistakes-ref-start-play" aria-hidden="true"></span>Gözden Geçir</button>
-      </div>
-      ${heroArt}
-    </article>
-
-    <h3 class="mistakes-ref-section-title">Konu Bazlı Yanlışlarım</h3>
-    <section class="mistakes-ref-topics" aria-label="Konu bazlı yanlışlar">
-      ${categoryHtml || '<div class="mistakes-ref-empty">Henüz yanlış yaptığın bir soru yok.</div>'}
-    </section>
+    <article class="mistakes-ref-hero"><div class="mistakes-ref-hero-copy"><h3>Bugünün Yanlışları</h3><p>${repeatCount ? `Bugün tekrar zamanı gelen<br><strong>${repeatCount} soru</strong> seni bekliyor.` : 'Şu an tekrar bekleyen<br>yanlış sorun bulunmuyor.'}</p><button class="mistakes-ref-start" id="startWrongPoolButton" type="button" ${repeatCount ? '' : 'disabled'}><span class="mistakes-ref-start-play" aria-hidden="true"></span>Gözden Geçir</button></div>${heroArt}</article>
+    <section class="mistakes-ref-topics" aria-label="Konu bazlı yanlışlar">${categoryHtml || '<div class="mistakes-ref-empty">Henüz yanlış yaptığın bir soru yok.</div>'}</section>
   </section>`;
 }
 
@@ -3261,10 +3276,15 @@ function recordAnswer(question, selected) {
   // quiz.questions üzerinden bağımsız çalışıyor, bu değişiklik ondan etkilenmez.
   const skipWrongPool = state.quiz?.kind === 'kadro-exam';
   if (isCorrect) {
-    if (progress.wrongQuestions[question.id]) {
+    const previousWrong = progress.wrongQuestions[question.id];
+    if (previousWrong) {
+      const categoryKey = previousWrong.categoryKey || question.categoryKey || 'other';
+      window.SRProgressSync.setKey(progress, 'completedSections', wrongFixedKey(categoryKey, question.id), new Date().toISOString());
       window.SRProgressSync.deleteKey(progress, 'wrongQuestions', question.id);
     }
   } else if (!skipWrongPool) {
+    // Daha önce düzeltilmiş bir soru yeniden yanlış yapılırsa tekrar "Kalan"a döner.
+    clearWrongFixedForQuestion(question.id);
     window.SRProgressSync.setKey(progress, 'wrongQuestions', question.id, {
       id: question.id, prompt: question.prompt, options: question.options, answerIndex: question.answerIndex,
       sectionId: question.topicId || null, documentId: question.documentId || null,
