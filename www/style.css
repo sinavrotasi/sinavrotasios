@@ -3364,9 +3364,9 @@ body.auth-page{
 .bank-v2 .bank-v2-hero{
   position:relative;
   overflow:hidden;
-  min-height:255px;
+  min-height:225px;
   margin:0 0 12px;
-  padding:22px 18px 72px;
+  padding:25px 18px 72px;
   border:1px solid rgba(89,157,255,.26);
   border-radius:21px;
   background:
@@ -3435,7 +3435,7 @@ body.auth-page{
   position:absolute;
   z-index:1;
   right:12px;
-  top:34px;
+  top:24px;
   width:126px;
   height:130px;
 }
@@ -3641,7 +3641,7 @@ body.auth-page{
   .bank-v2 .bank-v2-heading h2{font-size:26px}
   .bank-v2 .bank-v2-heading p{font-size:11.5px}
   .bank-v2 .bank-v2-heading-art{right:-8px;transform:scale(.9)}
-  .bank-v2 .bank-v2-hero{min-height:245px;padding-left:15px;padding-right:15px}
+  .bank-v2 .bank-v2-hero{min-height:218px;padding-left:15px;padding-right:15px}
   .bank-v2 .bank-v2-hero-copy{width:65%}
   .bank-v2 .bank-v2-hero h3{font-size:18px}
   .bank-v2 .bank-v2-hero-copy>p{font-size:10.5px}

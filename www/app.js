@@ -1087,14 +1087,8 @@ function bankView() {
 
     <article class="bank-v2-hero">
       <div class="bank-v2-hero-copy">
-        <span class="bank-v2-eyebrow">BUGÜNKÜ DENEME ÖNERİSİ</span>
         <h3>Kadro Bazlı Gerçek Sınav</h3>
         <p>${escapeHtml(roleLabel)} hedefin için resmi konu ağırlıklarına göre yeni bir deneme oluştur.</p>
-        <div class="bank-v2-chips">
-          <span>${svg('statTrials')} Gerçek sınav</span>
-          <span>${svg('clock')} Süreli</span>
-          <span>${svg('briefcase')} Kadro bazlı</span>
-        </div>
       </div>
       <div class="bank-v2-hero-art" aria-hidden="true">
         <span class="bank-v2-hero-paper">${svg('statTrials')}</span>
@@ -4417,52 +4411,178 @@ function expandBlueprintEntries(entries) {
 }
 
 
-async function startGeneralExamVariant({ count, durationMinutes, kind, title, subtitle }) {
+// Resmî kadro blueprint'indeki soru sayılarını daha küçük bir denemeye
+// oransal olarak indirger. Largest-remainder yöntemi toplamın hedef sayıya
+// TAM eşit kalmasını sağlar; bu yüzden 20 soruluk mini denemede oranlar
+// mümkün olduğunca resmî sınav dağılımını korur.
+function scaleBlueprintCounts(flatEntries, targetCount) {
+  const source = flatEntries
+    .map((entry, index) => ({ ...entry, sourceIndex: index, officialCount: Math.max(0, Number(entry.count) || 0) }))
+    .filter(entry => entry.officialCount > 0);
+  const total = source.reduce((sum, entry) => sum + entry.officialCount, 0);
+  if (!total || !targetCount) return [];
+
+  const scaled = source.map(entry => {
+    const exact = (entry.officialCount / total) * targetCount;
+    const count = Math.floor(exact);
+    return { ...entry, count, remainder: exact - count };
+  });
+  let left = targetCount - scaled.reduce((sum, entry) => sum + entry.count, 0);
+  [...scaled]
+    .sort((a, b) => b.remainder - a.remainder || b.officialCount - a.officialCount || a.sourceIndex - b.sourceIndex)
+    .slice(0, left)
+    .forEach(entry => { entry.count += 1; });
+  return scaled.sort((a, b) => a.sourceIndex - b.sourceIndex);
+}
+
+async function buildScaledMiniExamPool(roleKey, targetCount = 20) {
+  await loadExamConfig();
+  const blueprint = examBlueprints?.[roleKey];
+  if (!blueprint) throw new Error('Bu kadro için sınav planı tanımlı değil.');
+
+  const flatEntries = expandBlueprintEntries(blueprint.topics);
+  const scaledEntries = scaleBlueprintCounts(flatEntries, targetCount);
+  const allBlueprintTopicIds = flatEntries.map(entry => entry.topicId);
+  const banks = await Promise.all(flatEntries.map(({ topicId }) => loadExamTopicBank(topicId, allBlueprintTopicIds)));
+  const bankByIndex = banks;
+  const pickedIds = new Set();
+  const pool = [];
+  const missingTopics = [];
+
+  scaledEntries.forEach(entry => {
+    if (entry.count <= 0) return;
+    const topicMeta = examTopicRegistry[entry.topicId];
+    const bank = shuffle(bankByIndex[entry.sourceIndex] || []);
+    const picked = [];
+    for (const q of bank) {
+      if (picked.length >= entry.count) break;
+      if (q.id && pickedIds.has(q.id)) continue;
+      if (q.id) pickedIds.add(q.id);
+      picked.push({
+        ...q,
+        documentId: entry.topicId,
+        documentTitle: topicMeta?.title || entry.topicId,
+        categoryKey: topicMeta?.category || null
+      });
+    }
+    pool.push(...picked);
+    if (picked.length < entry.count) {
+      missingTopics.push(`${topicMeta?.title || entry.topicId} (${picked.length}/${entry.count})`);
+    }
+  });
+
+  // İçeriği eksik bir konu hedef kotasını dolduramazsa mini denemeyi eksik
+  // bırakmak yerine aynı kadronun diğer blueprint konularındaki kullanılmamış
+  // sorulardan tamamlıyoruz. Normal durumda bu kola hiç girilmez.
+  if (pool.length < targetCount) {
+    const fallback = [];
+    flatEntries.forEach((entry, index) => {
+      const topicMeta = examTopicRegistry[entry.topicId];
+      for (const q of (bankByIndex[index] || [])) {
+        if (q.id && pickedIds.has(q.id)) continue;
+        fallback.push({
+          ...q,
+          documentId: entry.topicId,
+          documentTitle: topicMeta?.title || entry.topicId,
+          categoryKey: topicMeta?.category || null
+        });
+      }
+    });
+    for (const q of shuffle(dedupeQuestionsById(fallback))) {
+      if (pool.length >= targetCount) break;
+      if (q.id && pickedIds.has(q.id)) continue;
+      if (q.id) pickedIds.add(q.id);
+      pool.push(q);
+    }
+  }
+
+  return { pool: pool.slice(0, targetCount), blueprint, scaledEntries, missingTopics };
+}
+
+// Aktif konu bankalarından round-robin seçim yapar. Her turda her bankadan
+// en fazla bir soru alındığı için 40 soruluk Karışık Genel Tekrar, tek bir
+// konuya yığılmak yerine mevcut aktif başlıklar arasında olabildiğince eşit
+// dağılır. Bankası tükenen konu atlanır ve diğerleri dengeyi koruyarak devam eder.
+async function buildBalancedMixedPool(entries, targetCount = 40) {
+  const settled = await Promise.allSettled(entries.map(async entry => {
+    const tagged = tagQuestions(await loadQuestionBank(entry.item), entry.item, entry.categoryKey);
+    return { entry, questions: shuffle(dedupeQuestionsById(tagged)) };
+  }));
+  const groups = shuffle(settled
+    .filter(result => result.status === 'fulfilled' && result.value.questions.length)
+    .map(result => ({ ...result.value, cursor: 0 })));
+
+  const picked = [];
+  const seen = new Set();
+  while (picked.length < targetCount && groups.length) {
+    let addedThisRound = 0;
+    for (const group of groups) {
+      while (group.cursor < group.questions.length) {
+        const q = group.questions[group.cursor++];
+        if (q.id && seen.has(q.id)) continue;
+        if (q.id) seen.add(q.id);
+        picked.push(q);
+        addedThisRound += 1;
+        break;
+      }
+      if (picked.length >= targetCount) break;
+    }
+    if (!addedThisRound) break;
+  }
+  return picked;
+}
+
+async function startQuickMiniExam() {
+  if (!requirePremiumOrWarn()) return;
+  const roleKey = progress.selectedRole;
+  if (!roleKey) return showToast('Önce kadronu seçmelisin.');
+  showToast('Mini deneme hazırlanıyor…');
+  try {
+    const { pool, missingTopics } = await buildScaledMiniExamPool(roleKey, 20);
+    if (!pool.length) return showToast('Bu kadro için henüz soru bankası eklenmedi.');
+    if (pool.length < 20) showToast(`Havuzda ${pool.length} benzersiz soru bulundu.`);
+    else if (missingTopics.length) showToast('Bazı konu kotaları içerik durumuna göre diğer kadro konularından tamamlandı.');
+    closeAllSheets(topicSheet);
+    topicSheet.classList.add('open');
+    topicSheet.setAttribute('aria-hidden', 'false');
+    topicBackdrop.classList.add('open');
+    startQuiz({
+      questions: pool,
+      kind: 'mini-exam',
+      title: 'Hızlı Mini Deneme',
+      subtitle: `${pool.length} soru • kadro dağılımına göre`,
+      returnView: closeTopicSheet,
+      customTimeSeconds: 20 * 60
+    });
+  } catch (error) {
+    showToast(error?.message || 'Mini deneme hazırlanamadı.');
+  }
+}
+
+async function startMixedGeneralExam() {
   if (!requirePremiumOrWarn()) return;
   const entries = getActiveDocuments();
   if (!entries.length) return showToast('Henüz aktif soru paketi bulunmuyor.');
-  showToast('Deneme hazırlanıyor…');
+  showToast('Karışık tekrar hazırlanıyor…');
   try {
-    const pool = await buildRandomPool(entries);
-    const unique = shuffle(dedupeQuestionsById(pool));
-    if (!unique.length) return showToast('Şu an hazır bir soru paketi bulunamadı.');
-    const questions = unique.slice(0, Math.min(count, unique.length));
-    if (questions.length < count) showToast(`Havuzda ${questions.length} benzersiz soru bulundu.`);
+    const questions = await buildBalancedMixedPool(entries, 40);
+    if (!questions.length) return showToast('Şu an hazır bir soru paketi bulunamadı.');
+    if (questions.length < 40) showToast(`Aktif konularda ${questions.length} benzersiz soru bulundu.`);
     closeAllSheets(topicSheet);
     topicSheet.classList.add('open');
     topicSheet.setAttribute('aria-hidden', 'false');
     topicBackdrop.classList.add('open');
     startQuiz({
       questions,
-      kind,
-      title,
-      subtitle: subtitle || `${questions.length} soru • ${durationMinutes} dakika`,
+      kind: 'mixed-exam',
+      title: 'Karışık Genel Tekrar',
+      subtitle: `${questions.length} soru • aktif konulara dengeli dağılım`,
       returnView: closeTopicSheet,
-      customTimeSeconds: durationMinutes * 60
+      customTimeSeconds: 50 * 60
     });
   } catch (error) {
-    showToast(error?.message || 'Deneme hazırlanamadı.');
+    showToast(error?.message || 'Karışık tekrar hazırlanamadı.');
   }
-}
-
-function startQuickMiniExam() {
-  return startGeneralExamVariant({
-    count: 20,
-    durationMinutes: 20,
-    kind: 'mini-exam',
-    title: 'Hızlı Mini Deneme',
-    subtitle: '20 soru • 20 dakika'
-  });
-}
-
-function startMixedGeneralExam() {
-  return startGeneralExamVariant({
-    count: 40,
-    durationMinutes: 50,
-    kind: 'mixed-exam',
-    title: 'Karışık Genel Tekrar',
-    subtitle: '40 soru • 50 dakika'
-  });
 }
 
 async function buildKadroExamPool(roleKey) {
