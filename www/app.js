@@ -1,11 +1,11 @@
 const STORAGE_KEY = 'sinavrotasi-study-progress-v2';
-const EXAM_KINDS = ['mock', 'kadro-exam'];
+const EXAM_KINDS = ['mock', 'kadro-exam', 'mini-exam', 'mixed-exam'];
 // NOT (2026-09-05): "Gerçek Sınav Formatı" (kadro-exam) da tıpkı Rastgele
 // Test gibi gerçek bir sınav ortamını taklit etmeli — cevap verirken anında
 // doğru/yanlış rengi göstermemeli, sadece sınav bitince toplu açılmalı.
 // Eskiden bu davranış (deferReveal) sadece 'random' için vardı; 'kadro-exam'
 // anında renk gösteriyordu, bu da "Gerçek Sınav Formatı" adıyla çelişiyordu.
-const DEFERRED_REVEAL_KINDS = ['random', 'kadro-exam', 'section'];
+const DEFERRED_REVEAL_KINDS = ['random', 'kadro-exam', 'mini-exam', 'mixed-exam', 'section'];
 const DEFAULT_DAILY_GOAL = 20;
 const DAILY_GOAL_MIN = 1;
 const DAILY_GOAL_MAX = 500;
@@ -206,6 +206,9 @@ const iconPaths = {
   circleCheckBig: '<path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/>',
   award: '<path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/>',
   calendar: '<path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>',
+  zap: '<path d="M4 14a1 1 0 0 1-.78-1.63l9-11a.5.5 0 0 1 .87.45l-1.69 6.2A1 1 0 0 0 12.36 9H20a1 1 0 0 1 .78 1.63l-9 11a.5.5 0 0 1-.87-.45l1.69-6.2A1 1 0 0 0 11.64 14z"/>',
+  shuffle: '<path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.5c2.5 0 4.5-2 6-5l1-2c1.5-3 3.5-5 6-5H22"/><path d="M2 6h1.5c2.5 0 4.5 2 6 5l1 2c1.5 3 3.5 5 6 5H22"/>',
+  briefcase: '<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/><path d="M2 12h20"/><path d="M10 12v2h4v-2"/>',
   flashcards: '<rect x="6" y="5" width="13" height="15" rx="2.5"/><path d="M9 5V3.5A1.5 1.5 0 0 1 10.5 2H19a3 3 0 0 1 3 3v11a2 2 0 0 1-2 2h-1"/><path d="M9.5 10h6"/><path d="M9.5 14h4"/>',
 };
 
@@ -1035,7 +1038,7 @@ function homeView() {
 // denemelerde aynı soruların ezberlenmesini önlüyor.
 function getCompletedKadroExams(limit = 15) {
   return progress.completedTests
-    .filter(test => test.kind === 'kadro-exam')
+    .filter(test => EXAM_KINDS.includes(test.kind))
     .slice()
     .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
     .slice(0, limit);
@@ -1049,68 +1052,88 @@ function formatCompletedDate(iso) {
 
 function bankView() {
   const stats = getStats();
-  // NOT (2026-09-05): tamamlanan kadro sınavları zaten progress.completedTests'e
-  // kaydediliyordu (recordQuizCompletion) ama hiçbir ekranda listelenmiyordu —
-  // sadece sayısı (stats.completedMocks) gösteriliyordu. Bu bölüm o geçmişi
-  // görünür kılıyor.
   const completedExams = getCompletedKadroExams();
+  const examAverage = completedExams.length ? Math.round(completedExams.reduce((sum, test) => sum + (test.total ? (test.score / test.total) * 100 : 0), 0) / completedExams.length) : 0;
+  const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || 'Kadro';
   const completedExamsHtml = completedExams.length ? `
-    <div class="bank-section-head"><h3>Çözülen Denemeler</h3></div>
-    <div class="solved-exams-list">
-      ${completedExams.map(test => {
+    <div class="bank-v2-section-head"><h3>Son Çözülenler</h3></div>
+    <div class="bank-v2-results">
+      ${completedExams.slice(0, 6).map(test => {
         const percentage = test.total ? Math.round((test.score / test.total) * 100) : 0;
-        return `<div class="solved-exam-row">
-          <div class="bank-exam-icon" aria-hidden="true">${svg('statTrials')}</div>
-          <div class="bank-exam-content">
-            <div class="solved-exam-row-top">
-              <span class="solved-exam-title">${escapeHtml(test.title)}</span>
-              <span class="solved-exam-score">${test.score}/${test.total}</span>
-            </div>
-            <span class="solved-exam-caption">%${percentage} başarı • ${formatCompletedDate(test.completedAt)}</span>
-            <div class="solved-exam-progress" aria-label="Başarı oranı %${percentage}">
-              <i style="width:${Math.max(0, Math.min(100, percentage))}%"></i>
-            </div>
+        const tone = percentage >= 80 ? 'good' : percentage >= 60 ? 'mid' : 'low';
+        return `<article class="bank-v2-result">
+          <div class="bank-v2-result-icon" aria-hidden="true">${svg('statTrials')}</div>
+          <div class="bank-v2-result-main">
+            <strong>${escapeHtml(test.title)}</strong>
+            <span>${formatCompletedDate(test.completedAt)} • ${test.total} soru</span>
+            <div class="bank-v2-result-track"><i class="${tone}" style="width:${Math.max(0, Math.min(100, percentage))}%"></i></div>
           </div>
-        </div>`;
+          <div class="bank-v2-result-score"><b>%${percentage}</b><small>${test.score}/${test.total}</small></div>
+        </article>`;
       }).join('')}
     </div>` : '';
 
-  return `<section class="screen content-screen bank-screen">
-    <div class="page-heading bank-page-heading">
-      <h2>Deneme Sınavları</h2>
-      <p>Aktif soru bankalarından oluşan denemelerle performansını ölç.</p>
-    </div>
+  return `<section class="screen content-screen bank-screen bank-v2">
+    <header class="bank-v2-heading">
+      <div class="bank-v2-heading-copy">
+        <h2>Deneme Sınavları</h2>
+        <p>Hedefine bir adım daha yaklaş.</p>
+      </div>
+      <div class="bank-v2-heading-art" aria-hidden="true">
+        <span class="bank-v2-paper">${svg('statTrials')}</span>
+        <span class="bank-v2-clock">${svg('clock')}</span>
+      </div>
+    </header>
 
-    <div class="bank-metrics">
-      <div class="bank-metric bank-metric-completed">
-        <div class="bank-metric-icon" aria-hidden="true">${svg('statTrials')}</div>
-        <div class="bank-metric-copy">
-          <strong>${stats.completedMocks}</strong>
-          <span>Tamamlanan deneme</span>
+    <article class="bank-v2-hero">
+      <div class="bank-v2-hero-copy">
+        <span class="bank-v2-eyebrow">BUGÜNKÜ DENEME ÖNERİSİ</span>
+        <h3>Kadro Bazlı Gerçek Sınav</h3>
+        <p>${escapeHtml(roleLabel)} hedefin için resmi konu ağırlıklarına göre yeni bir deneme oluştur.</p>
+        <div class="bank-v2-chips">
+          <span>${svg('statTrials')} Gerçek sınav</span>
+          <span>${svg('clock')} Süreli</span>
+          <span>${svg('briefcase')} Kadro bazlı</span>
         </div>
       </div>
-      <div class="bank-metric bank-metric-accuracy">
-        <div class="bank-metric-icon" aria-hidden="true">${svg('target')}</div>
-        <div class="bank-metric-copy">
-          <strong>%${stats.accuracy}</strong>
-          <span>Genel doğruluk</span>
-        </div>
+      <div class="bank-v2-hero-art" aria-hidden="true">
+        <span class="bank-v2-hero-paper">${svg('statTrials')}</span>
+        <span class="bank-v2-hero-target">${svg('target')}</span>
       </div>
-    </div>
-
-    <article class="bank-practice-card">
-      <div class="bank-practice-top">
-        <div class="bank-practice-icon" aria-hidden="true">${svg('target')}</div>
-        <div class="bank-practice-copy">
-          <h3>Kadro Bazlı Gerçek Sınav</h3>
-          <p>Seçtiğin kadronun konu ağırlıklarına göre otomatik deneme oluştur.</p>
-        </div>
-      </div>
-      <button class="bank-start-button" id="startKadroExamButton" type="button">
-        <span class="bank-start-play" aria-hidden="true"></span>
-        <span>Başlat</span>
+      <button class="bank-v2-hero-start" id="startKadroExamButton" type="button">
+        <span class="bank-v2-play" aria-hidden="true"></span><span>Sınava Başla</span>
       </button>
     </article>
+
+    <div class="bank-v2-metrics">
+      <article class="bank-v2-metric bank-v2-metric-blue">
+        <span class="bank-v2-metric-icon">${svg('circleCheckBig')}</span>
+        <div><small>Tamamlanan Deneme</small><strong>${stats.completedMocks}</strong></div>
+      </article>
+      <article class="bank-v2-metric bank-v2-metric-red">
+        <span class="bank-v2-metric-icon">${svg('chart')}</span>
+        <div><small>Ortalama Başarı</small><strong>%${examAverage}</strong></div>
+      </article>
+    </div>
+
+    <div class="bank-v2-section-head"><h3>Deneme Türleri</h3></div>
+    <div class="bank-v2-types">
+      <article class="bank-v2-type">
+        <span class="bank-v2-type-icon bank-v2-type-red">${svg('briefcase')}</span>
+        <div class="bank-v2-type-copy"><strong>Kadro Bazlı Gerçek Sınav</strong><p>Resmî ağırlık dağılımında tam sınav deneyimi.</p></div>
+        <button type="button" class="bank-v2-type-btn bank-v2-btn-red" id="startKadroExamTypeButton"><span class="bank-v2-play"></span>Başlat</button>
+      </article>
+      <article class="bank-v2-type">
+        <span class="bank-v2-type-icon bank-v2-type-blue">${svg('zap')}</span>
+        <div class="bank-v2-type-copy"><strong>Hızlı Mini Deneme</strong><p>20 soru • 20 dakika. Kısa sürede seviyeni ölç.</p></div>
+        <button type="button" class="bank-v2-type-btn bank-v2-btn-blue" id="startMiniExamButton"><span class="bank-v2-play"></span>Başlat</button>
+      </article>
+      <article class="bank-v2-type">
+        <span class="bank-v2-type-icon bank-v2-type-purple">${svg('shuffle')}</span>
+        <div class="bank-v2-type-copy"><strong>Karışık Genel Tekrar</strong><p>40 soru • 50 dakika. Aktif konulardan karma deneme.</p></div>
+        <button type="button" class="bank-v2-type-btn bank-v2-btn-purple" id="startMixedExamButton"><span class="bank-v2-play"></span>Başlat</button>
+      </article>
+    </div>
 
     ${completedExamsHtml}
   </section>`;
@@ -1219,31 +1242,31 @@ function mistakesView() {
 
   const headingArt = `<svg class="mistakes-ref-heading-art" viewBox="0 0 190 150" fill="none" aria-hidden="true">
     <defs>
-      <linearGradient id="mh-card-blue" x1="76" y1="25" x2="160" y2="126" gradientUnits="userSpaceOnUse"><stop stop-color="#65adff"/><stop offset="1" stop-color="#2b78ef"/></linearGradient>
-      <linearGradient id="mh-card-paper" x1="53" y1="16" x2="139" y2="124" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#eef4fc"/></linearGradient>
-      <linearGradient id="mh-x" x1="95" y1="56" x2="125" y2="88" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6570"/><stop offset="1" stop-color="#ef3043"/></linearGradient>
+      <linearGradient id="mh2-blue" x1="61" y1="27" x2="154" y2="123" gradientUnits="userSpaceOnUse"><stop stop-color="#65adff"/><stop offset="1" stop-color="#2475ef"/></linearGradient>
+      <linearGradient id="mh2-paper" x1="45" y1="19" x2="135" y2="121" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#edf4fc"/></linearGradient>
+      <linearGradient id="mh2-red" x1="104" y1="57" x2="133" y2="86" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6671"/><stop offset="1" stop-color="#ec3042"/></linearGradient>
     </defs>
-    <circle cx="116" cy="69" r="61" stroke="#2d7ef7" stroke-opacity=".08"/><circle cx="116" cy="69" r="45" stroke="#2d7ef7" stroke-opacity=".07"/>
-    <g transform="translate(79 28) rotate(9 42 49)"><rect x="11" y="10" width="76" height="91" rx="16" fill="url(#mh-card-blue)"/><rect width="76" height="91" rx="16" fill="#dbeaff"/></g>
-    <g transform="translate(60 18) rotate(-7 43 50)"><rect width="82" height="98" rx="17" fill="url(#mh-card-paper)"/><path d="M21 29h39M21 42h31" stroke="#d6e1ef" stroke-width="6" stroke-linecap="round"/><circle cx="41" cy="67" r="19" fill="#fff0f2"/><path d="m32 58 18 18m0-18L32 76" stroke="url(#mh-x)" stroke-width="7" stroke-linecap="round"/></g>
-    <path d="M135 34c18-4 31 3 38 16" stroke="#2d7ef7" stroke-width="4" stroke-linecap="round"/><path d="m170 44 7 8-10 2" fill="#2d7ef7"/><path d="M166 16v8M174 20l7-4M173 29l8 3" stroke="#2d7ef7" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="112" cy="71" r="61" fill="#eaf3ff" fill-opacity=".62"/><circle cx="112" cy="71" r="49" stroke="#2d7ef7" stroke-opacity=".08"/>
+    <g transform="translate(75 32) rotate(8 42 47)"><rect width="82" height="94" rx="18" fill="url(#mh2-blue)" opacity=".95"/></g>
+    <g transform="translate(49 18) rotate(-7 42 49)"><rect width="84" height="99" rx="18" fill="url(#mh2-paper)"/><path d="M20 27h42M20 40h32M20 53h37" stroke="#d5e1ef" stroke-width="5.5" stroke-linecap="round"/></g>
+    <g transform="translate(91 50)"><circle cx="20" cy="20" r="18" fill="#fff" stroke="#ff5664" stroke-width="4"/><path d="m13 13 14 14m0-14L13 27" stroke="url(#mh2-red)" stroke-width="6" stroke-linecap="round"/><path d="m33 33 16 16" stroke="#2d7ef7" stroke-width="7" stroke-linecap="round"/></g>
+    <path d="M157 21v9M166 26l8-4M165 36l9 3" stroke="#2d7ef7" stroke-width="3" stroke-linecap="round"/>
   </svg>`;
 
   const heroArt = `<svg class="mistakes-ref-hero-art" viewBox="0 0 220 180" fill="none" aria-hidden="true">
     <defs>
-      <linearGradient id="mr-paper-a" x1="20" y1="30" x2="116" y2="152" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#edf4fb"/></linearGradient>
-      <linearGradient id="mr-paper-b" x1="105" y1="44" x2="196" y2="151" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#eaf3fc"/></linearGradient>
-      <linearGradient id="mr-blue" x1="90" y1="65" x2="163" y2="129" gradientUnits="userSpaceOnUse"><stop stop-color="#59adff"/><stop offset="1" stop-color="#2377ef"/></linearGradient>
-      <linearGradient id="mr-red" x1="38" y1="72" x2="91" y2="125" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6470"/><stop offset="1" stop-color="#ef3043"/></linearGradient>
+      <linearGradient id="mr2-paper" x1="58" y1="31" x2="159" y2="150" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#eaf2fc"/></linearGradient>
+      <linearGradient id="mr2-blue" x1="126" y1="82" x2="180" y2="136" gradientUnits="userSpaceOnUse"><stop stop-color="#62b0ff"/><stop offset="1" stop-color="#2475ef"/></linearGradient>
+      <linearGradient id="mr2-red" x1="91" y1="75" x2="126" y2="111" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6570"/><stop offset="1" stop-color="#ed3042"/></linearGradient>
     </defs>
-    <circle cx="123" cy="88" r="69" stroke="#fff" stroke-opacity=".035"/><circle cx="123" cy="88" r="50" stroke="#fff" stroke-opacity=".035"/>
-    <g transform="translate(43 39) rotate(-9 46 58)"><rect x="9" y="9" width="86" height="111" rx="18" fill="#397cd8" opacity=".75"/><rect width="86" height="111" rx="18" fill="url(#mr-paper-a)"/><path d="M20 29h42M20 41h31" stroke="#d4dfed" stroke-width="6" stroke-linecap="round"/><circle cx="43" cy="72" r="20" fill="#fff0f2"/><path d="m34 63 18 18m0-18L34 81" stroke="url(#mr-red)" stroke-width="7" stroke-linecap="round"/></g>
-    <g transform="translate(121 48) rotate(8 41 53)"><rect x="8" y="8" width="77" height="102" rx="17" fill="#2d7ef7" opacity=".75"/><rect width="77" height="102" rx="17" fill="url(#mr-paper-b)"/><path d="M18 27h37M18 39h29" stroke="#d4dfed" stroke-width="6" stroke-linecap="round"/><circle cx="39" cy="68" r="18" fill="#edf6ff"/><path d="m29 69 7 7 14-17" stroke="url(#mr-blue)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <path d="M97 49c18-18 42-14 54 4" stroke="#4ca4ff" stroke-width="8" stroke-linecap="round"/><path d="m147 45 12 9-13 7" fill="#4ca4ff"/><path d="M93 137c18 13 42 12 59-2" stroke="#ff4f5c" stroke-width="6" stroke-linecap="round" opacity=".95"/>
+    <circle cx="132" cy="88" r="67" stroke="#fff" stroke-opacity=".04"/><circle cx="132" cy="88" r="48" stroke="#fff" stroke-opacity=".035"/>
+    <g transform="translate(52 27) rotate(-5 54 66)"><rect x="8" y="9" width="101" height="128" rx="21" fill="#2b6bc3" opacity=".5"/><rect width="101" height="128" rx="21" fill="url(#mr2-paper)"/><path d="M19 19h63" stroke="#d3dfed" stroke-width="7" stroke-linecap="round"/><path d="M25 0v25M76 0v25" stroke="#7faaf0" stroke-width="7" stroke-linecap="round"/><circle cx="50" cy="76" r="27" fill="#fff0f2"/><path d="m38 64 24 24m0-24L38 88" stroke="url(#mr2-red)" stroke-width="8" stroke-linecap="round"/></g>
+    <g transform="translate(137 92)"><circle cx="24" cy="24" r="23" fill="url(#mr2-blue)" stroke="#dfeeff" stroke-width="4"/><path d="M24 11v14l9 6" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <path d="M174 55c11 4 19 11 24 21" stroke="#4ca4ff" stroke-width="5" stroke-linecap="round"/><path d="m196 69 6 10-12 1" fill="#4ca4ff"/>
   </svg>`;
 
-  const metricWrongIcon = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="7.7" stroke="currentColor" stroke-width="1.8"/><path d="m9.2 9.2 5.6 5.6m0-5.6-5.6 5.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-  const metricRepeatIcon = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19.2 8.1A7.8 7.8 0 0 0 5.4 6.5L3 9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 4.8V9h4.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.8 15.9a7.8 7.8 0 0 0 13.8 1.6L21 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 19.2V15h-4.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const metricWrongIcon = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3.5h10a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 9 2.2 2.2L15.8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="m9 14 6 6m0-6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+  const metricRepeatIcon = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5v5l3.5 2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.3 5.7 20 4v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
   const categoryHtml = categories.map(cat => {
     const design = presentation[cat.key] || { title: cat.title, icon: cat.icon || 'book', tone: 'green' };
@@ -1271,11 +1294,11 @@ function mistakesView() {
 
   return `<section class="screen content-screen mistakes-screen mistakes-reference" aria-label="Yanlışlarım">
     <header class="mistakes-ref-heading"><div class="mistakes-ref-heading-copy"><h2>Yanlışlarım</h2><p>Yaptığın hatalardan öğren,<br>her denemede daha güçlü ol.</p></div>${headingArt}</header>
-    <section class="mistakes-ref-metrics" aria-label="Yanlış soru özeti">
-      <article class="mistakes-ref-metric metric-wrong"><span class="mistakes-ref-metric-icon">${metricWrongIcon}</span><div><small>Toplam Yanlış</small><strong>${totalWrongCount}</strong></div></article>
-      <article class="mistakes-ref-metric metric-repeat"><span class="mistakes-ref-metric-icon">${metricRepeatIcon}</span><div><small>Tekrar Bekleyen</small><strong>${repeatCount}</strong></div></article>
-    </section>
     <article class="mistakes-ref-hero"><div class="mistakes-ref-hero-copy"><h3>Bugünün Yanlışları</h3><p>${repeatCount ? `Bugün tekrar zamanı gelen<br><strong>${repeatCount} soru</strong> seni bekliyor.` : 'Şu an tekrar bekleyen<br>yanlış sorun bulunmuyor.'}</p><button class="mistakes-ref-start" id="startWrongPoolButton" type="button" ${repeatCount ? '' : 'disabled'}><span class="mistakes-ref-start-play" aria-hidden="true"></span>Gözden Geçir</button></div>${heroArt}</article>
+    <section class="mistakes-ref-metrics" aria-label="Yanlış soru özeti">
+      <article class="mistakes-ref-metric metric-wrong"><span class="mistakes-ref-metric-icon">${metricWrongIcon}</span><div><small>Toplam Yanlış</small><span class="mistakes-ref-metric-value"><strong>${totalWrongCount}</strong><em>Soru</em></span></div></article>
+      <article class="mistakes-ref-metric metric-repeat"><span class="mistakes-ref-metric-icon">${metricRepeatIcon}</span><div><small>Tekrar Bekleyen</small><span class="mistakes-ref-metric-value"><strong>${repeatCount}</strong><em>Soru</em></span></div></article>
+    </section>
     <section class="mistakes-ref-topics" aria-label="Konu bazlı yanlışlar">${categoryHtml || '<div class="mistakes-ref-empty">Henüz yanlış yaptığın bir soru yok.</div>'}</section>
   </section>`;
 }
@@ -1971,6 +1994,9 @@ function bindViewEvents() {
   element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') openMistakeCategorySheet(element.dataset.openMistakeCategory); });
     });
   document.getElementById('startKadroExamButton')?.addEventListener('click', startKadroExam);
+  document.getElementById('startKadroExamTypeButton')?.addEventListener('click', startKadroExam);
+  document.getElementById('startMiniExamButton')?.addEventListener('click', startQuickMiniExam);
+  document.getElementById('startMixedExamButton')?.addEventListener('click', startMixedGeneralExam);
   document.getElementById('resetProgressButton')?.addEventListener('click', resetProgress);
   // O-02/O-08 (2026-09-15): Kadro bir kez seçilir ve sunucuda kilitlidir.
   // Profilden değiştirme yerine bilgilendirme gösterilir.
@@ -3274,7 +3300,7 @@ function recordAnswer(question, selected) {
   // hangi KONUDA zayıf olduğunu değil, "sınavda ne kaçırdığını" gösteriyordu.
   // Sınavın kendi sonuç ekranı (renderQuizResult/mistakeItemHTML) zaten
   // quiz.questions üzerinden bağımsız çalışıyor, bu değişiklik ondan etkilenmez.
-  const skipWrongPool = state.quiz?.kind === 'kadro-exam';
+  const skipWrongPool = EXAM_KINDS.includes(state.quiz?.kind);
   if (isCorrect) {
     const previousWrong = progress.wrongQuestions[question.id];
     if (previousWrong) {
@@ -3922,6 +3948,14 @@ function renderQuizResult() {
       startKadroExam();
       return;
     }
+    if (quiz.kind === 'mini-exam') {
+      startQuickMiniExam();
+      return;
+    }
+    if (quiz.kind === 'mixed-exam') {
+      startMixedGeneralExam();
+      return;
+    }
     const retry = { ...quiz, questions: quiz.sourceQuestions };
     startQuiz({ questions: retry.questions, documentItem: retry.documentItem, section: retry.section, kind: retry.kind, title: retry.title, subtitle: retry.subtitle, returnView: retry.returnView });
   });
@@ -4380,6 +4414,55 @@ function expandBlueprintEntries(entries) {
     }
   });
   return flat;
+}
+
+
+async function startGeneralExamVariant({ count, durationMinutes, kind, title, subtitle }) {
+  if (!requirePremiumOrWarn()) return;
+  const entries = getActiveDocuments();
+  if (!entries.length) return showToast('Henüz aktif soru paketi bulunmuyor.');
+  showToast('Deneme hazırlanıyor…');
+  try {
+    const pool = await buildRandomPool(entries);
+    const unique = shuffle(dedupeQuestionsById(pool));
+    if (!unique.length) return showToast('Şu an hazır bir soru paketi bulunamadı.');
+    const questions = unique.slice(0, Math.min(count, unique.length));
+    if (questions.length < count) showToast(`Havuzda ${questions.length} benzersiz soru bulundu.`);
+    closeAllSheets(topicSheet);
+    topicSheet.classList.add('open');
+    topicSheet.setAttribute('aria-hidden', 'false');
+    topicBackdrop.classList.add('open');
+    startQuiz({
+      questions,
+      kind,
+      title,
+      subtitle: subtitle || `${questions.length} soru • ${durationMinutes} dakika`,
+      returnView: closeTopicSheet,
+      customTimeSeconds: durationMinutes * 60
+    });
+  } catch (error) {
+    showToast(error?.message || 'Deneme hazırlanamadı.');
+  }
+}
+
+function startQuickMiniExam() {
+  return startGeneralExamVariant({
+    count: 20,
+    durationMinutes: 20,
+    kind: 'mini-exam',
+    title: 'Hızlı Mini Deneme',
+    subtitle: '20 soru • 20 dakika'
+  });
+}
+
+function startMixedGeneralExam() {
+  return startGeneralExamVariant({
+    count: 40,
+    durationMinutes: 50,
+    kind: 'mixed-exam',
+    title: 'Karışık Genel Tekrar',
+    subtitle: '40 soru • 50 dakika'
+  });
 }
 
 async function buildKadroExamPool(roleKey) {

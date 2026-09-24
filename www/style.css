@@ -3199,3 +3199,459 @@ body.auth-page{
   .mistakes-reference .mistakes-ref-topic-stats{font-size:9.5px;gap:7px}
   .mistakes-reference .mistakes-ref-topic-stats b{font-size:9.7px}
 }
+
+/* =====================================================================
+   SON REVİZE — Yanlışlarım metrik konumu / tipografi / ikonlar
+   + Kartlarım hero CTA ve açıklama
+   ===================================================================== */
+
+/* Bugünün Yanlışları: açıklama daha okunaklı, CTA biraz daha aşağıda. */
+.mistakes-reference .mistakes-ref-hero{
+  min-height:148px;
+}
+.mistakes-reference .mistakes-ref-hero p{
+  font-size:11.2px;
+  line-height:1.43;
+}
+.mistakes-reference .mistakes-ref-start{
+  margin-top:14px;
+}
+
+/* Yeni SVG illüstrasyonların oranı. */
+.mistakes-reference .mistakes-ref-heading-art{
+  width:106px;
+  height:98px;
+}
+.mistakes-reference .mistakes-ref-hero-art{
+  right:7px;
+  top:18px;
+  width:108px;
+  height:108px;
+}
+
+/* Özet kartları artık hero'nun altında ve doğrudan konu listesinin üstünde. */
+.mistakes-reference .mistakes-ref-metrics{
+  margin:0 0 9px;
+}
+.mistakes-reference .mistakes-ref-metric-value{
+  display:flex;
+  align-items:baseline;
+  gap:4px;
+  min-width:0;
+}
+.mistakes-reference .mistakes-ref-metric-value strong{
+  display:inline-block;
+}
+.mistakes-reference .mistakes-ref-metric-value em{
+  color:#7b8ca8;
+  font-size:8.8px;
+  font-style:normal;
+  font-weight:650;
+  line-height:1;
+}
+
+/* Kartlarım: açıklama büyütüldü, Tekrara Başla biraz aşağı alındı. */
+.cards-dashboard .cards-smart-copy p{
+  font-size:11.2px;
+  line-height:1.43;
+}
+.cards-dashboard .cards-smart-start{
+  margin-top:14px;
+}
+.cards-dashboard .cards-smart-review{
+  min-height:148px;
+}
+
+@media(max-width:370px){
+  .mistakes-reference .mistakes-ref-hero{min-height:145px}
+  .mistakes-reference .mistakes-ref-hero p{font-size:10.7px}
+  .mistakes-reference .mistakes-ref-start{margin-top:12px}
+  .mistakes-reference .mistakes-ref-heading-art{width:98px;height:92px}
+  .mistakes-reference .mistakes-ref-hero-art{right:1px;top:20px;width:98px;height:98px}
+  .mistakes-reference .mistakes-ref-metric-value em{font-size:8.2px}
+  .cards-dashboard .cards-smart-copy p{font-size:10.7px}
+  .cards-dashboard .cards-smart-start{margin-top:12px}
+  .cards-dashboard .cards-smart-review{min-height:145px}
+}
+
+/* ============================================================
+   DENEMELER V2 — seçilen 2. premium tasarım
+   Yalnızca .bank-v2 altında çalışır.
+   ============================================================ */
+.phone .scroll-area > .app-scroll > .bank-v2{
+  padding-top:max(18px,env(safe-area-inset-top,0px));
+  padding-left:14px;
+  padding-right:14px;
+  padding-bottom:26px;
+  background:
+    radial-gradient(circle at 82% 3%,rgba(45,126,247,.08),transparent 18%),
+    linear-gradient(180deg,#fbfdff 0%,#f5f8fd 100%);
+}
+
+.bank-v2 .bank-v2-heading{
+  position:relative;
+  min-height:122px;
+  margin:0 0 14px;
+  padding:18px 16px 14px;
+  overflow:hidden;
+  border-radius:20px;
+  background:transparent;
+}
+.bank-v2 .bank-v2-heading-copy{position:relative;z-index:2;max-width:66%}
+.bank-v2 .bank-v2-heading h2{
+  margin:0 0 7px;
+  color:var(--navy);
+  font-size:29px;
+  line-height:1.05;
+  font-weight:820;
+  letter-spacing:-.9px;
+}
+.bank-v2 .bank-v2-heading p{
+  margin:0;
+  color:#7587a3;
+  font-size:13px;
+  line-height:1.4;
+  font-weight:500;
+}
+.bank-v2 .bank-v2-heading-art{
+  position:absolute;
+  right:4px;
+  top:2px;
+  width:124px;
+  height:116px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(45,126,247,.10),rgba(45,126,247,0) 67%);
+}
+.bank-v2 .bank-v2-heading-art::before,
+.bank-v2 .bank-v2-heading-art::after{
+  content:'';
+  position:absolute;
+  border:1px solid rgba(45,126,247,.12);
+  border-radius:50%;
+}
+.bank-v2 .bank-v2-heading-art::before{inset:8px}
+.bank-v2 .bank-v2-heading-art::after{inset:23px}
+.bank-v2 .bank-v2-paper{
+  position:absolute;
+  left:17px;
+  top:20px;
+  width:62px;
+  height:72px;
+  display:grid;
+  place-items:center;
+  border-radius:17px;
+  color:#fff;
+  background:linear-gradient(145deg,#f8fbff,#d8e9ff);
+  box-shadow:0 10px 24px rgba(30,82,160,.14);
+  transform:rotate(-7deg);
+}
+.bank-v2 .bank-v2-paper svg{width:29px;height:29px;color:#2d7ef7}
+.bank-v2 .bank-v2-clock{
+  position:absolute;
+  right:13px;
+  bottom:14px;
+  width:50px;
+  height:50px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  color:#fff;
+  background:linear-gradient(145deg,#ff6872,#e93238);
+  box-shadow:0 8px 18px rgba(233,50,56,.28);
+}
+.bank-v2 .bank-v2-clock svg{width:25px;height:25px}
+
+.bank-v2 .bank-v2-hero{
+  position:relative;
+  overflow:hidden;
+  min-height:255px;
+  margin:0 0 12px;
+  padding:22px 18px 72px;
+  border:1px solid rgba(89,157,255,.26);
+  border-radius:21px;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(45,126,247,.42),transparent 31%),
+    radial-gradient(circle at 100% 100%,rgba(233,50,56,.20),transparent 32%),
+    linear-gradient(120deg,#0e3974 0%,#08275a 48%,#061a3c 100%);
+  box-shadow:0 14px 28px rgba(7,31,73,.18),inset 0 1px 0 rgba(255,255,255,.12);
+}
+.bank-v2 .bank-v2-hero::before{
+  content:'';
+  position:absolute;
+  width:250px;
+  height:250px;
+  right:-98px;
+  top:-112px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.055);
+  box-shadow:0 0 0 34px rgba(45,126,247,.028),0 0 0 70px rgba(45,126,247,.018);
+}
+.bank-v2 .bank-v2-hero-copy{position:relative;z-index:2;width:63%;min-width:0}
+.bank-v2 .bank-v2-eyebrow{
+  display:block;
+  margin-bottom:8px;
+  color:#dce9fb;
+  font-size:8.5px;
+  font-weight:800;
+  letter-spacing:1.15px;
+}
+.bank-v2 .bank-v2-hero h3{
+  margin:0 0 8px;
+  color:#fff;
+  font-size:20px;
+  line-height:1.14;
+  font-weight:820;
+  letter-spacing:-.4px;
+}
+.bank-v2 .bank-v2-hero-copy>p{
+  margin:0;
+  color:#c4d2e7;
+  font-size:11.5px;
+  line-height:1.48;
+  font-weight:500;
+}
+.bank-v2 .bank-v2-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:15px;
+}
+.bank-v2 .bank-v2-chips span{
+  min-height:28px;
+  padding:6px 8px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:10px;
+  color:#f5f8ff;
+  background:rgba(255,255,255,.07);
+  font-size:8.5px;
+  font-weight:650;
+  backdrop-filter:blur(5px);
+}
+.bank-v2 .bank-v2-chips svg{width:12px;height:12px}
+.bank-v2 .bank-v2-hero-art{
+  position:absolute;
+  z-index:1;
+  right:12px;
+  top:34px;
+  width:126px;
+  height:130px;
+}
+.bank-v2 .bank-v2-hero-paper{
+  position:absolute;
+  left:12px;
+  top:8px;
+  width:78px;
+  height:98px;
+  display:grid;
+  place-items:center;
+  border-radius:17px;
+  color:#2d7ef7;
+  background:linear-gradient(150deg,#fff,#dae9ff);
+  transform:rotate(8deg);
+  box-shadow:0 14px 24px rgba(0,0,0,.22);
+}
+.bank-v2 .bank-v2-hero-paper svg{width:36px;height:36px}
+.bank-v2 .bank-v2-hero-paper::after{
+  content:'';
+  position:absolute;
+  left:17px;
+  right:17px;
+  bottom:22px;
+  height:5px;
+  border-radius:5px;
+  background:#bbd2f3;
+  box-shadow:0 11px 0 #cfdef3;
+}
+.bank-v2 .bank-v2-hero-target{
+  position:absolute;
+  right:2px;
+  bottom:8px;
+  width:62px;
+  height:62px;
+  display:grid;
+  place-items:center;
+  border:6px solid rgba(255,255,255,.78);
+  border-radius:50%;
+  color:#fff;
+  background:linear-gradient(145deg,#ff6872,#e93238);
+  box-shadow:0 10px 22px rgba(233,50,56,.38);
+}
+.bank-v2 .bank-v2-hero-target svg{width:31px;height:31px}
+.bank-v2 .bank-v2-hero-start{
+  position:absolute;
+  z-index:3;
+  left:18px;
+  right:18px;
+  bottom:16px;
+  min-height:45px;
+  border:0;
+  border-radius:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  color:#fff;
+  background:linear-gradient(135deg,#ff5b61,#e93238);
+  font-size:13px;
+  font-weight:800;
+  box-shadow:0 9px 20px rgba(233,50,56,.28),inset 0 1px 0 rgba(255,255,255,.18);
+  cursor:pointer;
+}
+.bank-v2 .bank-v2-play{
+  width:0;
+  height:0;
+  border-top:5px solid transparent;
+  border-bottom:5px solid transparent;
+  border-left:8px solid currentColor;
+  display:inline-block;
+  flex-shrink:0;
+}
+
+.bank-v2 .bank-v2-metrics{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-bottom:18px;
+}
+.bank-v2 .bank-v2-metric{
+  min-height:78px;
+  padding:12px 13px;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  border:1px solid #dce7f6;
+  border-radius:17px;
+  background:linear-gradient(135deg,#fff,#f5f9ff);
+  box-shadow:0 7px 18px rgba(20,62,120,.05);
+}
+.bank-v2 .bank-v2-metric-red{border-color:#f2dce0;background:linear-gradient(135deg,#fff,#fff5f6)}
+.bank-v2 .bank-v2-metric-icon{
+  width:42px;
+  height:42px;
+  flex-shrink:0;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  color:#2d7ef7;
+  background:#e7f1ff;
+}
+.bank-v2 .bank-v2-metric-red .bank-v2-metric-icon{color:var(--red);background:#ffe6e9}
+.bank-v2 .bank-v2-metric-icon svg{width:22px;height:22px}
+.bank-v2 .bank-v2-metric small{display:block;margin-bottom:4px;color:#687b9a;font-size:9px;font-weight:650;line-height:1.2}
+.bank-v2 .bank-v2-metric strong{display:block;color:var(--navy);font-size:21px;font-weight:820;line-height:1}
+
+.bank-v2 .bank-v2-section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:0 3px 8px;
+}
+.bank-v2 .bank-v2-section-head h3{margin:0;color:var(--navy);font-size:16px;font-weight:820;letter-spacing:-.25px}
+.bank-v2 .bank-v2-types{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.bank-v2 .bank-v2-type{
+  min-height:84px;
+  padding:12px;
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) auto;
+  align-items:center;
+  gap:11px;
+  border:1px solid #e1e8f2;
+  border-radius:17px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 7px 18px rgba(13,33,68,.045);
+}
+.bank-v2 .bank-v2-type-icon{
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+}
+.bank-v2 .bank-v2-type-icon svg{width:24px;height:24px}
+.bank-v2 .bank-v2-type-red{color:#d92734;background:#ffecee}
+.bank-v2 .bank-v2-type-blue{color:#1477ee;background:#eaf4ff}
+.bank-v2 .bank-v2-type-purple{color:#6941d7;background:#f0ebff}
+.bank-v2 .bank-v2-type-copy{min-width:0}
+.bank-v2 .bank-v2-type-copy strong{display:block;margin-bottom:4px;color:var(--navy);font-size:12.5px;font-weight:780;line-height:1.25}
+.bank-v2 .bank-v2-type-copy p{margin:0;color:#73829b;font-size:9.5px;line-height:1.35}
+.bank-v2 .bank-v2-type-btn{
+  min-width:76px;
+  min-height:36px;
+  padding:8px 11px;
+  border:0;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  font-size:10.5px;
+  font-weight:800;
+  cursor:pointer;
+}
+.bank-v2 .bank-v2-btn-red{color:#d92734;background:#fff0f1}
+.bank-v2 .bank-v2-btn-blue{color:#1477ee;background:#edf5ff}
+.bank-v2 .bank-v2-btn-purple{color:#6941d7;background:#f2edff}
+
+.bank-v2 .bank-v2-results{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.bank-v2 .bank-v2-result{
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  min-height:68px;
+  padding:10px 11px;
+  border:1px solid #e2e8f1;
+  border-radius:15px;
+  background:#fff;
+  box-shadow:0 5px 15px rgba(13,33,68,.035);
+}
+.bank-v2 .bank-v2-result-icon{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  color:#2d7ef7;
+  background:#edf5ff;
+}
+.bank-v2 .bank-v2-result-icon svg{width:18px;height:18px}
+.bank-v2 .bank-v2-result-main{min-width:0}
+.bank-v2 .bank-v2-result-main strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--navy);font-size:11.5px;font-weight:760;line-height:1.25}
+.bank-v2 .bank-v2-result-main>span{display:block;margin-top:3px;color:#7b889f;font-size:9px;line-height:1.2}
+.bank-v2 .bank-v2-result-track{height:4px;margin-top:7px;border-radius:999px;background:#e8edf5;overflow:hidden}
+.bank-v2 .bank-v2-result-track i{display:block;height:100%;border-radius:999px;background:#2d7ef7}
+.bank-v2 .bank-v2-result-track i.good{background:#25aa72}
+.bank-v2 .bank-v2-result-track i.mid{background:#2d7ef7}
+.bank-v2 .bank-v2-result-track i.low{background:#e93238}
+.bank-v2 .bank-v2-result-score{min-width:49px;text-align:right;font-variant-numeric:tabular-nums}
+.bank-v2 .bank-v2-result-score b{display:block;color:var(--navy);font-size:12px;font-weight:800}
+.bank-v2 .bank-v2-result-score small{display:block;margin-top:3px;color:#7d8aa0;font-size:8.5px;font-weight:650}
+
+/* Eski Denemeler bileşenlerini V2 içinde etkisizleştir. */
+.bank-v2>.bank-page-heading,
+.bank-v2>.bank-metrics,
+.bank-v2>.bank-practice-card,
+.bank-v2>.bank-section-head,
+.bank-v2>.solved-exams-list{display:none!important}
+
+@media(max-width:370px){
+  .bank-v2 .bank-v2-heading h2{font-size:26px}
+  .bank-v2 .bank-v2-heading p{font-size:11.5px}
+  .bank-v2 .bank-v2-heading-art{right:-8px;transform:scale(.9)}
+  .bank-v2 .bank-v2-hero{min-height:245px;padding-left:15px;padding-right:15px}
+  .bank-v2 .bank-v2-hero-copy{width:65%}
+  .bank-v2 .bank-v2-hero h3{font-size:18px}
+  .bank-v2 .bank-v2-hero-copy>p{font-size:10.5px}
+  .bank-v2 .bank-v2-hero-art{right:2px;transform:scale(.88)}
+  .bank-v2 .bank-v2-metric{padding:10px 9px;gap:8px}
+  .bank-v2 .bank-v2-metric-icon{width:37px;height:37px}
+  .bank-v2 .bank-v2-metric strong{font-size:18px}
+  .bank-v2 .bank-v2-type{grid-template-columns:42px minmax(0,1fr) auto;padding:10px 9px;gap:8px}
+  .bank-v2 .bank-v2-type-icon{width:42px;height:42px}
+  .bank-v2 .bank-v2-type-copy strong{font-size:11.5px}
+  .bank-v2 .bank-v2-type-copy p{font-size:8.8px}
+  .bank-v2 .bank-v2-type-btn{min-width:68px;padding:7px 9px;font-size:9.5px}
+}
