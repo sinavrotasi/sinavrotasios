@@ -1233,64 +1233,49 @@ function mistakesView() {
   const correctedCount = Object.values(resolvedByCategory).reduce((sum, n) => sum + Number(n || 0), 0);
   const totalWrongCount = repeatCount + correctedCount;
 
-  const headingArt = `<svg class="mistakes-ref-heading-art" viewBox="0 0 190 150" fill="none" aria-hidden="true">
+  // Yanlışlarım ikon sistemi — tek ve kalıcı premium set.
+  // Harici görsel dosyası yok; bütün illüstrasyonlar inline SVG olarak render edilir.
+  const headingArt = `<svg class="mistakes-ref-heading-art" viewBox="0 0 200 150" fill="none" aria-hidden="true">
     <defs>
-      <linearGradient id="mist-prem-head-blue" x1="58" y1="40" x2="156" y2="122" gradientUnits="userSpaceOnUse"><stop stop-color="#72b9ff"/><stop offset="1" stop-color="#1f70ec"/></linearGradient>
-      <linearGradient id="mist-prem-head-red" x1="78" y1="47" x2="123" y2="102" gradientUnits="userSpaceOnUse"><stop stop-color="#ff7a82"/><stop offset="1" stop-color="#e93238"/></linearGradient>
-      <filter id="mist-prem-head-shadow" x="20" y="10" width="160" height="135" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#174f9c" flood-opacity=".18"/></filter>
+      <linearGradient id="mist-head-back" x1="100" y1="32" x2="165" y2="120" gradientUnits="userSpaceOnUse"><stop stop-color="#78BEFF"/><stop offset="1" stop-color="#2579EF"/></linearGradient>
+      <linearGradient id="mist-head-x" x1="75" y1="49" x2="116" y2="93" gradientUnits="userSpaceOnUse"><stop stop-color="#FF7C86"/><stop offset="1" stop-color="#E93238"/></linearGradient>
+      <filter id="mist-head-shadow" x="28" y="8" width="156" height="134" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="9" stdDeviation="8" flood-color="#174F9C" flood-opacity=".20"/></filter>
+      <filter id="mist-head-badge-shadow" x="61" y="41" width="68" height="68" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#D91D33" flood-opacity=".25"/></filter>
     </defs>
-    <circle cx="118" cy="72" r="58" fill="#eaf3ff" fill-opacity=".78"/>
-    <circle cx="118" cy="72" r="46" stroke="#2d7ef7" stroke-opacity=".10" stroke-width="2"/>
-    <g filter="url(#mist-prem-head-shadow)">
-      <g transform="rotate(8 126 77)">
-        <rect x="98" y="41" width="58" height="70" rx="13" fill="url(#mist-prem-head-blue)"/>
-        <path d="m113 77 9 9 19-21" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-      </g>
-      <g transform="rotate(-7 94 74)">
-        <rect x="60" y="34" width="64" height="78" rx="14" fill="#fff" stroke="#dce8f7" stroke-width="2"/>
-        <circle cx="92" cy="66" r="17" fill="url(#mist-prem-head-red)"/>
-        <path d="m84 58 16 16m0-16L84 74" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
-        <rect x="74" y="91" width="37" height="5" rx="2.5" fill="#cfe0f5"/>
-        <rect x="74" y="100" width="27" height="5" rx="2.5" fill="#dbe7f5"/>
-      </g>
+    <circle cx="124" cy="72" r="57" fill="#EAF3FF" fill-opacity=".72"/>
+    <circle cx="124" cy="72" r="45" stroke="#2D7EF7" stroke-opacity=".10" stroke-width="2"/>
+    <circle cx="124" cy="72" r="35" stroke="#2D7EF7" stroke-opacity=".06"/>
+    <g filter="url(#mist-head-shadow)">
+      <g transform="rotate(9 137 79)"><rect x="105" y="40" width="62" height="76" rx="15" fill="url(#mist-head-back)"/><path d="m120 80 9 9 20-22" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g transform="rotate(-7 96 76)"><rect x="58" y="34" width="75" height="88" rx="16" fill="#fff" stroke="#DCE8F7" stroke-width="2"/><rect x="75" y="96" width="41" height="5.5" rx="2.75" fill="#CFE0F5"/><rect x="75" y="106" width="29" height="5.5" rx="2.75" fill="#DFEAF7"/></g>
     </g>
-    <path d="M145 26c11 5 18 12 22 21" stroke="#2d7ef7" stroke-width="4" stroke-linecap="round"/>
-    <path d="m163 39 5 9-10 1" fill="#2d7ef7"/>
-    <path d="M41 104c9 7 18 10 28 11" stroke="#e93238" stroke-width="4" stroke-linecap="round"/>
-    <path d="m61 109 9 6-9 5" fill="#e93238"/>
-    <path d="M166 28v8M162 32h8M47 34l-5 5" stroke="#63a8ff" stroke-width="3" stroke-linecap="round"/>
+    <g filter="url(#mist-head-badge-shadow)"><circle cx="95" cy="71" r="22" fill="url(#mist-head-x)"/><circle cx="95" cy="71" r="20.5" stroke="#fff" stroke-opacity=".32"/><path d="m86.5 62.5 17 17m0-17-17 17" stroke="#fff" stroke-width="6" stroke-linecap="round"/></g>
+    <path d="M154 24c10 4 18 11 22 20" stroke="#2D7EF7" stroke-width="4" stroke-linecap="round"/><path d="m171 36 6 9-10 2" fill="#2D7EF7"/>
+    <path d="M42 106c9 7 19 10 30 10" stroke="#E93238" stroke-width="4" stroke-linecap="round"/><path d="m64 110 9 6-9 5" fill="#E93238"/>
+    <path d="M177 25v9M172.5 29.5h9M47 39l-6 6" stroke="#63A8FF" stroke-width="3" stroke-linecap="round"/>
   </svg>`;
 
   const heroArt = `<svg class="mistakes-ref-hero-art" viewBox="0 0 220 180" fill="none" aria-hidden="true">
     <defs>
-      <linearGradient id="mist-prem-hero-blue" x1="55" y1="39" x2="174" y2="139" gradientUnits="userSpaceOnUse"><stop stop-color="#68b4ff"/><stop offset="1" stop-color="#1f70ec"/></linearGradient>
-      <linearGradient id="mist-prem-hero-red" x1="148" y1="102" x2="185" y2="143" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6f79"/><stop offset="1" stop-color="#e93238"/></linearGradient>
-      <linearGradient id="mist-prem-badge" x1="105" y1="61" x2="144" y2="105" gradientUnits="userSpaceOnUse"><stop stop-color="#ff7b84"/><stop offset="1" stop-color="#e93238"/></linearGradient>
-      <filter id="mist-prem-hero-shadow" x="30" y="14" width="174" height="154" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="9" stdDeviation="8" flood-color="#020d25" flood-opacity=".30"/></filter>
+      <linearGradient id="mist-hero-blue" x1="50" y1="45" x2="176" y2="137" gradientUnits="userSpaceOnUse"><stop stop-color="#72BCFF"/><stop offset="1" stop-color="#2678EF"/></linearGradient>
+      <linearGradient id="mist-hero-red" x1="139" y1="111" x2="188" y2="146" gradientUnits="userSpaceOnUse"><stop stop-color="#FF747E"/><stop offset="1" stop-color="#E93238"/></linearGradient>
+      <linearGradient id="mist-hero-badge" x1="101" y1="60" x2="145" y2="104" gradientUnits="userSpaceOnUse"><stop stop-color="#FF7C86"/><stop offset="1" stop-color="#E93238"/></linearGradient>
+      <filter id="mist-hero-shadow" x="31" y="14" width="174" height="155" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#020D25" flood-opacity=".32"/></filter>
+      <filter id="mist-hero-badge-shadow" x="91" y="51" width="64" height="64" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#D91D33" flood-opacity=".30"/></filter>
     </defs>
-    <circle cx="126" cy="90" r="68" stroke="#fff" stroke-opacity=".055" stroke-width="2"/>
-    <circle cx="126" cy="90" r="53" stroke="#fff" stroke-opacity=".035"/>
-    <g filter="url(#mist-prem-hero-shadow)">
-      <g transform="rotate(7 121 91)">
-        <rect x="85" y="49" width="75" height="91" rx="16" fill="#1d5fbf" opacity=".55"/>
-      </g>
-      <g transform="rotate(-8 111 88)">
-        <rect x="76" y="43" width="76" height="94" rx="16" fill="#fff" stroke="#dce8f8" stroke-width="2"/>
-        <circle cx="114" cy="74" r="18" fill="url(#mist-prem-badge)"/>
-        <path d="m106 66 16 16m0-16-16 16" stroke="#fff" stroke-width="5.5" stroke-linecap="round"/>
-        <rect x="93" y="102" width="42" height="6" rx="3" fill="#8dbcf5"/>
-        <rect x="93" y="114" width="31" height="6" rx="3" fill="#bfd6f2"/>
-      </g>
-      <path d="M67 72c13-20 37-31 60-27 16 3 31 12 41 25" stroke="url(#mist-prem-hero-blue)" stroke-width="12" stroke-linecap="round"/>
-      <path d="m160 53 15 18-23 4" fill="#3f96ff"/>
-      <path d="M174 112c-14 20-39 30-62 25-16-3-30-12-40-25" stroke="url(#mist-prem-hero-red)" stroke-width="12" stroke-linecap="round"/>
-      <path d="m79 129-14-18 23-3" fill="#ee3b49"/>
+    <circle cx="128" cy="91" r="69" stroke="#fff" stroke-opacity=".06" stroke-width="2"/><circle cx="128" cy="91" r="54" stroke="#fff" stroke-opacity=".04"/>
+    <g filter="url(#mist-hero-shadow)">
+      <g transform="rotate(8 126 94)"><rect x="88" y="52" width="76" height="92" rx="17" fill="#286ED0" opacity=".58"/></g>
+      <g transform="rotate(-7 112 89)"><rect x="75" y="42" width="79" height="98" rx="17" fill="#fff" stroke="#DCE8F8" stroke-width="2"/><rect x="92" y="105" width="44" height="6" rx="3" fill="#8DBCF5"/><rect x="92" y="118" width="31" height="6" rx="3" fill="#BDD6F2"/></g>
+      <path d="M63 76c13-22 38-34 63-30 18 3 34 13 45 28" stroke="url(#mist-hero-blue)" stroke-width="12" stroke-linecap="round"/><path d="m162 55 16 20-25 4" fill="#449BFF"/>
+      <path d="M177 113c-14 22-41 33-66 27-17-4-32-13-42-28" stroke="url(#mist-hero-red)" stroke-width="12" stroke-linecap="round"/><path d="m78 131-16-19 25-4" fill="#EE3B49"/>
     </g>
-    <path d="M46 68c-5 8-8 16-8 24M188 88c2 8 2 15 0 22" stroke="#72b9ff" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 7"/>
+    <g filter="url(#mist-hero-badge-shadow)"><circle cx="122" cy="82" r="22" fill="url(#mist-hero-badge)"/><circle cx="122" cy="82" r="20.5" stroke="#fff" stroke-opacity=".32"/><path d="m113.5 73.5 17 17m0-17-17 17" stroke="#fff" stroke-width="6" stroke-linecap="round"/></g>
+    <path d="M45 70c-5 8-8 16-8 24M190 89c2 8 2 16 0 23" stroke="#76BCFF" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 7"/>
   </svg>`;
 
-  const metricWrongIcon = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.9"/><path d="m8.7 8.7 6.6 6.6m0-6.6-6.6 6.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
-  const metricRepeatIcon = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.4" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5v4.8l3.2 1.9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.6 5.9 20 4.7v3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const metricWrongIcon = `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><defs><linearGradient id="metric-x-ring" x1="5" y1="4" x2="27" y2="28"><stop stop-color="#fff"/><stop offset="1" stop-color="#FFE6E9"/></linearGradient></defs><circle cx="16" cy="16" r="10.5" stroke="url(#metric-x-ring)" stroke-width="2.4"/><path d="m12 12 8 8m0-8-8 8" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>`;
+  const metricRepeatIcon = `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="10.5" stroke="#fff" stroke-width="2.2"/><path d="M16 10v6.2l4.2 2.5" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M22.4 8.2 25 7v3.7" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
   const categoryHtml = categories.map(cat => {
     const design = presentation[cat.key] || { title: cat.title, icon: cat.icon || 'book', tone: 'green' };
