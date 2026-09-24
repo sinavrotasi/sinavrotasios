@@ -105,6 +105,8 @@ const state = {
   cardStudy: null,
   expandedMistakeGroup: null,
   totalDueFlashcards: 0,
+  dueFlashcardsCache: null,
+  dueFlashcardsPromise: null,
   weeklyFlowRange: 'week',
   weeklyFlowNote: '',
   totalQuestionCount: 0,
@@ -766,7 +768,7 @@ function renderWeeklyFlowCard() {
 }
 
 function getStats() {
-  const completedSections = Object.keys(progress.completedSections).length;
+  const completedSections = Object.keys(progress.completedSections).filter(key => !key.startsWith('card-deck:')).length;
   const completedMocks = progress.completedTests.filter(test => EXAM_KINDS.includes(test.kind)).length;
   const todayAnswers = Number(progress.dailyAnswers[dateKey()] || 0);
   const dailyGoal = getDailyGoal();
@@ -1275,6 +1277,20 @@ function startWrongPool() {
 }
 
 // --- BİLGİ KARTLARI (KARTLARIM) EKRANLARI ---
+function cardDeckCompletionKey(docId) {
+  return `card-deck:${docId}`;
+}
+
+function isCardDeckCompleted(doc) {
+  return Boolean(doc?.id && progress.completedSections?.[cardDeckCompletionKey(doc.id)]);
+}
+
+function markCardDeckCompleted(doc) {
+  if (!doc?.id || isCardDeckCompleted(doc)) return;
+  window.SRProgressSync.setKey(progress, 'completedSections', cardDeckCompletionKey(doc.id), new Date().toISOString());
+  saveProgress({ rerender: false });
+}
+
 function cardsView() {
   const catalogue = getCardCatalogue();
   const presentation = {
@@ -1287,18 +1303,20 @@ function cardsView() {
     const meta = catalogue[key];
     const design = presentation[key];
     const documents = meta?.documents || [];
-    const activeCount = documents.filter(doc => doc.topicId || doc.cardFile).length;
+    const activeDocuments = documents.filter(doc => doc.topicId || doc.cardFile);
+    const activeCount = activeDocuments.length;
     const totalCount = documents.length;
-    const pct = totalCount ? Math.round((activeCount / totalCount) * 100) : 0;
-    return { key, meta, design, documents, activeCount, totalCount, pct };
+    const completedCount = activeDocuments.filter(isCardDeckCompleted).length;
+    const remainingCount = Math.max(0, activeCount - completedCount);
+    const pct = activeCount ? Math.round((completedCount / activeCount) * 100) : 0;
+    return { key, meta, design, documents, activeCount, totalCount, completedCount, remainingCount, pct };
   });
 
   const totalSets = rows.reduce((sum, row) => sum + row.totalCount, 0);
   const dueCount = Number(state.totalDueFlashcards || 0);
-  const dueLabel = dueCount > 0 ? `${dueCount} kart` : 'Hazır';
-  const heroTitle = dueCount > 0 ? 'Akıllı Tekrar' : 'Tekrarların Güncel';
+  const heroTitle = 'Akıllı Tekrar';
   const heroText = dueCount > 0
-    ? `Tekrar zamanı gelen ${dueCount} kart seni bekliyor. Leitner sistemine göre öncelikli kartlarını çalış.`
+    ? `Tekrar zamanı gelen ${dueCount} kartını öncelik sırasına göre hızlıca gözden geçir.`
     : 'Şu anda tekrarı gelen kartın yok. Kart setlerinden çalışmaya devam ederek tekrar planını oluştur.';
 
   return `<section class="screen content-screen cards-dashboard" aria-label="Kartlarım">
@@ -1323,7 +1341,6 @@ function cardsView() {
 
     <article class="cards-smart-review${dueCount ? '' : ' is-empty'}">
       <div class="cards-smart-copy">
-        <span class="cards-smart-eyebrow">${svg('refresh')} GÜNÜN ÖNERİSİ</span>
         <h3>${heroTitle}</h3>
         <p>${heroText}</p>
         <button class="cards-smart-start" id="openDueFlashcardsButton" type="button" ${dueCount ? '' : 'disabled'}>
@@ -1334,16 +1351,17 @@ function cardsView() {
       <div class="cards-smart-art" aria-hidden="true">
         <span class="smart-card smart-card-back"></span>
         <span class="smart-card smart-card-mid"></span>
-        <span class="smart-card smart-card-front">${svg('refresh')}</span>
+        <span class="smart-card smart-card-front">
+          ${svg('schoolbook')}
+          <span class="smart-repeat-badge">${svg('refresh')}</span>
+        </span>
         <i class="smart-orbit smart-orbit-blue"></i>
         <i class="smart-orbit smart-orbit-red"></i>
       </div>
-      <div class="cards-smart-mini">${svg('clock')}<span>${dueLabel}</span><small>Leitner</small></div>
     </article>
 
     <div class="cards-set-head">
       <h3>Kart Setlerim</h3>
-      <span>${svg('chart')} Tüm Kart Setleri</span>
     </div>
 
     <div class="cards-set-list">
@@ -1355,7 +1373,7 @@ function cardsView() {
             <button class="cards-set-work" type="button" tabindex="-1"><span class="cards-set-play"></span>Çalış</button>
           </div>
           <div class="cards-set-progress-row"><div class="cards-set-track"><i style="width:${row.pct}%"></i></div><strong>%${row.pct}</strong></div>
-          <div class="cards-set-meta"><span class="meta-active">${svg('check')}<b>${row.activeCount}</b> Aktif</span><span class="meta-divider"></span><span>${svg('book')}<b>${Math.max(0, row.totalCount - row.activeCount)}</b> Hazırlanıyor</span></div>
+          <div class="cards-set-meta"><span class="meta-active">${svg('check')}<b>${row.completedCount}</b> Tamamlandı</span><span class="meta-divider"></span><span>${svg('book')}<b>${row.remainingCount}</b> Kalan</span></div>
         </div>
       </article>`).join('')}
     </div>
@@ -1496,16 +1514,40 @@ async function openCardDeck(doc, categoryKey) {
     if (totalCount > cards.length) {
       ordered.push({ upsell: true, remaining: totalCount - cards.length });
     }
-    state.cardStudy = { doc, categoryKey, cards: ordered, index: 0, flipped: false, progressMap: progressMap || {}, isRealFlashcardDeck };
+    state.cardStudy = { doc, categoryKey, cards: ordered, index: 0, flipped: false, seenIndices: new Set(), progressMap: progressMap || {}, isRealFlashcardDeck };
     renderCardStudy();
   } catch (error) {
     showToast(error.message || 'Kartlar yüklenemedi.');
   }
 }
 
+function invalidateDueFlashcardCache() {
+  state.dueFlashcardsCache = null;
+  state.dueFlashcardsPromise = null;
+}
+
+function prefetchDueFlashcards({ force = false } = {}) {
+  if (!window.currentUser) return Promise.resolve([]);
+  if (!force && Array.isArray(state.dueFlashcardsCache)) return Promise.resolve(state.dueFlashcardsCache);
+  if (!force && state.dueFlashcardsPromise) return state.dueFlashcardsPromise;
+
+  const request = ContentRepo.fetchDueFlashcards()
+    .then(due => {
+      state.dueFlashcardsCache = Array.isArray(due) ? due : [];
+      return state.dueFlashcardsCache;
+    })
+    .finally(() => {
+      if (state.dueFlashcardsPromise === request) state.dueFlashcardsPromise = null;
+    });
+
+  state.dueFlashcardsPromise = request;
+  return request;
+}
+
 // Ana ekrandaki "N kart tekrar" sayacını yeniden hesaplar (tekrar oturumu
 // bittikten sonra sayının güncel kalması için). flashcardDecks state'te hazır.
 function refreshDueFlashcardCount() {
+  invalidateDueFlashcardCache();
   const role = progress.selectedRole;
   const decks = (state.flashcardDecks || []).filter(d => !role || !d.kadrolar || d.kadrolar.includes(role));
   if (!window.currentUser || !decks.length) { state.totalDueFlashcards = 0; if (state.view === 'home' || state.view === 'cards') render(); return; }
@@ -1513,6 +1555,7 @@ function refreshDueFlashcardCount() {
     .then(counts => {
       state.totalDueFlashcards = Object.values(counts).reduce((sum, n) => sum + n, 0);
       syncLocalNotificationSchedule();
+      if (state.totalDueFlashcards > 0) prefetchDueFlashcards().catch(() => {});
       if (state.view === 'home' || state.view === 'cards') render();
     })
     .catch(() => {});
@@ -1525,8 +1568,9 @@ function refreshDueFlashcardCount() {
 async function openDueReviewSession() {
   if (!window.currentUser) return showToast('Tekrar için giriş yapmalısın.');
   try {
-    showToast('Tekrar kartların hazırlanıyor…');
-    const due = await ContentRepo.fetchDueFlashcards();
+    const prefetched = Array.isArray(state.dueFlashcardsCache);
+    if (!prefetched) showToast('Tekrar kartların hazırlanıyor…');
+    const due = await prefetchDueFlashcards();
     if (!due.length) {
       showToast('Şu an tekrarı gelen kart yok. 👍');
       state.totalDueFlashcards = 0;
@@ -1544,7 +1588,7 @@ async function openDueReviewSession() {
     topicSheet.classList.add('open');
     topicSheet.setAttribute('aria-hidden', 'false');
     topicBackdrop.classList.add('open');
-    state.cardStudy = { doc: virtualDoc, categoryKey: null, cards, index: 0, flipped: false, progressMap, isRealFlashcardDeck: true };
+    state.cardStudy = { doc: virtualDoc, categoryKey: null, cards, index: 0, flipped: false, seenIndices: new Set(), progressMap, isRealFlashcardDeck: true };
     renderCardStudy();
   } catch (error) {
     showToast(error.message || 'Tekrar kartları yüklenemedi.');
@@ -1652,7 +1696,17 @@ function renderCardStudy() {
       </div>
     </div>`;
   document.getElementById('flipCard').addEventListener('click', () => {
+    const revealingAnswer = !study.flipped;
     study.flipped = !study.flipped;
+    if (revealingAnswer) {
+      if (!(study.seenIndices instanceof Set)) study.seenIndices = new Set();
+      study.seenIndices.add(study.index);
+      const hasUpsell = study.cards.some(card => card?.upsell);
+      const realCardCount = study.cards.filter(card => !card?.upsell).length;
+      if (study.categoryKey && study.doc?.id && !hasUpsell && study.seenIndices.size >= realCardCount) {
+        markCardDeckCompleted(study.doc);
+      }
+    }
     haptic(12);
     renderCardStudy();
   });
@@ -1670,7 +1724,10 @@ function renderCardStudy() {
       try {
         const deckIdForRating = current.deckId || study.doc.id;
         const updated = await ContentRepo.rateFlashcard(current.id, deckIdForRating, rating, priorProgress);
-        if (updated) study.progressMap[current.id] = updated;
+        if (updated) {
+          study.progressMap[current.id] = updated;
+          invalidateDueFlashcardCache();
+        }
       } catch (error) {
         showToast('Tekrar durumu kaydedilemedi, ama devam edebilirsin.');
       }
@@ -1803,6 +1860,8 @@ function profileView() {
 
 function render() {
   const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView };
+  const appHeader = document.querySelector('.app-header');
+  if (appHeader) appHeader.classList.toggle('hidden', state.view === 'cards');
   app.innerHTML = (views[state.view] || homeView)();
   bindViewEvents();
   updateHeader();
@@ -1823,6 +1882,9 @@ function bindViewEvents() {
   // Rota panelini açma butonu
   document.getElementById('openRouteSheetButton')?.addEventListener('click', openRouteSheet);
   document.getElementById('openDueFlashcardsButton')?.addEventListener('click', openDueReviewSession);
+  if (state.view === 'cards' && state.totalDueFlashcards > 0) {
+    prefetchDueFlashcards().catch(() => {});
+  }
   
   document.getElementById('startWrongPoolButton')?.addEventListener('click', startWrongPool);
   app.querySelectorAll('[data-open-mistake-category]').forEach(element => {
@@ -3884,6 +3946,7 @@ async function loadCatalogue() {
         .then(counts => {
           state.totalDueFlashcards = Object.values(counts).reduce((sum, n) => sum + n, 0);
           syncLocalNotificationSchedule();
+          if (state.totalDueFlashcards > 0) prefetchDueFlashcards().catch(() => {});
           if (state.view === 'home' || state.view === 'cards') render();
         })
         .catch(() => {}); // widget süsleme, sessizce geç

@@ -2613,3 +2613,13 @@ body.auth-page{
 .cards-set-progress-row{display:grid;grid-template-columns:minmax(0,1fr) 34px;gap:9px;align-items:center;margin-top:8px}.cards-set-track{height:5px;border-radius:999px;background:#e8edf5;overflow:hidden}.cards-set-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#5ba7ff,#1670ef)}.cards-set-progress-row strong{color:#506b96;font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums}
 .cards-set-meta{display:flex;align-items:center;gap:8px;margin-top:8px;color:#70819e;font-size:8.8px;white-space:nowrap}.cards-set-meta>span{display:flex;align-items:center;gap:4px}.cards-set-meta svg{width:13px;height:13px}.cards-set-meta b{color:var(--navy);font-weight:800}.cards-set-meta .meta-active svg{color:#26b77a}.cards-set-meta .meta-divider{display:block;width:1px;height:15px;background:#e4e9f1}
 @media(max-width:370px){.cards-dashboard-heading{padding-right:102px}.cards-dashboard-heading h2{font-size:28px}.cards-smart-review{padding-right:135px}.cards-smart-art{right:7px;transform:scale(.9);transform-origin:right top}.cards-set-card{grid-template-columns:48px minmax(0,1fr);gap:10px}.cards-set-icon{width:48px;height:48px}.cards-set-work{padding:0 9px}.cards-set-meta{font-size:8px;gap:6px}}
+
+
+/* ===== KARTLARIM v2 — istenen sadeleştirmeler ===== */
+.cards-dashboard .cards-smart-copy h3{margin-top:3px}
+.cards-dashboard .cards-smart-art{top:34px}
+.cards-dashboard .smart-card-front{color:#2d7ef7;overflow:visible}
+.cards-dashboard .smart-card-front>svg{width:30px;height:30px;stroke-width:1.9}
+.cards-dashboard .smart-repeat-badge{position:absolute;right:-8px;bottom:-8px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#ff626b,#e93238);color:#fff;border:3px solid #edf4ff;box-shadow:0 7px 14px rgba(233,50,56,.28);transform:rotate(7deg)}
+.cards-dashboard .smart-repeat-badge svg{width:13px;height:13px;stroke-width:2.4}
+.cards-dashboard .cards-set-head{justify-content:flex-start}
