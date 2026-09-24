@@ -1235,27 +1235,42 @@ function mistakesView() {
 
   const headingArt = `<svg class="mistakes-ref-heading-art" viewBox="0 0 190 150" fill="none" aria-hidden="true">
     <defs>
-      <linearGradient id="mh2-blue" x1="61" y1="27" x2="154" y2="123" gradientUnits="userSpaceOnUse"><stop stop-color="#65adff"/><stop offset="1" stop-color="#2475ef"/></linearGradient>
-      <linearGradient id="mh2-paper" x1="45" y1="19" x2="135" y2="121" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#edf4fc"/></linearGradient>
-      <linearGradient id="mh2-red" x1="104" y1="57" x2="133" y2="86" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6671"/><stop offset="1" stop-color="#ec3042"/></linearGradient>
+      <linearGradient id="mh3-pencil" x1="44" y1="104" x2="139" y2="35" gradientUnits="userSpaceOnUse"><stop stop-color="#2d7ef7"/><stop offset="1" stop-color="#73b7ff"/></linearGradient>
+      <linearGradient id="mh3-eraser" x1="115" y1="48" x2="154" y2="86" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6872"/><stop offset="1" stop-color="#e93238"/></linearGradient>
+      <filter id="mh3-shadow" x="20" y="10" width="150" height="130" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#174f9c" flood-opacity=".14"/></filter>
     </defs>
-    <circle cx="112" cy="71" r="61" fill="#eaf3ff" fill-opacity=".62"/><circle cx="112" cy="71" r="49" stroke="#2d7ef7" stroke-opacity=".08"/>
-    <g transform="translate(75 32) rotate(8 42 47)"><rect width="82" height="94" rx="18" fill="url(#mh2-blue)" opacity=".95"/></g>
-    <g transform="translate(49 18) rotate(-7 42 49)"><rect width="84" height="99" rx="18" fill="url(#mh2-paper)"/><path d="M20 27h42M20 40h32M20 53h37" stroke="#d5e1ef" stroke-width="5.5" stroke-linecap="round"/></g>
-    <g transform="translate(91 50)"><circle cx="20" cy="20" r="18" fill="#fff" stroke="#ff5664" stroke-width="4"/><path d="m13 13 14 14m0-14L13 27" stroke="url(#mh2-red)" stroke-width="6" stroke-linecap="round"/><path d="m33 33 16 16" stroke="#2d7ef7" stroke-width="7" stroke-linecap="round"/></g>
-    <path d="M157 21v9M166 26l8-4M165 36l9 3" stroke="#2d7ef7" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="108" cy="72" r="59" fill="#eaf3ff" fill-opacity=".72"/>
+    <circle cx="108" cy="72" r="46" stroke="#2d7ef7" stroke-opacity=".08" stroke-width="2"/>
+    <g filter="url(#mh3-shadow)" transform="rotate(-34 98 76)">
+      <rect x="48" y="62" width="94" height="25" rx="12.5" fill="url(#mh3-pencil)"/>
+      <path d="M47 62 30 74.5 47 87Z" fill="#fff" stroke="#b9cbe0" stroke-width="2"/>
+      <path d="m30 74.5 8-4.5v9Z" fill="#071f49"/>
+      <rect x="127" y="62" width="25" height="25" rx="8" fill="url(#mh3-eraser)"/>
+      <path d="M120 65v19" stroke="#fff" stroke-opacity=".68" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <path d="M49 111c15 8 34 10 51 4" stroke="#e93238" stroke-width="5" stroke-linecap="round"/>
+    <path d="m96 109 7 5-8 5" fill="#e93238"/>
+    <path d="M151 28v10M146 33h10M157 45l7 4M46 34l-6 6" stroke="#2d7ef7" stroke-width="3" stroke-linecap="round"/>
   </svg>`;
 
   const heroArt = `<svg class="mistakes-ref-hero-art" viewBox="0 0 220 180" fill="none" aria-hidden="true">
     <defs>
-      <linearGradient id="mr2-paper" x1="58" y1="31" x2="159" y2="150" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#eaf2fc"/></linearGradient>
-      <linearGradient id="mr2-blue" x1="126" y1="82" x2="180" y2="136" gradientUnits="userSpaceOnUse"><stop stop-color="#62b0ff"/><stop offset="1" stop-color="#2475ef"/></linearGradient>
-      <linearGradient id="mr2-red" x1="91" y1="75" x2="126" y2="111" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6570"/><stop offset="1" stop-color="#ed3042"/></linearGradient>
+      <linearGradient id="mr3-orbit" x1="60" y1="37" x2="178" y2="146" gradientUnits="userSpaceOnUse"><stop stop-color="#63b0ff"/><stop offset="1" stop-color="#1f70ec"/></linearGradient>
+      <linearGradient id="mr3-core" x1="89" y1="60" x2="143" y2="121" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6872"/><stop offset="1" stop-color="#e93238"/></linearGradient>
+      <filter id="mr3-glow" x="32" y="17" width="168" height="154" filterUnits="userSpaceOnUse"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#071f49" flood-opacity=".22"/></filter>
     </defs>
-    <circle cx="132" cy="88" r="67" stroke="#fff" stroke-opacity=".04"/><circle cx="132" cy="88" r="48" stroke="#fff" stroke-opacity=".035"/>
-    <g transform="translate(52 27) rotate(-5 54 66)"><rect x="8" y="9" width="101" height="128" rx="21" fill="#2b6bc3" opacity=".5"/><rect width="101" height="128" rx="21" fill="url(#mr2-paper)"/><path d="M19 19h63" stroke="#d3dfed" stroke-width="7" stroke-linecap="round"/><path d="M25 0v25M76 0v25" stroke="#7faaf0" stroke-width="7" stroke-linecap="round"/><circle cx="50" cy="76" r="27" fill="#fff0f2"/><path d="m38 64 24 24m0-24L38 88" stroke="url(#mr2-red)" stroke-width="8" stroke-linecap="round"/></g>
-    <g transform="translate(137 92)"><circle cx="24" cy="24" r="23" fill="url(#mr2-blue)" stroke="#dfeeff" stroke-width="4"/><path d="M24 11v14l9 6" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>
-    <path d="M174 55c11 4 19 11 24 21" stroke="#4ca4ff" stroke-width="5" stroke-linecap="round"/><path d="m196 69 6 10-12 1" fill="#4ca4ff"/>
+    <circle cx="122" cy="89" r="67" stroke="#fff" stroke-opacity=".045" stroke-width="2"/>
+    <circle cx="122" cy="89" r="52" stroke="#fff" stroke-opacity=".035"/>
+    <g filter="url(#mr3-glow)">
+      <path d="M76 61c13-18 37-28 60-23 17 4 31 14 40 28" stroke="url(#mr3-orbit)" stroke-width="12" stroke-linecap="round"/>
+      <path d="m169 48 12 20-23 1" fill="#3d93ff"/>
+      <path d="M166 115c-13 18-37 28-60 23-17-4-31-14-40-28" stroke="#eaf3ff" stroke-width="12" stroke-linecap="round"/>
+      <path d="m73 128-12-20 23-1" fill="#eaf3ff"/>
+      <circle cx="121" cy="88" r="35" fill="url(#mr3-core)" stroke="#ffd9dd" stroke-width="5"/>
+      <path d="M121 67v27" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="121" cy="106" r="4.5" fill="#fff"/>
+    </g>
+    <path d="M53 52c-7 7-11 15-13 24M184 104c6-6 10-12 12-20" stroke="#6eb6ff" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 7"/>
   </svg>`;
 
   const metricWrongIcon = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3.5h10a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="m8.5 9 2.2 2.2L15.8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="m9 14 6 6m0-6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;

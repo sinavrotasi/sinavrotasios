@@ -3670,7 +3670,7 @@ body.auth-page{
   --sr-metric-label-size:8.8px;
   --sr-metric-value-size:18px;
   --sr-row-title-size:13px;
-  --sr-row-subtitle-size:9.5px;
+  --sr-row-subtitle-size:10.7px;
 }
 
 /* Üç bağımsız sekmede aynı sayfa zemini ve dış boşluk. */
@@ -3991,4 +3991,37 @@ body.auth-page{
   .bank-v2 .bank-v2-metric strong,
   .cards-dashboard .cards-dashboard-metric strong,
   .mistakes-reference .mistakes-ref-metric strong{font-size:17px}
+}
+
+
+/* 2026-09-24 — düzeltme: büyütülecek alan üst hero değil, alt içerik kartlarıdır. */
+.bank-v2 .bank-v2-hero-copy>p,
+.cards-dashboard .cards-smart-copy p,
+.mistakes-reference .mistakes-ref-hero p{font-size:var(--sr-hero-body-size)}
+.bank-v2 .bank-v2-type-copy p,
+.cards-dashboard .cards-set-title-row>div>span,
+.mistakes-reference .mistakes-ref-topic p{font-size:var(--sr-row-subtitle-size);line-height:1.38}
+@media(max-width:370px){
+  .bank-v2 .bank-v2-type-copy p,
+  .cards-dashboard .cards-set-title-row>div>span,
+  .mistakes-reference .mistakes-ref-topic p{font-size:10.2px}
+}
+
+/* 2026-09-24 — Alt kart açıklamaları: Denemeler / Kartlarım / Yanlışlarım birebir eşit */
+.bank-v2 .bank-v2-type-copy p,
+.cards-dashboard .cards-set-card .cards-set-title-row > div > span,
+.mistakes-screen.mistakes-reference .mistakes-ref-topic .mistakes-ref-topic-top > div > p{
+  font-size:10.7px;
+  line-height:1.38;
+  font-weight:500;
+  letter-spacing:0;
+}
+@media(max-width:370px){
+  .bank-v2 .bank-v2-type-copy p,
+  .cards-dashboard .cards-set-card .cards-set-title-row > div > span,
+  .mistakes-screen.mistakes-reference .mistakes-ref-topic .mistakes-ref-topic-top > div > p{
+    font-size:10.2px;
+    line-height:1.38;
+    font-weight:500;
+  }
 }
