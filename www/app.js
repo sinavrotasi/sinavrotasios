@@ -1110,7 +1110,6 @@ function bankView() {
       </article>
     </div>
 
-    <div class="bank-v2-section-head"><h3>Deneme Türleri</h3></div>
     <div class="bank-v2-types">
       <article class="bank-v2-type">
         <span class="bank-v2-type-icon bank-v2-type-red">${svg('briefcase')}</span>
