@@ -97,10 +97,11 @@
         document.documentElement.style.setProperty('--keyboard-height', `${(info && info.keyboardHeight) || 0}px`);
         const active = document.activeElement;
         const isSheetInput = active?.closest?.('.bottom-sheet, .topic-sheet, .quiz-nav-overlay');
-        // Sheet içindeki bir alanı scrollIntoView() ile kaydırmak, alttaki ana
-        // ekranın scroll-area'sını da kaydırabiliyor. Bu alanlar zaten panelin
-        // içinde olduğundan otomatik sayfa kaydırmasına ihtiyaç duymaz.
-        if (active && !isSheetInput && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+        const isAuthPage = document.body.classList.contains('auth-page');
+        // Auth ekranları tam ekrana sabittir. Input odağında scrollIntoView()
+        // çağırmak iOS'ta ekranın yukarı/aşağı sıçramasına neden olur.
+        // Sheet alanları da kendi içinde konumlandığı için otomatik kaydırılmaz.
+        if (active && !isSheetInput && !isAuthPage && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
           setTimeout(() => active.scrollIntoView({ block: 'center', behavior: 'smooth' }), 80);
         }
       });

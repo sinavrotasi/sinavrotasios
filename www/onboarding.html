@@ -38,6 +38,7 @@ body{
   min-height:0;
   overflow:hidden;
   overscroll-behavior:none;
+  touch-action:none;
 }
 
 .app{
@@ -48,6 +49,7 @@ body{
   display:flex;
   flex-direction:column;
   overflow:hidden;
+  touch-action:pan-x;
 }
 
 .top{
@@ -59,12 +61,10 @@ body{
 .slide{
   flex:1 1 auto;
   min-height:0;
-  overflow-y:auto;
-  overflow-x:hidden;
-  /* `contain` iOS'taki lastik/esneme efektini bu iç kaydırıcıda koruyordu. */
-  overscroll-behavior-y:none;
-  touch-action:pan-y;
-  -webkit-overflow-scrolling:touch;
+  overflow:hidden;
+  /* Onboarding ekranı artık viewport'a kilitli; dikey scroll/bounce yok. */
+  overscroll-behavior:none;
+  touch-action:pan-x;
   scrollbar-width:none;
 }
 

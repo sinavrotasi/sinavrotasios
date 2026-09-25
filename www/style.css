@@ -1233,7 +1233,13 @@ body{background:var(--bg)}
 /* ================= AUTH (ÜYELİK / GİRİŞ) — normal, responsive web page (phone mockup DEĞİL) ================= */
 html, body.auth-page{height:auto}
 body.auth-page{
-  min-height:100dvh;
+  height:100vh;
+  height:100svh;
+  height:100dvh;
+  min-height:0;
+  overflow:hidden;
+  overscroll-behavior:none;
+  touch-action:manipulation;
   background:
     linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)),
     url("images/background.png");
@@ -1282,7 +1288,7 @@ body.auth-page{
 }
 .auth-form .field:focus-within{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(45,126,247,.1)}
 .auth-form .field svg{width:17px;height:17px;flex-shrink:0}
-.auth-form .field input{border:none;outline:none;flex:1;min-width:0;background:transparent;font-size:14px;color:var(--text)}
+.auth-form .field input{border:none;outline:none;flex:1;min-width:0;background:transparent;font-size:16px;color:var(--text);-webkit-text-size-adjust:100%}
 .auth-form .field input::placeholder{color:#a7b0c0}
 .auth-form .field .eye{cursor:pointer}
 
