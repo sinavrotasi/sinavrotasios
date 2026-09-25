@@ -4266,11 +4266,13 @@ body.auth-page{
   #appPhone > .bottom-nav button,#appPhone > .bottom-nav button > svg {transition:none;}
 }
 
-/* Her sekmenin seçili durumu için dolu lacivert ikon. */
-#appPhone > .bottom-nav button > svg.nav-solid {display:none;}
+/* Tek SVG: ikon görünürlüğü dosyalar arası ikinci SVG eşleşmesine bağlı değildir. */
+#appPhone > .bottom-nav button > svg .nav-icon-solid {display:none;}
 @media (max-width:999px) {
-  #appPhone > .bottom-nav button.active > svg:not(.nav-solid) {display:none;}
-  #appPhone > .bottom-nav button.active > svg.nav-solid {
-    display:block; fill:currentColor; stroke:none; color:#071f49;
-  }
+  #appPhone > .bottom-nav button > svg {display:block;}
+  #appPhone > .bottom-nav button.active > svg {color:#071f49;}
+  #appPhone > .bottom-nav button.active > svg .nav-icon-outline {display:none;}
+  #appPhone > .bottom-nav button.active > svg .nav-icon-solid {display:inline;}
+  /* Önceki HTML yüklenmişse ikon kaybolmadan lacivert görünür. */
+  #appPhone > .bottom-nav button.active > svg:not(:has(.nav-icon-solid)) {fill:currentColor;}
 }

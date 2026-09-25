@@ -129,6 +129,32 @@ const scrollArea = document.getElementById('scroll-area');
 const toast = document.getElementById('toast');
 const navButtons = [...document.querySelectorAll('[data-nav]')];
 
+// Eski HTML önbellekten gelse de gezinme ikonlarını tek SVG biçimine getirir.
+function prepareNavIcons() {
+  const solids = {"home": "<path fill-rule=\"evenodd\" d=\"M12 2 2 10v10a2 2 0 0 0 2 2h6v-8h4v8h6a2 2 0 0 0 2-2V10L12 2Z\"/>", "bank": "<path d=\"M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6Z\"/><path d=\"M14 3v5h5M8 13h8M8 17h8\" fill=\"none\" stroke=\"white\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "cards": "<rect x=\"3\" y=\"6\" width=\"14\" height=\"15\" rx=\"2.5\" transform=\"rotate(-8 10 13.5)\"/><rect x=\"7\" y=\"3\" width=\"14\" height=\"15\" rx=\"2.5\" stroke=\"white\" stroke-width=\"1.4\"/>", "mistakes": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m8.8 8.8 6.4 6.4m0-6.4-6.4 6.4\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\"/>", "profile": "<circle cx=\"12\" cy=\"7\" r=\"4\"/><path d=\"M4 22v-3a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v3H4Z\"/>"};
+  document.querySelectorAll('.bottom-nav [data-nav]').forEach(button => {
+    const svg = button.querySelector('svg');
+    const solid = solids[button.dataset.nav];
+    if (!svg || !solid) return;
+    button.querySelectorAll('svg.nav-solid').forEach(extra => extra.remove());
+    if (!svg.querySelector('.nav-icon-solid')) {
+      const outline = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      outline.setAttribute('class', 'nav-icon-outline');
+      while (svg.firstChild) outline.appendChild(svg.firstChild);
+      svg.appendChild(outline);
+      const filled = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      filled.setAttribute('class', 'nav-icon-solid');
+      filled.setAttribute('fill', 'currentColor');
+      filled.setAttribute('stroke', 'none');
+      filled.innerHTML = solid;
+      svg.appendChild(filled);
+    }
+    svg.setAttribute('aria-hidden', 'true');
+  });
+}
+prepareNavIcons();
+
+
 // Konu Paneli (Topic Sheet) Elementleri
 const topicSheet = document.getElementById('topicSheet');
 const topicBackdrop = document.getElementById('topicBackdrop');
