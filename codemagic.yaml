@@ -848,7 +848,7 @@ workflows:
     artifacts:
       - build/SinavRotasi-Dev.ipa
 
-      # ============================================================
+  # ============================================================
   # 4) APP STORE RELEASE — Signed IPA + TestFlight
   # ============================================================
   # ios-device-altstore ile aynı release mantığını kullanır (www gömülü,
