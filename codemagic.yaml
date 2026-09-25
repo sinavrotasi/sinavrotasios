@@ -867,6 +867,8 @@ workflows:
       app_store_connect: SınavRotası - MEB GYS
 
     environment:
+      groups:
+        - ios_signing
       node: 22
       vars:
         BUNDLE_ID: "com.sinavrotasi.mebgys"
