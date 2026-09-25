@@ -4256,7 +4256,6 @@ body.auth-page{
   #appPhone > .bottom-nav button.active {color:#071f49;background:transparent;}
   #appPhone > .bottom-nav button.active > svg {stroke-width:2.2;}
   #appPhone > .bottom-nav button.active > span {font-weight:700;}
-  #appPhone > .bottom-nav button[data-nav="profile"].active > svg {fill:currentColor;}
   #appPhone > .bottom-nav button:active > svg {transform:scale(.9);}
   #appPhone > .bottom-nav button:focus-visible {outline:2px solid #2d7ef7;outline-offset:-3px;}
   #appPhone .app-scroll {padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));}
@@ -4265,4 +4264,13 @@ body.auth-page{
 @media (prefers-reduced-motion:reduce) {
   #appPhone > .bottom-nav::before,#appPhone > .bottom-nav::after,
   #appPhone > .bottom-nav button,#appPhone > .bottom-nav button > svg {transition:none;}
+}
+
+/* Her sekmenin seçili durumu için dolu lacivert ikon. */
+#appPhone > .bottom-nav button > svg.nav-solid {display:none;}
+@media (max-width:999px) {
+  #appPhone > .bottom-nav button.active > svg:not(.nav-solid) {display:none;}
+  #appPhone > .bottom-nav button.active > svg.nav-solid {
+    display:block; fill:currentColor; stroke:none; color:#071f49;
+  }
 }
