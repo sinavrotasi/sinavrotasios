@@ -806,7 +806,18 @@ function getStats() {
 }
 
 function setNav(name) {
-  navButtons.forEach(button => button.classList.toggle('active', button.dataset.nav === name));
+  navButtons.forEach(button => {
+    const active = button.dataset.nav === name;
+    button.classList.toggle('active', active);
+    if (active) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
+  const menu = document.querySelector('.bottom-nav');
+  if (!menu) return;
+  const items = [...menu.querySelectorAll('[data-nav]')];
+  const index = items.findIndex(button => button.dataset.nav === name);
+  menu.style.setProperty('--nav-visible', index < 0 ? '0' : '1');
+  if (index >= 0) menu.style.setProperty('--nav-index', String(index));
 }
 
 // --- SHEET DURUM YÖNETİMİ ---

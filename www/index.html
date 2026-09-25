@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#061229">
   <title>SınavRotası</title>
-  <link rel="stylesheet" href="style.css?v=46">
+  <link rel="stylesheet" href="style.css?v=47">
 </head>
 <body>
   <!-- ================= KADRO SEÇİM KAPISI ================= -->
@@ -28,6 +28,7 @@
             <div class="avatar-wrap"><img id="userAvatar" src="images/default-avatar.png" alt="Kullanıcı" style="display:none;"><div class="header-avatar" id="userAvatarMark"><div class="header-avatar-mark"><span class="avatar-letter-1"></span><span class="avatar-letter-2"></span></div></div></div>
             <div class="user-text">
               <h1>Merhaba, <b id="userFirstName">Aday</b>!</h1>
+              <p>Bugün harika bir gün, hedeflerine<br>bir adım daha yaklaş!</p>
               <span class="role-badge" id="userRoleBadge"></span>
           </div>
           </div>
@@ -63,7 +64,7 @@
     </div>
 
     <nav class="bottom-nav" aria-label="Ana menü">
-      <button data-nav="home" class="active" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Ana Sayfa</span></button>
+      <button data-nav="home" class="active" aria-current="page" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Ana Sayfa</span></button>
       <button data-nav="bank" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span>Denemeler</span></button>
       <button data-nav="cards" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="13" height="13" rx="2" transform="rotate(-8 10.5 13.5)"/><rect x="7" y="4" width="13" height="13" rx="2"/></svg><span>Kartlarım</span></button>
       <button data-nav="mistakes" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9.5 9.5 5 5m0-5-5 5"/></svg><span>Yanlışlarım</span></button>
@@ -223,6 +224,6 @@
        sessizce kaybolur. app-guard.js'ten önce yükleniyor. -->
   <script src="auth-common.js"></script>
   <script src="app-guard.js"></script>
-  <script src="app.js?v=145"></script>
+  <script src="app.js?v=146"></script>
 </body>
 </html>
