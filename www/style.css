@@ -4150,3 +4150,33 @@ body.auth-page{
     flex-basis:31px;
   }
 }
+
+/* Yanlışlarım: yalnız bu sekmedeki görsel ikonlar, HTML/JS değiştirilmez. */
+.mistakes-screen.mistakes-reference .mistakes-ref-heading-art,
+.mistakes-screen.mistakes-reference .mistakes-ref-hero-art{display:none}
+.mistakes-screen.mistakes-reference .mistakes-ref-heading::after{
+  content:"";position:absolute;right:4px;top:-4px;width:104px;height:96px;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20120%20120%22%3E%0A%3Cdefs%3E%3ClinearGradient%20id=%22b%22%20x2=%22.85%22%20y2=%221%22%3E%3Cstop%20stop-color=%22%236fbbff%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%231764cb%22/%3E%3C/linearGradient%3E%3Cfilter%20id=%22s%22%3E%3CfeDropShadow%20dx=%220%22%20dy=%226%22%20stdDeviation=%225%22%20flood-color=%22%23275aa2%22%20flood-opacity=%22.25%22/%3E%3C/filter%3E%3C/defs%3E%0A%3Cpath%20d=%22M59%2013%2098%2030v29c0%2030-18%2047-39%2057C37%20106%2020%2089%2020%2059V30z%22%20fill=%22url(%23b)%22%20filter=%22url(%23s)%22/%3E%0A%3Cpath%20d=%22M59%2023%2088%2035v25c0%2022-11%2036-29%2045C42%2096%2030%2082%2030%2060V35z%22%20fill=%22%23fff%22/%3E%0A%3Ccircle%20cx=%2259%22%20cy=%2257%22%20r=%2219%22%20fill=%22%23ef4354%22/%3E%3Cpath%20d=%22M59%2046v15m0%207v1%22%20stroke=%22%23fff%22%20stroke-width=%225%22%20stroke-linecap=%22round%22/%3E%0A%3Cpath%20d=%22m42%2085%2012%2010%2023-23%22%20fill=%22none%22%20stroke=%22%232176df%22%20stroke-width=%225%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%0A%3Cpath%20d=%22M11%2035%205%2041m103-23v13m-6-7h12M8%2080h1m101-10%206%203%22%20stroke=%22%2360a9f6%22%20stroke-width=%223%22%20stroke-linecap=%22round%22/%3E%3Ccircle%20cx=%2212%22%20cy=%2278%22%20r=%223%22%20fill=%22%23e93238%22/%3E%0A%3C/svg%3E") center/contain no-repeat;
+  pointer-events:none;
+}
+.mistakes-screen.mistakes-reference .mistakes-ref-hero::after{
+  content:"";position:absolute;right:7px;top:18px;width:108px;height:108px;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20130%20130%22%3E%0A%3Cdefs%3E%3ClinearGradient%20id=%22rim%22%20x2=%221%22%20y2=%221%22%3E%3Cstop%20stop-color=%22%2380c6ff%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%231469dd%22/%3E%3C/linearGradient%3E%3ClinearGradient%20id=%22handle%22%20x2=%221%22%20y2=%221%22%3E%3Cstop%20stop-color=%22%23ff7382%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%23df253f%22/%3E%3C/linearGradient%3E%3Cfilter%20id=%22shade%22%3E%3CfeDropShadow%20dx=%220%22%20dy=%227%22%20stdDeviation=%225%22%20flood-color=%22%2300122b%22%20flood-opacity=%22.3%22/%3E%3C/filter%3E%3C/defs%3E%0A%3Ccircle%20cx=%2259%22%20cy=%2257%22%20r=%2248%22%20fill=%22none%22%20stroke=%22%2382b8ef%22%20opacity=%22.2%22/%3E%3Cpath%20d=%22M15%2025%205%2036m107-15%208%2013M8%2092l14%208%22%20fill=%22none%22%20stroke=%22%2377baff%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-dasharray=%223%204%22/%3E%0A%3Cg%20filter=%22url(%23shade)%22%3E%3Ccircle%20cx=%2258%22%20cy=%2256%22%20r=%2243%22%20fill=%22url(%23rim)%22/%3E%3Ccircle%20cx=%2258%22%20cy=%2256%22%20r=%2234%22%20fill=%22%23f8fbff%22/%3E%3Cpath%20d=%22M83%2083%20116%20115%22%20fill=%22none%22%20stroke=%22url(%23handle)%22%20stroke-width=%2216%22%20stroke-linecap=%22round%22/%3E%3C/g%3E%0A%3Cpath%20d=%22M39%2040h30M39%2052h24M39%2064h22%22%20stroke=%22%23b2ccec%22%20stroke-width=%223.5%22%20stroke-linecap=%22round%22/%3E%3Ccircle%20cx=%2277%22%20cy=%2239%22%20r=%226%22%20fill=%22%2330b881%22/%3E%3Cpath%20d=%22m74%2039%202%202%204-5%22%20stroke=%22%23fff%22%20stroke-width=%222%22%20fill=%22none%22%20stroke-linecap=%22round%22/%3E%3Ccircle%20cx=%2273%22%20cy=%2268%22%20r=%226%22%20fill=%22%23e93238%22/%3E%3Cpath%20d=%22M73%2064v5m0%203v.2%22%20stroke=%22%23fff%22%20stroke-width=%222%22%20stroke-linecap=%22round%22/%3E%0A%3C/svg%3E") center/contain no-repeat;
+  pointer-events:none;
+}
+.mistakes-screen.mistakes-reference .mistakes-ref-metric-icon svg{display:none}
+.mistakes-screen.mistakes-reference .mistakes-ref-metric-icon::after{
+  content:"";display:block;width:22px;height:22px;background:center/contain no-repeat;
+}
+.mistakes-screen.mistakes-reference .metric-wrong .mistakes-ref-metric-icon::after{background-image:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2032%2032%22%3E%3Ccircle%20cx=%2216%22%20cy=%2216%22%20r=%2211%22%20fill=%22none%22%20stroke=%22white%22%20stroke-width=%222.8%22/%3E%3Cpath%20d=%22m12%2012%208%208m0-8-8%208%22%20stroke=%22white%22%20stroke-width=%222.8%22%20stroke-linecap=%22round%22/%3E%3C/svg%3E")}
+.mistakes-screen.mistakes-reference .metric-repeat .mistakes-ref-metric-icon::after{background-image:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2032%2032%22%3E%3Ccircle%20cx=%2216%22%20cy=%2217%22%20r=%2210%22%20fill=%22none%22%20stroke=%22white%22%20stroke-width=%222.7%22/%3E%3Cpath%20d=%22M16%2010v7l5%203M22%205l3%203%22%20fill=%22none%22%20stroke=%22white%22%20stroke-width=%222.7%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E")}
+/* Mor kategori kartındaki kurum simgesi. Diğer kategorilerin kendi ikonları korunur. */
+.mistakes-screen.mistakes-reference .mistakes-ref-topic.tone-violet .mistakes-ref-topic-icon svg{display:none}
+.mistakes-screen.mistakes-reference .mistakes-ref-topic.tone-violet .mistakes-ref-topic-icon::after{
+  content:"";display:block;width:28px;height:28px;background:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2032%2032%22%3E%3Cpath%20d=%22m4%2011%2012-6%2012%206v2H4zm3%2016h18M5%2029h22M9%2016v8m5-8v8m5-8v8m5-8v8%22%20fill=%22none%22%20stroke=%22white%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E") center/contain no-repeat;
+}
+@media(max-width:370px){
+  .mistakes-screen.mistakes-reference .mistakes-ref-heading::after{right:0;top:-2px;width:96px;height:90px}
+  .mistakes-screen.mistakes-reference .mistakes-ref-hero::after{right:3px;top:20px;width:94px;height:94px}
+  .mistakes-screen.mistakes-reference .mistakes-ref-metric-icon::after{width:19px;height:19px}
+}
