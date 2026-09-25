@@ -4180,3 +4180,25 @@ body.auth-page{
   .mistakes-screen.mistakes-reference .mistakes-ref-hero::after{right:3px;top:20px;width:94px;height:94px}
   .mistakes-screen.mistakes-reference .mistakes-ref-metric-icon::after{width:19px;height:19px}
 }
+
+
+/* Tüm ana sekmeler: Yanlışlarım zemini tüm kaydırma alanına taşındı.
+   Böylece son karttan alt menüye kadar zemin kesintisiz devam eder. */
+.phone .scroll-area {
+  background-color:#f4f7fb;
+  background-image:
+    radial-gradient(ellipse 100% 60% at 110% 110%,#d3e1f380 0 54%,transparent 54.5%),
+    radial-gradient(ellipse 95% 50% at -12% 106%,#e1eaf680 0 61%,transparent 61.5%),
+    radial-gradient(circle at 88% 5%,rgba(45,126,247,.12),transparent 18%),
+    linear-gradient(180deg,#f9fbff 0%,#f4f7fb 100%);
+  background-repeat:no-repeat;
+  background-size:100% 100%;
+}
+.phone .scroll-area > .app-scroll,
+.phone .scroll-area > .app-scroll > .screen,
+.phone .scroll-area > .app-scroll > .bank-v2,
+.phone .scroll-area > .app-scroll > .cards-dashboard,
+.phone .scroll-area > .app-scroll > .mistakes-screen.mistakes-reference,
+.phone .scroll-area > .app-scroll > .profile-final {
+  background:transparent;
+}
