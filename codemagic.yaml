@@ -847,3 +847,175 @@ workflows:
 
     artifacts:
       - build/SinavRotasi-Dev.ipa
+
+    # ============================================================
+  # 4) APP STORE RELEASE — Signed IPA + TestFlight
+  # ============================================================
+  # ios-device-altstore ile aynı release mantığını kullanır (www gömülü,
+  # dev config yasak), ama unsigned zip yerine gerçek imzalı bir IPA
+  # üretir ve otomatik olarak App Store Connect / TestFlight'a yükler.
+  #
+  # NOT: integrations.app_store_connect altındaki isim, Codemagic'te
+  # Team settings > Integrations > Developer Portal ekranında key'e
+  # verdiğin isimle (örn. "SınavRotası - MEB GYS") BİREBİR aynı olmalı.
+  ios-app-store-release:
+    name: SınavRotası App Store Release
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    integrations:
+      app_store_connect: SınavRotası - MEB GYS
+
+    environment:
+      node: 22
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.sinavrotasi.mebgys
+      vars:
+        BUNDLE_ID: "com.sinavrotasi.mebgys"
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+
+    scripts:
+      - name: Install dependencies
+        script: |
+          set -euo pipefail
+          npm ci
+
+      - name: Guard against dev (live-reload) config in release build
+        script: |
+          set -euo pipefail
+
+          if grep -q '"url"' capacitor.config.json 2>/dev/null; then
+            echo "ERROR: capacitor.config.json bir server.url içeriyor."
+            echo "Bu release workflow'u için YASAK — dev config production'a karışmış olabilir."
+            exit 1
+          fi
+
+          echo "OK: capacitor.config.json temiz, local www gömülecek."
+
+      - name: Install Capacitor iOS
+        script: |
+          set -euo pipefail
+          npm install @capacitor/ios@8.5.0
+
+      - name: Add iOS platform
+        script: |
+          set -euo pipefail
+          npx cap add ios
+
+      - name: Disable UIScrollView bounce natively
+        script: |
+          set -euo pipefail
+
+          APPDELEGATE_PATH="$CM_BUILD_DIR/ios/App/App/AppDelegate.swift"
+
+          if [ ! -f "$APPDELEGATE_PATH" ]; then
+            echo "ERROR: AppDelegate.swift not found."
+            exit 1
+          fi
+
+          MARKER='func applicationDidBecomeActive(_ application: UIApplication) {'
+
+          if ! grep -qF "$MARKER" "$APPDELEGATE_PATH"; then
+            echo "ERROR: applicationDidBecomeActive(_:) AppDelegate.swift içinde bulunamadı."
+            exit 1
+          fi
+
+          perl -i -pe "s/(\Q$MARKER\E)/\$1\n        disableAllBounces()/" "$APPDELEGATE_PATH"
+
+          cat >> "$APPDELEGATE_PATH" << 'EOF'
+
+          extension AppDelegate {
+              func disableAllBounces() {
+                  guard let window = self.window else { return }
+                  disableBounces(in: window)
+              }
+
+              private func disableBounces(in view: UIView) {
+                  if let scrollView = view as? UIScrollView {
+                      scrollView.bounces = false
+                  }
+                  for subview in view.subviews {
+                      disableBounces(in: subview)
+                  }
+              }
+          }
+          EOF
+
+          echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
+
+      - name: Configure iOS deep link
+        script: |
+          set -euo pipefail
+
+          PLIST_PATH="$CM_BUILD_DIR/ios/App/App/Info.plist"
+
+          if [ ! -f "$PLIST_PATH" ]; then
+            echo "ERROR: Info.plist not found."
+            exit 1
+          fi
+
+          /usr/libexec/PlistBuddy \
+            -c "Delete :CFBundleURLTypes" \
+            "$PLIST_PATH" 2>/dev/null || true
+
+          /usr/libexec/PlistBuddy \
+            -c "Add :CFBundleURLTypes array" \
+            "$PLIST_PATH"
+
+          /usr/libexec/PlistBuddy \
+            -c "Add :CFBundleURLTypes:0 dict" \
+            "$PLIST_PATH"
+
+          /usr/libexec/PlistBuddy \
+            -c "Add :CFBundleURLTypes:0:CFBundleTypeRole string Editor" \
+            "$PLIST_PATH"
+
+          /usr/libexec/PlistBuddy \
+            -c "Add :CFBundleURLTypes:0:CFBundleURLName string com.sinavrotasi.mebgys" \
+            "$PLIST_PATH"
+
+          /usr/libexec/PlistBuddy \
+            -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" \
+            "$PLIST_PATH"
+
+          /usr/libexec/PlistBuddy \
+            -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string sinavrotasi" \
+            "$PLIST_PATH"
+
+      - name: Sync Capacitor
+        script: |
+          set -euo pipefail
+          npx cap sync ios
+
+      - name: Set up code signing
+        script: |
+          set -euo pipefail
+
+          keychain initialize
+
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+
+          keychain add-certificates
+
+          xcode-project use-profiles
+
+      - name: Build signed IPA
+        script: |
+          set -euo pipefail
+
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
