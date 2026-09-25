@@ -988,6 +988,35 @@ workflows:
           set -euo pipefail
           npx cap sync ios
 
+      - name: Set App Store build number
+        script: |
+          set -euo pipefail
+
+          # Apple aynı CFBundleVersion değerinin yeniden yüklenmesine izin vermez.
+          # Codemagic'in her build'de artan BUILD_NUMBER değerini Xcode projesine yaz.
+          # Önceden yüklenen build 1 olduğu için yeni build numarası en az 2 olmalı.
+          IOS_BUILD_NUMBER="${BUILD_NUMBER:-2}"
+
+          if ! [[ "$IOS_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "ERROR: BUILD_NUMBER sayısal değil: $IOS_BUILD_NUMBER"
+            exit 1
+          fi
+
+          if [ "$IOS_BUILD_NUMBER" -le 1 ]; then
+            IOS_BUILD_NUMBER=2
+          fi
+
+          echo "App Store CFBundleVersion: $IOS_BUILD_NUMBER"
+
+          cd "$CM_BUILD_DIR/ios/App"
+
+          # Capacitor'ın oluşturduğu Xcode projesindeki CURRENT_PROJECT_VERSION
+          # değerini tüm target/configuration'larda günceller.
+          xcrun agvtool new-version -all "$IOS_BUILD_NUMBER"
+
+          echo "CURRENT_PROJECT_VERSION values:"
+          grep -n "CURRENT_PROJECT_VERSION" App.xcodeproj/project.pbxproj || true
+
       - name: Set up code signing
         script: |
           set -euo pipefail
