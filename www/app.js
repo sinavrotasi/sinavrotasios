@@ -1022,7 +1022,7 @@ function renderWeeklyFlowCard() {
 }
 
 function getStats() {
-  const completedSections = Object.keys(progress.completedSections).filter(key => !key.startsWith('card-deck:') && !key.startsWith('wrong-fixed:')).length;
+  const completedSections = Object.keys(progress.completedSections).filter(key => !key.startsWith('card-deck:') && !key.startsWith('wrong-fixed:') && !key.startsWith('topic-question:')).length;
   const completedMocks = progress.completedTests.filter(test => EXAM_KINDS.includes(test.kind)).length;
   const todayAnswers = Number(progress.dailyAnswers[dateKey()] || 0);
   const dailyGoal = getDailyGoal();
@@ -1158,24 +1158,54 @@ function isRolePurchased(role = progress.selectedRole) {
   return !role || window.currentUserIsPremium === true;
 }
 
-function getDocumentProgress(documentItem) {
+// Stored in the existing synchronized map so reset and cross-device merge apply.
+function uniqueTopicQuestionPrefix(documentId) {
+  return `topic-question:${encodeURIComponent(String(documentId))}:`;
+}
+
+function recordUniqueTopicQuestion(question) {
+  if (!question || question.id == null || !question.documentId) return;
+  const key = uniqueTopicQuestionPrefix(question.documentId) + encodeURIComponent(String(question.id));
+  if (progress.completedSections[key]) return;
+  window.SRProgressSync.setKey(progress, 'completedSections', key, new Date().toISOString());
+}
+
+function getDocumentCompletion(documentItem) {
+  const total = Math.max(0, Number(documentItem.questionCount) || 0);
   const role = progress.selectedRole;
   const sections = (documentItem.children || []).filter(section => !role || !section.kadrolar || section.kadrolar.includes(role));
-  if (!sections.length) return 0;
-  const completed = sections.filter(section => progress.completedSections[section.id]).length;
-  return Math.round((completed / sections.length) * 100);
+  if ((documentItem.children || []).length) {
+    const completed = sections.filter(section => progress.completedSections[section.id]).length;
+    const percentage = sections.length ? Math.round(completed / sections.length * 100) : 0;
+    return {total, completed: Math.round(total * percentage / 100), percentage};
+  }
+  const prefix = uniqueTopicQuestionPrefix(documentItem.id);
+  const seen = Object.keys(progress.completedSections).filter(key => key.startsWith(prefix) && progress.completedSections[key]).length;
+  const completed = Math.min(total, seen);
+  return {total, completed, percentage: total ? Math.round(completed / total * 100) : 0};
+}
+
+function getDocumentProgress(documentItem) {
+  return getDocumentCompletion(documentItem).percentage;
+}
+
+function getCategoryCompletion(categoryKey) {
+  const items = getCategoryItems(categoryKey).filter(item => item.type === 'document' || item.type === 'topic');
+  const counts = items.reduce((sum, item) => {
+    const value = getDocumentCompletion(item);
+    sum.total += value.total;
+    sum.completed += value.completed;
+    return sum;
+  }, {total:0, completed:0});
+  return {...counts, percentage: counts.total ? Math.round(counts.completed / counts.total * 100) : 0};
 }
 
 function getCategoryProgress(categoryKey) {
-  const items = getCategoryItems(categoryKey).filter(item => item.type === 'document' && item.children && item.children.length);
-  if (!items.length) return 0;
-  const values = items.map(getDocumentProgress);
-  return Math.round(values.reduce((total, value) => total + value, 0) / values.length);
+  return getCategoryCompletion(categoryKey).percentage;
 }
 
 function getCategoryQuestionTotal(categoryKey) {
-  const items = getCategoryItems(categoryKey).filter(item => item.type === 'document' && item.children && item.children.length);
-  return items.reduce((sum, item) => sum + (Number(item.questionCount) || 0), 0);
+  return getCategoryCompletion(categoryKey).total;
 }
 
 function getActiveDocuments() {
@@ -1658,12 +1688,13 @@ function renderMistakeCategoryLevel(categoryKey) {
   topicList.querySelectorAll('[data-mistake-doc-index]').forEach(element => {
     const open = () => renderMistakeDocument(categoryKey, docs[Number(element.dataset.mistakeDocIndex)]);
     element.addEventListener('click', open);
-    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') open(); });
+    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
   });
   topicSheet.scrollTop = 0;
 }
 
 function renderMistakeDocument(categoryKey, doc) {
+  topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
   const meta = mistakeCategoryMeta(categoryKey);
   applySheetHeader({ title: doc.documentTitle, subtitle: `${doc.questions.length} yanlış soru`, eyebrow: 'YANLIŞLARIM', icon: 'book', iconClass: meta.iconClass });
@@ -1952,7 +1983,7 @@ function renderCardCategoryLevel(categoryKey) {
       openCardDeck(doc, categoryKey);
     };
     element.addEventListener('click', open);
-    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') open(); });
+    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
   });
   topicSheet.scrollTop = 0;
 
@@ -4085,7 +4116,7 @@ function runSearch(query) {
   searchResultsList.querySelectorAll('[data-search-index]').forEach(element => {
     const open = () => openSearchResult(results[Number(element.dataset.searchIndex)]);
     element.addEventListener('click', open);
-    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') open(); });
+    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
   });
 }
 
@@ -4112,7 +4143,7 @@ searchInput?.addEventListener('input', () => {
 });
 
 function resetSheetClasses() {
-  topicSheet.classList.remove('document-flow', 'quiz-active', 'card-study-active');
+  topicSheet.classList.remove('document-flow', 'quiz-active', 'card-study-active', 'category-glass');
   delete topicSheet.dataset.categoryTone;
 }
 
@@ -4184,15 +4215,17 @@ function setSheetProgress(label, percentage, completedLabel = 'tamamlandı', com
 
 function renderCategoryLevel(categoryKey) {
   const category = getCategory(categoryKey);
-  applyCategoryProgressTone(categoryKey);
   if (!category) return;
   resetSheetClasses();
+  applyCategoryProgressTone(categoryKey);
+  topicSheet.classList.add('category-glass');
   const meta = categoryCardMeta(categoryKey);
-  applySheetHeader({ title: category.title, subtitle: category.subtitle, eyebrow: 'KONU KATEGORİSİ', icon: meta.icon, iconClass: meta.iconClass });
+  applySheetHeader({ title: category.title, subtitle: categoryKey === 'general-culture' ? String(category.subtitle || '').replace(/Coğrafya\s*,?\s*/gi, '').replace(/,\s*,/g, ',') : category.subtitle, eyebrow: 'KONU KATEGORİSİ', icon: meta.icon, iconClass: meta.iconClass });
   topicBreadcrumbWrap.innerHTML = '';
-  const progressPercent = getCategoryProgress(categoryKey);
-  const totalQuestions = getCategoryQuestionTotal(categoryKey);
-  const completedQuestions = totalQuestions ? Math.round((totalQuestions * progressPercent) / 100) : 0;
+  const categoryCompletion = getCategoryCompletion(categoryKey);
+  const progressPercent = categoryCompletion.percentage;
+  const totalQuestions = categoryCompletion.total;
+  const completedQuestions = categoryCompletion.completed;
   setSheetProgress('Henüz çalışılmadı', progressPercent, 'tamamlandı', totalQuestions ? completedQuestions : null, totalQuestions ? totalQuestions : null);
   const items = getCategoryItems(categoryKey);
   topicList.innerHTML = items.map((item, index) => {
@@ -4208,7 +4241,7 @@ function renderCategoryLevel(categoryKey) {
       else renderTopicPlan(item, categoryKey);
     };
     element.addEventListener('click', open);
-    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') open(); });
+    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
   });
   topicSheet.scrollTop = 0;
   refreshVisibleQuestionCounts(items, () => { if (state.activeCategoryKey === categoryKey && !state.activeDocument) renderCategoryLevel(categoryKey); });
@@ -4243,16 +4276,16 @@ function statusLabel(documentItem) {
 function renderDocumentHub(documentItem, categoryKey) {
   state.activeDocument = documentItem;
   state.activeCategoryKey = categoryKey;
+  topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
   topicSheet.classList.remove('quiz-active', 'card-study-active');
-  applySheetHeader({ title: documentItem.title, subtitle: documentItem.questionFile ? statLine(documentItem) : 'İçerik yapısı hazır, kaynak paketi bekleniyor', eyebrow: 'MEVZUAT ÇALIŞMA MERKEZİ', icon: 'gavel', iconClass: categoryCardMeta(categoryKey).iconClass });
+  applySheetHeader({ title: documentItem.title, subtitle: documentItem.questionFile ? statLine(documentItem) : 'İçerik yapısı hazır, kaynak paketi bekleniyor', eyebrow: '', icon: categoryCardMeta(categoryKey).icon, iconClass: categoryCardMeta(categoryKey).iconClass });
   renderBreadcrumb(getCategory(categoryKey).title, () => renderCategoryLevel(categoryKey));
   const documentProgress = getDocumentProgress(documentItem);
   setSheetProgress('Henüz çalışılmadı', documentProgress);
   const isActive = Boolean(documentItem.questionFile);
   const sectionsReady = Boolean(documentItem.children && documentItem.children.length);
   topicList.innerHTML = `<section class="document-overview-card">
-      <div class="document-overview-top"><span class="document-number">${escapeHtml(documentItem.documentNumber || 'KONU')}</span><span class="document-status ${isActive ? '' : 'is-pending'}">${statusLabel(documentItem)}</span></div>
       <h4>${escapeHtml(documentItem.title)}</h4><p>${isActive ? 'Bölüm bazında çalışabilir, rastgele test çözebilir ve kritik notlarla hızlı tekrar yapabilirsin.' : 'Bu başlık için akış hazır. Bölüm ve soru verisi eklendiğinde kartlar otomatik olarak aktifleşir.'}</p>
       <div class="document-stats">${statSpans(documentItem, `<span><strong>%${documentProgress}</strong> ilerleme</span>`)}</div>
     </section>
@@ -4282,6 +4315,7 @@ function modeCard(mode, icon, title, description, enabled) {
 function renderTopicPlan(item, categoryKey) {
   state.activeDocument = item;
   state.activeCategoryKey = categoryKey;
+  topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
   topicSheet.classList.remove('quiz-active', 'card-study-active');
   const isActive = Boolean(item.questionFile);
@@ -4289,16 +4323,15 @@ function renderTopicPlan(item, categoryKey) {
   applySheetHeader({
     title: item.title,
     subtitle: isActive ? statLine(item) : 'İçerik yapısı hazır, kaynak paketi bekleniyor',
-    eyebrow: 'KONU ÇALIŞMA MERKEZİ',
-    icon: 'book',
+    eyebrow: '',
+    icon: categoryCardMeta(categoryKey).icon,
     iconClass: categoryCardMeta(categoryKey).iconClass
   });
   renderBreadcrumb(getCategory(categoryKey).title, () => renderCategoryLevel(categoryKey));
-  const topicProgress = progress.completedSections[item.id] ? 100 : 0;
+  const topicProgress = getDocumentProgress(item);
   setSheetProgress('Henüz çalışılmadı', topicProgress);
 
   topicList.innerHTML = `<section class="document-overview-card">
-      <div class="document-overview-top"><span class="document-number">KONU</span><span class="document-status ${isActive ? '' : 'is-pending'}">${statusLabel(item)}</span></div>
       <h4>${escapeHtml(item.title)}</h4><p>${isActive ? 'Bölüm bazında çalışabilir, rastgele test çözebilir ve kritik notlarla hızlı tekrar yapabilirsin.' : 'Bu başlık için akış hazır. Bölüm ve soru verisi eklendiğinde kartlar otomatik olarak aktifleşir.'}</p>
       <div class="document-stats">${statSpans(item, `<span><strong>%${topicProgress}</strong> ilerleme</span>`)}</div>
     </section>
@@ -4324,6 +4357,7 @@ function renderTopicPlan(item, categoryKey) {
 }
 
 function renderSections(documentItem, categoryKey) {
+  topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
   applySheetHeader({ title: 'Bölüm Seçimi', subtitle: 'Bir bölüme dokunarak karma sorularla başla.', eyebrow: 'MADDE MADDE ÇALIŞ', icon: 'gavel', iconClass: categoryCardMeta(categoryKey).iconClass });
   renderBreadcrumb(documentItem.title, () => renderDocumentHub(documentItem, categoryKey));
@@ -4350,7 +4384,7 @@ function renderSections(documentItem, categoryKey) {
   topicList.querySelectorAll('[data-section-index]').forEach(element => {
     const open = () => openSectionQuiz(documentItem, sections[Number(element.dataset.sectionIndex)], categoryKey);
     element.addEventListener('click', open);
-    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') open(); });
+    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
   });
   topicSheet.scrollTop = 0;
   refreshSectionQuestionCounts(sections);
@@ -4385,6 +4419,7 @@ async function refreshSectionQuestionCounts(sections) {
 }
 
 function renderSummary(documentItem, categoryKey) {
+  topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
   applySheetHeader({ title: 'Özet ve Kritik Noktalar', subtitle: documentItem.title, eyebrow: 'HIZLI TEKRAR', icon: 'trophy', iconClass: categoryCardMeta(categoryKey).iconClass });
   renderBreadcrumb(documentItem.title, () => renderDocumentHub(documentItem, categoryKey));
@@ -5137,6 +5172,7 @@ function recordAnswer(question, selected) {
       progress.userId
     );
     window.SRProgressSync.markSeen(progress, question.id);
+    recordUniqueTopicQuestion(question);
   }
   saveProgress();
 }
@@ -5168,8 +5204,8 @@ function openQuizFinishModal() {
         </svg>
       </div>
 
-      <span class="quiz-finish-modal-eyebrow">SINAVI BİTİR</span>
-      <h2 id="quizFinishModalTitle">${remaining > 0 ? 'Sınavı şimdi bitirmek istiyor musun?' : 'Sınavı bitirmek istiyor musun?'}</h2>
+      <span class="quiz-finish-modal-eyebrow">BÖLÜMÜ BİTİR</span>
+      <h2 id="quizFinishModalTitle">${remaining > 0 ? 'Bölümü şimdi bitirmek istiyor musun?' : 'Bölümü bitirmek istiyor musun?'}</h2>
       <p>${remaining > 0
         ? `Henüz cevaplamadığın <strong>${remaining} soru</strong> var. Bu sorular boş bırakılmış olarak değerlendirilecek.`
         : 'Tüm soruları cevapladın. Sonuç ekranına geçebilirsin.'
@@ -5185,7 +5221,7 @@ function openQuizFinishModal() {
 
       <div class="quiz-finish-modal-actions">
         <button type="button" class="quiz-finish-cancel" id="quizFinishModalCancel">Devam et</button>
-        <button type="button" class="quiz-finish-confirm" id="quizFinishModalConfirm">Sınavı bitir</button>
+        <button type="button" class="quiz-finish-confirm" id="quizFinishModalConfirm">Bölümü bitir</button>
       </div>
     </div>
   `;
@@ -5233,7 +5269,7 @@ function renderQuiz() {
             <h2>${escapeHtml(quiz.title)}</h2>
           </div>
           <div class="quiz-premium-top-actions">
-            <button type="button" class="topbar-action topbar-finish" id="quizFinishEarlyButton" aria-label="Sınavı Bitir">Bitir</button>
+            <button type="button" class="topbar-action topbar-finish" id="quizFinishEarlyButton" aria-label="Bölümü Bitir">Bitir</button>
             <button type="button" class="topbar-action ${progress.reportedQuestions[current.id] ? 'active' : ''}" id="quizReportButton" aria-label="${progress.reportedQuestions[current.id] ? 'Bildirimi Geri Al' : 'Soruyu Bildir'}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
             </button>
@@ -5785,6 +5821,7 @@ function renderQuizResult() {
   const percentage = total ? Math.round((score / total) * 100) : 0;
   logEvent('quiz_completed', { kind: quiz.kind || 'standard', score, total, pct: percentage });
   topicSheet.classList.remove('quiz-active');
+  topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
   applySheetHeader({ title: quiz.title, subtitle: 'Test tamamlandı', eyebrow: 'SONUÇ', icon: 'trophy', iconClass: 'red' });
   topicBreadcrumbWrap.innerHTML = '';

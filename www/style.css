@@ -6939,3 +6939,107 @@ html[data-ui-density="compact"] .profile-v2 .sp-study-preferences-entry{
 }
 .header-avatar-mark .avatar-letter-1{color:#06265a!important;line-height:1!important}
 .header-avatar-mark .avatar-letter-2{color:#f12d38!important;line-height:1!important}
+
+/* Reference: resim(6) — category level only; document and quiz flows keep their layouts. */
+#topicSheet.category-glass {
+  --cg-ink:#080d47; --cg-muted:#50658f;
+  box-sizing:border-box; max-height:calc(100% - max(32px,env(safe-area-inset-top))); height:auto;
+  padding:52px 15px max(36px,env(safe-area-inset-bottom)); border-radius:26px;
+  background:radial-gradient(ellipse at 91% 13%,#deedff 0,transparent 37%),linear-gradient(115deg,#f9fcff,#f0f7ff 57%,#fff);
+  border:1px solid rgba(255,255,255,.95); box-shadow:0 -9px 40px #204d8a24;
+  overflow:auto; overscroll-behavior:contain; scrollbar-width:none;
+  font-family:'Arial Narrow','Roboto Condensed',Arial,sans-serif;
+}
+#topicSheet.category-glass .topic-handle {position:absolute;top:10px;left:calc(50% - 20px);width:40px;height:5px;margin:0;background:linear-gradient(#c8d2e4,#adb9ce);box-shadow:inset 0 1px 2px #8b9ab844;}
+#topicSheet.category-glass .topic-close {top:22px;right:17px;width:32px;height:32px;font-size:27px;font-weight:400;color:var(--cg-ink);background:linear-gradient(135deg,#fff,#e8f2ff);border:1px solid white;box-shadow:0 8px 15px #5792dc25;}
+#topicSheet.category-glass .topic-sheet-head {margin:0 0 14px;}
+#topicSheet.category-glass .topic-header-card {min-height:108px;padding:22px 16px;box-sizing:border-box;border-radius:22px;background:linear-gradient(115deg,#f6faffcc,#edf6ff99 65%,#bfddff88);border:1px solid white;box-shadow:inset 0 1px 2px white,0 8px 15px #6da7e52b;overflow:hidden;}
+#topicSheet.category-glass .topic-heading-wrap {gap:17px;width:100%;}
+#topicSheet.category-glass .topic-heading-icon {width:54px;height:54px;box-sizing:border-box;border:4px solid #bcd3ed;border-radius:18px;background:linear-gradient(135deg,#476fa8,#093475 55%,#12366c);box-shadow:inset 0 2px 4px #fff8,0 3px 4px #4477ac45;color:white;}
+#topicSheet.category-glass .topic-heading-icon svg {width:30px;height:30px;}
+#topicSheet.category-glass .topic-heading-wrap>div:last-child {min-width:0;padding-right:36px;}
+#topicSheet.category-glass .topic-eyebrow {font-size:10px;letter-spacing:1.2px;color:#ed070b;margin-bottom:4px;font-weight:800;}
+#topicSheet.category-glass #topicSheetTitle {font-size:20px;line-height:1.15;color:var(--cg-ink);margin:0 0 5px;font-weight:800;letter-spacing:-.55px;}
+#topicSheet.category-glass #topicSheetSubtitle {font-size:11px;line-height:1.3;color:#415e8d;margin:0;}
+#topicSheet.category-glass .topic-header-decor-blob {width:140px;height:150px;right:-27px;top:-50px;background:linear-gradient(135deg,#ecf6ff,#bddbff99);opacity:.65;}
+#topicSheet.category-glass .topic-header-decor-icon {width:69px;height:66px;right:-4px;bottom:8px;opacity:1;transform:rotate(9deg);filter:drop-shadow(0 8px 7px #79a9ec66);}
+#topicSheet.category-glass .topic-header-decor-icon svg {display:none;}
+#topicSheet.category-glass .topic-header-decor-icon::before {content:'';position:absolute;inset:2px 0 32px;border-radius:10px 6px 7px 10px;background:linear-gradient(160deg,#4e75ae,#0a2c64 72%,#87b4e7);border-top:1px solid #fff9;box-shadow:0 2px 1px #fff7;}
+#topicSheet.category-glass .topic-header-decor-icon::after {content:'';position:absolute;inset:29px -3px 9px;border-radius:10px 6px 6px 10px;background:linear-gradient(90deg,transparent 55%,#ed1221 55%,#ed1221 70%,transparent 70%) 0 8px/100% 15px no-repeat,linear-gradient(#fff,#e8eaff 62%,white);border:1px solid white;box-shadow:inset -6px 0 0 #cfdbeb;}
+#topicSheet.category-glass #topicBreadcrumbWrap:empty {display:none;}
+#topicSheet.category-glass .topic-progress-card {position:relative;min-height:67px;padding:14px 16px;box-sizing:border-box;border-radius:17px;border:1px solid white;background:linear-gradient(115deg,#fff9,#f6faff);box-shadow:0 8px 16px #679fdf1c;margin:0 0 16px;}
+#topicSheet.category-glass .topic-progress-top {margin:0;align-items:flex-start;}
+#topicSheet.category-glass .topic-progress-top>span {font-size:10px;letter-spacing:.6px;color:var(--cg-muted);font-weight:800;}
+#topicSheet.category-glass #topicProgressPercent {font-size:23px;line-height:1;font-weight:800;color:var(--cg-ink)!important;}
+#topicSheet.category-glass .topic-progress-bottom {gap:12px;align-items:center;margin-top:4px;}
+#topicSheet.category-glass .topic-progress-track {height:10px;background:#dce5f1;border-radius:9px;min-width:40px;}
+#topicSheet.category-glass #topicProgressBar {background:linear-gradient(#ff5959,#f60009 55%,#ed0008)!important;box-shadow:inset 0 1px 2px #fff9,0 1px 3px #e51d2744;}
+#topicSheet.category-glass #topicProgressCount {font-size:10.5px;font-weight:400;color:var(--cg-muted);}
+#topicSheet.category-glass .topic-list {overflow:visible;flex:none;gap:11px;padding:0;}
+#topicSheet.category-glass .topic-item {flex-shrink:0;min-height:62px;box-sizing:border-box;grid-template-columns:42px minmax(0,1fr) 30px;gap:12px;padding:9px 12px 9px 10px;border:1px solid white;border-radius:18px;background:linear-gradient(115deg,#fff,#ffffffbb);box-shadow:0 8px 17px #91b8e528;}
+#topicSheet.category-glass .topic-item::before {width:114px;height:90px;right:-28px;bottom:-30px;border-radius:55% 45% 0 0;transform:rotate(-38deg);background:linear-gradient(110deg,#ffebef44,#ffdde480);opacity:1;}
+#topicSheet.category-glass .topic-item:nth-child(even)::before {background:linear-gradient(110deg,#e6eefb55,#d3e3fa88);}
+#topicSheet.category-glass .topic-number {width:42px;height:44px;font-size:19px;font-weight:800;letter-spacing:-.8px;border-radius:13px;color:#e60006;background:linear-gradient(135deg,#fff0f1,#ffdade);border:1px solid white;box-shadow:inset 0 0 3px white,0 5px 9px #e5c5d344;text-shadow:0 1px white;}
+#topicSheet.category-glass .topic-item:nth-child(even) .topic-number {color:var(--cg-ink);background:linear-gradient(135deg,#ebf7ff,#bfdaf4);box-shadow:inset 0 0 3px white,0 5px 9px #a8c7e755;}
+#topicSheet.category-glass .topic-copy h4 {font-size:14px;line-height:1.18;letter-spacing:-.45px;font-weight:800;color:var(--cg-ink);margin:0 0 4px;overflow-wrap:anywhere;}
+#topicSheet.category-glass .topic-copy p {font-size:11px;line-height:1.25;color:var(--cg-muted);}
+#topicSheet.category-glass .topic-arrow {width:29px;height:29px;border:1px solid white;background:linear-gradient(135deg,#fff,#fff5);color:#ea0008;box-shadow:0 6px 10px #e299ac26;}
+#topicSheet.category-glass .topic-item:nth-child(even) .topic-arrow {color:var(--cg-ink);box-shadow:0 6px 10px #86a9dc33;}
+#topicSheet.category-glass .topic-arrow svg {width:16px;height:16px;stroke-width:3;}
+#topicSheet.category-glass .article-range {position:absolute;right:48px;bottom:2px;font-size:7px;}
+@media (min-width:600px) {#topicSheet.category-glass{width:min(560px,92%);}}
+@media (prefers-reduced-motion:reduce){#topicSheet.category-glass,#topicSheet.category-glass #topicProgressBar{transition:none;}}
+
+
+
+
+
+#topicSheet.category-glass .topic-copy h4 {font-family:CategoryCondensed,Arial,sans-serif;font-weight:700;font-size:14px;letter-spacing:-.2px;}
+#topicSheet.category-glass .topic-copy p,#topicSheet.category-glass #topicSheetSubtitle,#topicSheet.category-glass #topicProgressCount {font-family:CategoryCondensed,Arial,sans-serif;font-weight:400;}
+#topicSheet.category-glass .topic-number {font-family:CategoryCondensed,Arial,sans-serif;font-weight:700;}
+#topicSheet.category-glass #topicSheetTitle{font-family:Arial,sans-serif;font-size:19px;}
+#topicSheet.category-glass .topic-heading-wrap>div:last-child {padding-right:30px;}
+#topicSheet.category-glass .topic-close {font-size:0;}
+#topicSheet.category-glass .topic-close::before,#topicSheet.category-glass .topic-close::after{content:'';position:absolute;width:12px;height:1.8px;background:#080d47;border-radius:2px;transform:rotate(45deg);}
+#topicSheet.category-glass .topic-close::after{transform:rotate(-45deg);}
+
+/* Category identities match the main category cards. */
+#topicSheet.category-glass[data-category-tone="navy"]{--category-color:#071f49;--category-bright:#315e91;--category-rgb:7,31,73;--category-pale:#d7e3f1;}
+#topicSheet.category-glass[data-category-tone="blue"]{--category-color:#2f80ed;--category-bright:#70b8ff;--category-rgb:47,128,237;--category-pale:#d4eaff;}
+#topicSheet.category-glass[data-category-tone="red"]{--category-color:#ef3038;--category-bright:#ff8188;--category-rgb:239,48,56;--category-pale:#ffe0e3;}
+#topicSheet.category-glass{background:radial-gradient(ellipse at 91% 13%,rgba(var(--category-rgb),.13),transparent 37%),linear-gradient(115deg,#fbfdff,#f6f9ff 57%,#fff);}
+#topicSheet.category-glass .topic-header-card{background:linear-gradient(115deg,#ffffffdf,#ffffffa8 57%,rgba(var(--category-rgb),.15));box-shadow:inset 0 1px 2px white,0 8px 15px rgba(var(--category-rgb),.10);}
+#topicSheet.category-glass .topic-heading-icon{position:relative;overflow:hidden;border-color:var(--category-pale);background:linear-gradient(135deg,var(--category-bright),var(--category-color) 65%);box-shadow:inset 0 2px 5px #ffffffb0,inset 0 -2px 3px #0002,0 4px 8px rgba(var(--category-rgb),.25);}
+#topicSheet.category-glass .topic-heading-icon::after{content:'';position:absolute;inset:0 0 50%;border-radius:14px 14px 50% 20%;background:linear-gradient(#ffffff40,#ffffff03);pointer-events:none;}
+#topicSheet.category-glass .topic-eyebrow{color:var(--category-color);}
+#topicSheet.category-glass .topic-header-decor-blob{background:radial-gradient(ellipse,rgba(var(--category-rgb),.15),transparent 70%);}
+#topicSheet.category-glass .topic-header-decor-icon{width:67px;height:78px;right:8px;bottom:13px;transform:rotate(8deg);filter:drop-shadow(0 8px 7px rgba(var(--category-rgb),.16));}
+#topicSheet.category-glass .topic-header-decor-icon::before,#topicSheet.category-glass .topic-header-decor-icon::after{display:none;}
+#topicSheet.category-glass .topic-header-decor-icon svg{display:block;width:100%;height:100%;}
+#topicSheet.category-glass .topic-heading-wrap>div:last-child{padding-right:64px;}
+#topicSheet.category-glass #topicProgressPercent{color:var(--category-color)!important;}
+#topicSheet.category-glass #topicProgressBar{background:linear-gradient(var(--category-bright),var(--category-color) 65%)!important;box-shadow:inset 0 1px 2px #fff9;}
+#topicSheet.category-glass .topic-item:nth-child(n) .topic-number{color:var(--category-color);background:linear-gradient(135deg,#fff,var(--category-pale));box-shadow:inset 0 0 3px white,0 5px 9px rgba(var(--category-rgb),.10);}
+#topicSheet.category-glass .topic-item:nth-child(n) .topic-arrow{color:var(--category-color);box-shadow:0 6px 10px rgba(var(--category-rgb),.1);}
+#topicSheet.category-glass .topic-item:nth-child(n)::before{background:linear-gradient(110deg,rgba(var(--category-rgb),.02),rgba(var(--category-rgb),.10));}
+@media(max-width:360px){#topicSheet.category-glass .topic-heading-wrap{gap:10px;}#topicSheet.category-glass .topic-heading-wrap>div:last-child{padding-right:42px;}#topicSheet.category-glass .topic-header-decor-icon{width:46px;right:5px;}#topicSheet.category-glass #topicSheetTitle{font-size:17px;}}
+
+/* Consistent app typography and alternating topic accents. */
+#topicSheet.category-glass,#topicSheet.document-flow {font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif;}
+#topicSheet.category-glass :is(.topic-copy h4,.topic-copy p,.topic-number,#topicSheetTitle,#topicSheetSubtitle,#topicProgressCount),#topicSheet.document-flow :is(button,h3,h4,p,span){font-family:inherit;}
+#topicSheet.category-glass .topic-copy h4{font-size:14px;font-weight:700;letter-spacing:0;line-height:1.3;}
+#topicSheet.category-glass .topic-copy p{font-size:12px;line-height:1.35;}
+#topicSheet.category-glass #topicSheetSubtitle{font-size:12px;line-height:1.4;}
+#topicSheet.category-glass .topic-heading-wrap>div:last-child{padding-right:0;}
+#topicSheet .topic-header-decor-icon{display:none!important;}
+#topicSheet .topic-eyebrow:empty{display:none;}
+#topicSheet.category-glass .topic-item:nth-child(odd){--row-ink:#e93238;--row-pale:#ffdade;--row-rgb:233,50,56;}
+#topicSheet.category-glass .topic-item:nth-child(even){--row-ink:#071f49;--row-pale:#cbdff4;--row-rgb:7,31,73;}
+#topicSheet.category-glass .topic-item:nth-child(n) .topic-number{color:var(--row-ink);background:linear-gradient(135deg,#fff,var(--row-pale));box-shadow:inset 0 0 3px white,0 5px 9px rgba(var(--row-rgb),.1);}
+#topicSheet.category-glass .topic-item:nth-child(n) .topic-arrow{color:var(--row-ink);box-shadow:0 6px 10px rgba(var(--row-rgb),.1);}
+#topicSheet.category-glass .topic-item:nth-child(n)::before{background:linear-gradient(110deg,rgba(var(--row-rgb),.02),rgba(var(--row-rgb),.1));}
+
+/* Flat red/blue number badges, with the original softly tinted cards. */
+#topicSheet.category-glass .topic-item:nth-child(odd){--row-ink:#e93238;--row-pale:#ffedef;--row-rgb:233,50,56;}
+#topicSheet.category-glass .topic-item:nth-child(even){--row-ink:#2f80ed;--row-pale:#e8f2ff;--row-rgb:47,128,237;}
+#topicSheet.category-glass .topic-item:nth-child(n) .topic-number{background:var(--row-pale);color:var(--row-ink);border:0;box-shadow:none;text-shadow:none;}
