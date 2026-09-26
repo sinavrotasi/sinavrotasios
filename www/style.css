@@ -6424,3 +6424,138 @@ html[data-ui-density="compact"] .profile-v2 .sp-tools-card{margin-top:5px!import
     font-size:9.5px;
   }
 }
+
+
+/* ÇIKIŞ YAP — kırmızı premium */
+.profile-v2 .sp-signout-card{
+  border-color:rgba(233,50,56,.18)!important;
+  background:radial-gradient(circle at 92% 0%,rgba(233,50,56,.08),transparent 38%),linear-gradient(145deg,#fff,#fff7f8)!important;
+  box-shadow:0 9px 23px rgba(184,40,47,.08)!important;
+}
+.profile-v2 .sp-signout-card-icon{background:linear-gradient(145deg,#fff0f1,#ffe5e8)!important;color:#e93238!important}
+.profile-v2 .sp-signout-card-icon svg{stroke:#e93238!important}
+.profile-v2 .sp-signout-card-copy strong{color:#cf2d35!important}
+.profile-v2 .sp-signout-card-copy small{color:#a45f64!important}
+.profile-v2 .sp-signout-card-arrow{color:#d84a51!important}
+
+/* Çalışma tercihleri */
+.phone .scroll-area:has(> .app-scroll > .study-preferences-page) > .app-header{display:none!important}
+.phone .app-scroll:has(> .study-preferences-page){padding:0 0 86px;background:transparent}
+.phone .scroll-area > .app-scroll > .study-preferences-page{padding:max(25px,calc(env(safe-area-inset-top) + 15px)) 16px 24px;min-height:100%}
+.study-pref-intro,.study-pref-card{background:linear-gradient(145deg,#fff,#fbfdff);border:1px solid rgba(8,40,90,.06);border-radius:18px;box-shadow:0 8px 22px rgba(24,51,84,.05)}
+.study-pref-intro{display:flex;align-items:center;gap:12px;padding:14px 15px}
+.study-pref-intro-icon{width:44px;height:44px;border-radius:14px;background:#eef4fa;color:#0a4b86;display:grid;place-items:center;flex:0 0 auto}
+.study-pref-intro-icon svg{width:22px;height:22px}
+.study-pref-intro strong{display:block;font-size:14px;color:#08285a}
+.study-pref-intro small{display:block;margin-top:4px;font-size:10px;line-height:1.45;color:#76859a}
+.study-pref-card{margin-top:10px;padding:15px}
+.study-pref-card-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:9px}
+.study-pref-card-head>div>span{font-size:7.5px;font-weight:820;letter-spacing:1.1px;color:#8a97aa}
+.study-pref-card-head>div>strong{display:block;margin-top:4px;font-size:15px;color:#08285a}
+.study-pref-current,.study-pause-badge{padding:6px 8px;border-radius:10px;background:#eef4fa;color:#325f8d;font-size:8.5px;font-weight:700;white-space:nowrap;height:max-content}
+.study-pause-badge{background:#fff0f1;color:#d73740}
+.study-priority-option{width:100%;min-height:66px;padding:9px 2px;border:0;border-top:1px solid #edf1f5;background:transparent;display:grid;grid-template-columns:38px minmax(0,1fr) 21px;gap:10px;align-items:center;text-align:left;color:#08285a}
+.study-priority-option:first-child{border-top:0}
+.study-priority-icon{width:36px;height:36px;border-radius:11px;background:#f1f5f9;color:#60748b;display:grid;place-items:center}
+.study-priority-icon svg{width:18px;height:18px}
+.study-priority-copy strong{display:block;font-size:11.5px}
+.study-priority-copy small{display:block;margin-top:3px;font-size:9.5px;line-height:1.4;color:#7a879a}
+.study-priority-option>i{width:20px;height:20px;border-radius:50%;border:1.5px solid #cbd4df;position:relative}
+.study-priority-option.active>i{border-color:#0a4b86}.study-priority-option.active>i:after{content:"";position:absolute;inset:4px;border-radius:50%;background:#0a4b86}
+.study-priority-option.active .study-priority-icon{background:#eaf2fa;color:#0a4b86}
+.study-pause-desc{font-size:10px;line-height:1.5;color:#77869a}
+.study-pause-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.study-pause-presets button{min-height:66px;border:1px solid #e1e7ef;border-radius:13px;background:#f8fafc;color:#08285a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.study-pause-presets button strong{font-size:12px}.study-pause-presets button small{font-size:8.5px;color:#7a889c}
+.study-custom-pause{margin-top:9px;padding-top:10px;border-top:1px solid #edf1f5;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+.study-custom-pause label span{display:block;margin-bottom:5px;font-size:9px;color:#68788e}
+.study-custom-pause input{width:100%;height:42px;border:1px solid #dde5ee;border-radius:11px;background:#f8fafc;padding:0 10px;color:#08285a;font-size:16px}
+.study-custom-pause>button,.study-resume-button{height:42px;border:0;border-radius:11px;background:#082f60;color:#fff;font-size:10px;font-weight:720;padding:0 14px}
+.study-pause-active{display:flex;align-items:center;gap:11px;padding:12px;border-radius:14px;background:#f5f8fb}
+.study-pause-active-icon{width:38px;height:38px;border-radius:12px;background:#fff0f1;color:#e93238;display:grid;place-items:center}
+.study-pause-active-icon svg{width:18px;height:18px}
+.study-pause-active strong{display:block;font-size:11.5px}.study-pause-active small{display:block;margin-top:3px;font-size:9.5px;color:#77869a}
+.study-resume-button{width:100%;margin-top:10px}
+
+/* Görünüm: text-size-adjust kapalı; JS tüm uygulamadaki fontları ölçekler */
+html[data-text-size] .phone{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important}
+
+/* Yoğunluk tüm ana sekme ve alt ekranlarda görünür fark yaratır */
+html[data-ui-density="comfortable"] :is(.home-screen,.bank-screen,.mistakes-screen,.cards-dashboard,.profile-v2,.statistics-page,.achievements-page,.appearance-page,.data-account-page,.study-preferences-page){padding-left:16px!important;padding-right:16px!important}
+html[data-ui-density="comfortable"] :is(.home-screen,.bank-screen,.mistakes-screen,.cards-dashboard,.profile-v2,.statistics-page,.achievements-page,.appearance-page,.data-account-page,.study-preferences-page)>*{margin-bottom:14px}
+html[data-ui-density="comfortable"] :is(.category,.cta-btn,.bank-v2-type,.bank-v2-metric,.bank-v2-result,.mistakes-ref-topic,.mistakes-ref-metric,.cards-set-card,.cards-dashboard-metric,.stats-overview-card,.stats-chart-card,.stats-subject-card,.ach-card){padding-top:14px!important;padding-bottom:14px!important}
+
+html[data-ui-density="compact"] :is(.home-screen,.bank-screen,.mistakes-screen,.cards-dashboard,.profile-v2,.statistics-page,.achievements-page,.appearance-page,.data-account-page,.study-preferences-page){padding-left:10px!important;padding-right:10px!important}
+html[data-ui-density="compact"] :is(.home-screen,.bank-screen,.mistakes-screen,.cards-dashboard,.profile-v2,.statistics-page,.achievements-page,.appearance-page,.data-account-page,.study-preferences-page)>*{margin-bottom:5px}
+html[data-ui-density="compact"] :is(.category,.cta-btn,.bank-v2-type,.bank-v2-metric,.bank-v2-result,.mistakes-ref-topic,.mistakes-ref-metric,.cards-set-card,.cards-dashboard-metric,.stats-overview-card,.stats-chart-card,.stats-subject-card,.ach-card){padding-top:7px!important;padding-bottom:7px!important}
+html[data-ui-density="compact"] .bottom-nav{padding-top:4px!important}
+html[data-ui-density="comfortable"] .bottom-nav{padding-top:8px!important}
+
+@media(max-width:999px){
+  .phone:has(.study-preferences-page)>.bottom-nav{position:absolute;left:0;right:0;bottom:0;border-radius:18px 18px 0 0;padding:6px 4px calc(8px + env(safe-area-inset-bottom));height:auto;min-height:66px;background:rgba(255,255,255,.97);box-shadow:0 -4px 18px rgba(20,45,78,.06)}
+}
+
+
+/* ============================================================
+   ÇALIŞMA TERCİHLERİ — TEK GİRİŞ
+   ============================================================ */
+.profile-v2 .sp-study-preferences-entry{
+  width:100%;
+  min-height:70px;
+  margin-top:9px;
+  padding:11px 14px;
+  border:1px solid rgba(8,40,90,.06);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 92% 12%,rgba(29,93,158,.055),transparent 34%),
+    linear-gradient(145deg,#fff,#fbfdff);
+  display:grid;
+  grid-template-columns:43px minmax(0,1fr) 18px;
+  align-items:center;
+  gap:11px;
+  color:#08285a;
+  text-align:left;
+  box-shadow:0 8px 22px rgba(24,51,84,.05);
+  cursor:pointer;
+}
+.profile-v2 .sp-study-preferences-entry:active{transform:scale(.992)}
+.profile-v2 .sp-study-preferences-icon{
+  width:43px;height:43px;border-radius:13px;display:grid;place-items:center;
+  background:#eef4fa;color:#0a4b86
+}
+.profile-v2 .sp-study-preferences-icon svg{width:21px;height:21px}
+.profile-v2 .sp-study-preferences-copy{min-width:0;display:flex;flex-direction:column}
+.profile-v2 .sp-study-preferences-copy strong{
+  font-size:14px!important;font-weight:760;color:#08285a
+}
+.profile-v2 .sp-study-preferences-copy small{
+  margin-top:4px;font-size:10.5px!important;line-height:1.35;color:#77859a
+}
+.profile-v2 .sp-study-preferences-arrow{
+  font-size:25px;line-height:1;font-weight:300;color:#66758a
+}
+html[data-ui-density="comfortable"] .profile-v2 .sp-study-preferences-entry{
+  min-height:80px!important;margin-top:14px!important;padding-top:15px!important;padding-bottom:15px!important
+}
+html[data-ui-density="compact"] .profile-v2 .sp-study-preferences-entry{
+  min-height:58px!important;margin-top:5px!important;padding-top:7px!important;padding-bottom:7px!important
+}
+
+
+/* ============================================================
+   ÇALIŞMA TERCİHLERİ — BUGÜNKÜ ROTA İLE BİREBİR EŞLEŞME
+   ============================================================ */
+.study-pref-current{
+  max-width:112px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.study-priority-copy strong{
+  font-size:12px!important;
+  font-weight:740!important;
+}
+.study-priority-copy small{
+  font-size:10px!important;
+  color:#7a879a!important;
+}

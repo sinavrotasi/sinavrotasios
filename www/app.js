@@ -15,6 +15,79 @@ const PROGRESS_DEVICE_ID_STORAGE_KEY = 'sinavrotasi-progress-device-id-v1';
 const UI_PREFS_STORAGE_KEY = 'sinavrotasi-ui-prefs-v1';
 const DEFAULT_UI_PREFS = { textSize: 'standard', density: 'standard' };
 
+const STUDY_PREFS_STORAGE_KEY = 'sinavrotasi-study-prefs-v1';
+const DEFAULT_STUDY_PREFS = { repeatPriority:'personal', pauseStartedAt:null, pauseUntil:null };
+
+function loadStudyPrefs() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STUDY_PREFS_STORAGE_KEY) || '{}');
+    return {
+      repeatPriority: ['personal','weak','recent','random'].includes(saved.repeatPriority)
+        ? saved.repeatPriority
+        : (saved.repeatPriority === 'balanced' ? 'random' : 'personal'),
+      pauseStartedAt: typeof saved.pauseStartedAt === 'string' ? saved.pauseStartedAt : null,
+      pauseUntil: typeof saved.pauseUntil === 'string' ? saved.pauseUntil : null
+    };
+  } catch (_) { return { ...DEFAULT_STUDY_PREFS }; }
+}
+let studyPrefs = loadStudyPrefs();
+function saveStudyPrefs(){ localStorage.setItem(STUDY_PREFS_STORAGE_KEY, JSON.stringify(studyPrefs)); }
+function getRepeatPriorityLabel(value = studyPrefs.repeatPriority){
+  return ({
+    personal:'Sana Özel',
+    weak:'Zayıf Konular',
+    recent:'Son Çalışılan',
+    random:'Rastgele Karma'
+  })[value] || 'Sana Özel';
+}
+function getRepeatPriorityMode(value = studyPrefs.repeatPriority){
+  return ({
+    personal:'Sana Özel Karma',
+    weak:'Zayıf Konular',
+    recent:'Son Çalışılan Konu',
+    random:'Rastgele Karma'
+  })[value] || 'Sana Özel Karma';
+}
+function isStudyPaused(at = new Date()){
+  if (!studyPrefs.pauseUntil) return false;
+  const until = new Date(studyPrefs.pauseUntil);
+  return Number.isFinite(until.getTime()) && at <= until;
+}
+function formatStudyPauseDate(){
+  if (!isStudyPaused()) return 'Plan aktif';
+  const until = new Date(studyPrefs.pauseUntil);
+  return `${until.toLocaleDateString('tr-TR',{day:'numeric',month:'long'})} tarihine kadar duraklatıldı`;
+}
+function setStudyRepeatPriority(value){
+  if (!['personal','weak','recent','random'].includes(value)) return;
+  studyPrefs.repeatPriority = value;
+  saveStudyPrefs();
+  routeSettings.mode = getRepeatPriorityMode(value);
+}
+function setStudyPauseUntil(date){
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  date.setHours(23,59,59,999);
+  if (date < now) return false;
+  studyPrefs.pauseStartedAt = now.toISOString();
+  studyPrefs.pauseUntil = date.toISOString();
+  saveStudyPrefs();
+  syncLocalNotificationSchedule();
+  return true;
+}
+function setStudyPauseDays(days){
+  const until = new Date();
+  until.setDate(until.getDate() + Math.max(1,Number(days)||1) - 1);
+  return setStudyPauseUntil(until);
+}
+function resumeStudyPlan(){
+  studyPrefs.pauseStartedAt = null;
+  studyPrefs.pauseUntil = null;
+  saveStudyPrefs();
+  syncLocalNotificationSchedule();
+}
+
+
 function loadUiPrefs() {
   try {
     const saved = JSON.parse(localStorage.getItem(UI_PREFS_STORAGE_KEY) || '{}');
@@ -32,8 +105,26 @@ let uiPrefs = loadUiPrefs();
 function applyUiPrefs() {
   document.documentElement.dataset.textSize = uiPrefs.textSize;
   document.documentElement.dataset.uiDensity = uiPrefs.density;
+  requestAnimationFrame(applyTextScaleToCurrentUi);
 }
-
+function applyTextScaleToCurrentUi() {
+  const scale = ({ small:.92, standard:1, large:1.12 })[uiPrefs.textSize] || 1;
+  const nodes = [...document.querySelectorAll('.phone h1,.phone h2,.phone h3,.phone h4,.phone h5,.phone p,.phone span,.phone small,.phone strong,.phone b,.phone label,.phone button,.phone input,.phone textarea,.phone select,.phone summary')]
+    .filter(el => !el.closest('svg'));
+  nodes.forEach(el => {
+    if (!el.dataset.uiBaseFontSize) {
+      const base = parseFloat(getComputedStyle(el).fontSize);
+      if (Number.isFinite(base) && base > 0) el.dataset.uiBaseFontSize = String(base);
+    }
+  });
+  nodes.forEach(el => {
+    const base = Number(el.dataset.uiBaseFontSize);
+    if (!Number.isFinite(base) || base <= 0) return;
+    let size = base * scale;
+    if (el.matches('input,textarea,select')) size = Math.max(16,size);
+    el.style.fontSize = `${size.toFixed(2)}px`;
+  });
+}
 function saveUiPrefs() {
   localStorage.setItem(UI_PREFS_STORAGE_KEY, JSON.stringify(uiPrefs));
   applyUiPrefs();
@@ -154,7 +245,7 @@ const state = {
 
 // Rota Ayarları State'i
 const routeSettings = {
-  mode: 'Sana Özel Karma',
+  mode: getRepeatPriorityMode(),
   questions: 20,
   time: 'Süreli'
 };
@@ -211,6 +302,7 @@ document.addEventListener('pointerdown', dismissProfileEditInputOnOutsidePress, 
 
 // Profil düzenle ekranında input odaklanınca ekran otomatik kaydırılmaz.
 let profileEditFocusScrollTop = null;
+let profileReturnScrollTop = 0;
 
 function restoreProfileEditScrollPosition(expectedTop) {
   if (state.view !== 'profile-edit' || !Number.isFinite(expectedTop)) return;
@@ -741,7 +833,10 @@ function setReminderTime(rawValue) {
 // kart sayısı) burada, çağrı anında ayrı parametre olarak veriyoruz.
 function syncLocalNotificationSchedule() {
   if (window.NativeUX && typeof window.NativeUX.scheduleStudyReminders === 'function') {
-    window.NativeUX.scheduleStudyReminders(progress.notificationPrefs, {
+    const effectivePrefs = isStudyPaused()
+      ? { ...progress.notificationPrefs, dailyReminder: false }
+      : progress.notificationPrefs;
+    window.NativeUX.scheduleStudyReminders(effectivePrefs, {
       examDate: getExamDate(),
       dueFlashcards: state.totalDueFlashcards || 0
     });
@@ -2314,15 +2409,14 @@ function profileView() {
       <span class="sp-statistics-entry-arrow">›</span>
     </button>
 
-    <section class="sp-pref-card">
-      <div class="sp-list-heading">${gearIcon}<strong>Çalışma tercihlerim</strong></div>
-      <button class="sp-list-row" id="repeatPriorityButton" type="button">
-        ${svg('refresh')}<span>Tekrar önceliği</span><small>Yanlış yaptıklarım</small><b>›</b>
-      </button>
-      <button class="sp-list-row" id="pauseStudyButton" type="button">
-        ${cupIcon}<span>Çalışmaya ara ver</span><small>Çalışma planını geçici olarak duraklat</small><b>›</b>
-      </button>
-    </section>
+    <button class="sp-study-preferences-entry" id="studyPreferencesButton" type="button">
+      <span class="sp-study-preferences-icon">${gearIcon}</span>
+      <span class="sp-study-preferences-copy">
+        <strong>Çalışma tercihlerim</strong>
+        <small>Pratik türünü ve çalışma aralarını yönet</small>
+      </span>
+      <span class="sp-study-preferences-arrow">›</span>
+    </button>
 
     <section class="sp-menu-card">
       <button class="sp-list-row sp-main-row" id="openAchievementsButton" type="button">
@@ -2348,6 +2442,55 @@ function profileView() {
 }
 
 
+
+
+function studyPreferencesView() {
+  const priority = studyPrefs.repeatPriority || 'personal';
+  const paused = isStudyPaused();
+  const options = [
+    {value:'personal',title:'Sana Özel',desc:'Zayıf ve eksik konularına göre',icon:'sparkles'},
+    {value:'weak',title:'Zayıf Konular',desc:'En çok yanlış yaptığın alanlar',icon:'chart'},
+    {value:'recent',title:'Son Çalışılan',desc:'Kaldığın konudan devam et',icon:'clock'},
+    {value:'random',title:'Rastgele Karma',desc:'Tüm konulardan dengeli seçim',icon:'shuffle'}
+  ];
+  return `<section class="screen content-screen sp-subscreen study-preferences-page">
+    <header class="sp-page-head sp-subpage-head">
+      <button class="sp-back" id="studyPrefsBackButton" type="button">${svg('back')}</button>
+      <h1>Çalışma tercihlerim</h1>
+    </header>
+
+    <section class="study-pref-intro">
+      <span class="study-pref-intro-icon">${svg('settings')}</span>
+      <div><strong>Çalışma rotanı kişiselleştir</strong><small>Bugünkü Rota’daki pratik türünü ve çalışma planının durumunu belirle.</small></div>
+    </section>
+
+    <section class="study-pref-card">
+      <div class="study-pref-card-head"><div><span>PRATİK TÜRÜ</span><strong>Bugünkü Rota nasıl hazırlansın?</strong></div><span class="study-pref-current">${escapeHtml(getRepeatPriorityLabel(priority))}</span></div>
+      <div class="study-priority-list">
+        ${options.map(o => `<button type="button" class="study-priority-option${priority===o.value?' active':''}" data-repeat-priority="${o.value}">
+          <span class="study-priority-icon">${svg(o.icon)}</span>
+          <span class="study-priority-copy"><strong>${escapeHtml(o.title)}</strong><small>${escapeHtml(o.desc)}</small></span><i></i>
+        </button>`).join('')}
+      </div>
+    </section>
+
+    <section class="study-pref-card">
+      <div class="study-pref-card-head"><div><span>ÇALIŞMAYA ARA VER</span><strong>${paused?'Planın şu anda duraklatıldı':'Planını geçici olarak duraklat'}</strong></div>${paused?'<span class="study-pause-badge">Duraklatıldı</span>':''}</div>
+      ${paused ? `
+        <div class="study-pause-active"><span class="study-pause-active-icon">${svg('pause')}</span><div><strong>${escapeHtml(formatStudyPauseDate())}</strong><small>Günlük rota ve çalışma hatırlatmaları bu süre boyunca durur.</small></div></div>
+        <button type="button" class="study-resume-button" id="studyResumeButton">Çalışmaya devam et</button>
+      ` : `
+        <p class="study-pause-desc">Ara verdiğinde ilerleme verilerin silinmez. Günlük rota ve çalışma hatırlatmaları geçici olarak durur.</p>
+        <div class="study-pause-presets">
+          <button type="button" data-pause-days="1"><strong>1 gün</strong><small>Kısa mola</small></button>
+          <button type="button" data-pause-days="3"><strong>3 gün</strong><small>Mini ara</small></button>
+          <button type="button" data-pause-days="7"><strong>1 hafta</strong><small>Uzun ara</small></button>
+        </div>
+        <div class="study-custom-pause"><label for="studyPauseDateInput"><span>Özel tarih</span><input type="date" id="studyPauseDateInput"></label><button type="button" id="studyPauseDateButton">Uygula</button></div>
+      `}
+    </section>
+  </section>`;
+}
 
 function appearanceSettingsView() {
   const textSize = uiPrefs.textSize || 'standard';
@@ -2997,12 +3140,13 @@ function achievementsView() {
 }
 
 function render() {
-  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, statistics: statisticsView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView, 'data-account': dataAccountView, appearance: appearanceSettingsView };
+  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, statistics: statisticsView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView, 'data-account': dataAccountView, appearance: appearanceSettingsView, 'study-preferences': studyPreferencesView };
   const appHeader = document.querySelector('.app-header');
-  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance'].includes(state.view));
+  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance', 'study-preferences'].includes(state.view));
   app.innerHTML = (views[state.view] || homeView)();
   bindViewEvents();
   updateHeader();
+  requestAnimationFrame(applyTextScaleToCurrentUi);
 }
 
 function bindViewEvents() {
@@ -3170,8 +3314,13 @@ function bindViewEvents() {
   });
 
 
-  document.getElementById('repeatPriorityButton')?.addEventListener('click', () => showToast('Tekrar önceliği: Yanlış yaptıklarım'));
-  document.getElementById('pauseStudyButton')?.addEventListener('click', () => showToast('Çalışma planını duraklatma ayarı yakında.'));
+  document.getElementById('studyPreferencesButton')?.addEventListener('click', () => {
+    profileReturnScrollTop = scrollArea.scrollTop;
+    state.view = 'study-preferences';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
+  });
   document.getElementById('appearanceSettingsButton')?.addEventListener('click', () => {
     state.view = 'appearance';
     setNav('profile');
@@ -3198,6 +3347,35 @@ function bindViewEvents() {
       button.disabled = false;
       showToast('Çıkış yapılamadı. Lütfen tekrar dene.');
     }
+  });
+
+  document.getElementById('studyPrefsBackButton')?.addEventListener('click', () => {
+    const returnTop = profileReturnScrollTop;
+    state.view = 'profile';
+    setNav('profile');
+    render();
+    requestAnimationFrame(() => {
+      scrollArea.scrollTop = returnTop;
+    });
+  });
+  app.querySelectorAll('[data-repeat-priority]').forEach(button => button.addEventListener('click', () => {
+    setStudyRepeatPriority(button.dataset.repeatPriority);
+    showToast(`Pratik türü: ${getRepeatPriorityLabel()}`);
+    render();
+  }));
+  app.querySelectorAll('[data-pause-days]').forEach(button => button.addEventListener('click', () => {
+    if (!setStudyPauseDays(button.dataset.pauseDays)) return;
+    showToast('Çalışma planın duraklatıldı.');
+    render();
+  }));
+  document.getElementById('studyPauseDateButton')?.addEventListener('click', () => {
+    const input = document.getElementById('studyPauseDateInput');
+    if (!input?.value) return showToast('Lütfen bir tarih seç.');
+    if (!setStudyPauseUntil(new Date(`${input.value}T12:00:00`))) return showToast('Bugünden önce bir tarih seçemezsin.');
+    showToast('Çalışma planın duraklatıldı.'); render();
+  });
+  document.getElementById('studyResumeButton')?.addEventListener('click', () => {
+    resumeStudyPlan(); showToast('Çalışma planın yeniden aktif.'); render();
   });
 
   document.getElementById('appearanceBackButton')?.addEventListener('click', () => {
@@ -3611,6 +3789,15 @@ async function resetProgress(options = {}) {
 
 // --- ROTA PANELİ YÖNETİMİ ---
 function openRouteSheet() {
+  if (isStudyPaused()) {
+    showToast(`Çalışma planın ${formatStudyPauseDate().toLocaleLowerCase('tr-TR')}.`);
+    return;
+  }
+  routeSettings.mode = getRepeatPriorityMode();
+  document.querySelectorAll('#modeGrid .mode-option').forEach(button => {
+    button.classList.toggle('selected', button.dataset.mode === routeSettings.mode);
+  });
+  if (summaryMode) summaryMode.textContent = routeSettings.mode;
   closeAllSheets(routeSheet);
   routeSheet.classList.add('open');
   topicBackdrop.classList.add('open');
@@ -5451,6 +5638,16 @@ function handleHardwareBack() {
     return true;
   }
   if (routeSheet.classList.contains('open')) { closeRouteSheet(); return true; }
+  if (state.view === 'study-preferences') {
+    const returnTop = profileReturnScrollTop;
+    state.view = 'profile';
+    setNav('profile');
+    render();
+    requestAnimationFrame(() => {
+      scrollArea.scrollTop = returnTop;
+    });
+    return true;
+  }
   if (['statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance'].includes(state.view)) {
     state.view = 'profile';
     setNav('profile');
