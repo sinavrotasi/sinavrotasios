@@ -98,10 +98,11 @@
         const active = document.activeElement;
         const isSheetInput = active?.closest?.('.bottom-sheet, .topic-sheet, .quiz-nav-overlay');
         const isAuthPage = document.body.classList.contains('auth-page');
-        // Auth ekranları tam ekrana sabittir. Input odağında scrollIntoView()
-        // çağırmak iOS'ta ekranın yukarı/aşağı sıçramasına neden olur.
-        // Sheet alanları da kendi içinde konumlandığı için otomatik kaydırılmaz.
-        if (active && !isSheetInput && !isAuthPage && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+        const isManagedProfileForm = active?.closest?.('.profile-edit-page, .goal-settings-page');
+        // Auth ve profil form ekranları kendi kaydırma davranışlarını yönetir.
+        // Burada ikinci bir smooth scroll çalıştırmak özellikle iOS'ta focus
+        // değişiminde kutuların zıplamasına / çift kaydırmaya neden olur.
+        if (active && !isSheetInput && !isAuthPage && !isManagedProfileForm && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
           setTimeout(() => active.scrollIntoView({ block: 'center', behavior: 'smooth' }), 80);
         }
       });

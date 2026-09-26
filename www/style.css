@@ -4745,3 +4745,46 @@ body.auth-page{
     background:rgba(255,255,255,.97);box-shadow:0 -4px 18px rgba(20,45,78,.06);
   }
 }
+
+
+/* ============================================================
+   PROFİL DÜZENLE — iOS KLAVYE / FOCUS DÜZELTMESİ
+   ============================================================ */
+
+/* Klavye resizeMode='none' olduğunda içerik alanına klavye yüksekliği kadar
+   gerçek kaydırma rezervi ekle. Böylece son şifre alanı da yukarı alınabilir. */
+.profile-edit-page{
+  padding-bottom:calc(34px + var(--keyboard-height, 0px))!important;
+  scroll-behavior:auto!important;
+}
+
+/* Focus değişiminde kart/input zıplamasını engelle: ölçü, border kalınlığı ve
+   yüzey sabit kalır; yalnızca border rengi değişir. */
+.profile-edit-page .sp-form-card,
+.profile-edit-page .sp-field-label,
+.profile-edit-page .sp-text-input{
+  transition:none!important;
+  transform:none!important;
+}
+.profile-edit-page .sp-text-input{
+  border-width:1px!important;
+  box-shadow:none!important;
+  scroll-margin-top:90px;
+  scroll-margin-bottom:calc(90px + var(--keyboard-height, 0px));
+  -webkit-tap-highlight-color:transparent;
+}
+.profile-edit-page .sp-text-input:focus{
+  border-color:#315f91!important;
+  background:#f8fafc!important;
+  box-shadow:none!important;
+  outline:none!important;
+}
+.profile-edit-page .sp-text-input:focus-visible{
+  outline:none!important;
+  box-shadow:none!important;
+}
+
+/* Klavye açıkken kaydırılabilir alanın sonuna ekstra nefes payı. */
+.keyboard-open .profile-edit-page{
+  min-height:calc(100% + var(--keyboard-height, 0px));
+}

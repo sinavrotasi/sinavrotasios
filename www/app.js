@@ -137,7 +137,52 @@ function dismissProfileGoalOnOutsidePress(event) {
   if (target.closest('.pv-goal') || target.closest('input,textarea,select,[contenteditable="true"]')) return;
   input.blur(); // Mevcut blur dinleyicisi native klavyeyi ve klavye durumunu kapatır.
 }
+
 document.addEventListener('pointerdown', dismissProfileGoalOnOutsidePress, { capture:true, passive:true });
+
+// Profil düzenleme ekranında boş alana dokununca aktif input'tan çık ve
+// native klavyeyi kapat. Başka bir input'a dokunuluyorsa doğal focus geçişine
+// müdahale etmiyoruz; böylece kutular arası geçişte ekstra blur/focus zıplaması olmaz.
+function dismissProfileEditInputOnOutsidePress(event) {
+  if (state.view !== 'profile-edit') return;
+  const active = document.activeElement;
+  if (!active?.classList?.contains('sp-text-input')) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest('.sp-text-input')) return;
+
+  active.blur();
+  window.NativeUX?.hideKeyboard?.();
+  document.body.classList.remove('keyboard-open');
+  document.documentElement.style.setProperty('--keyboard-height', '0px');
+}
+document.addEventListener('pointerdown', dismissProfileEditInputOnOutsidePress, { capture:true, passive:true });
+
+// Native Keyboard resizeMode='none' olduğu için WebView küçülmez. Profil düzenleme
+// alanlarını klavyenin üzerinde tutmak için gerçek kaydırıcıyı (.scroll-area)
+// kontrollü kaydırıyoruz. NativeUX'in smooth scroll'u bu ekranda devre dışıdır.
+function keepProfileEditFieldVisible(input) {
+  if (state.view !== 'profile-edit' || !input?.isConnected) return;
+  const scrollRect = scrollArea.getBoundingClientRect();
+  const fieldRect = input.getBoundingClientRect();
+  const rawKeyboardHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--keyboard-height')
+  ) || 0;
+  const fallbackKeyboardHeight =
+    document.body.classList.contains('keyboard-open') && rawKeyboardHeight === 0
+      ? Math.min(320, scrollRect.height * 0.42)
+      : 0;
+  const keyboardHeight = Math.max(rawKeyboardHeight, fallbackKeyboardHeight);
+  const visibleHeight = Math.max(180, scrollRect.height - keyboardHeight);
+  const preferredCenter = scrollRect.top + visibleHeight * 0.48;
+  const fieldCenter = fieldRect.top + fieldRect.height / 2;
+  const delta = fieldCenter - preferredCenter;
+
+  if (Math.abs(delta) > 6) {
+    scrollArea.scrollTop += delta;
+  }
+}
+
 
 
 // Eski HTML önbellekten gelse de gezinme ikonlarını tek SVG biçimine getirir.
@@ -2412,6 +2457,16 @@ function bindViewEvents() {
   document.getElementById('profileEditBackButton')?.addEventListener('click', () => {
     state.view = 'profile'; setNav('profile'); render(); scrollArea.scrollTop = 0;
   });
+  const profileEditInputs = [...app.querySelectorAll('.profile-edit-page .sp-text-input')];
+  profileEditInputs.forEach(input => {
+    input.addEventListener('focus', () => {
+      // İlk çağrı focus anı için, ikincisi iOS klavye yüksekliği geldikten sonra.
+      requestAnimationFrame(() => keepProfileEditFieldVisible(input));
+      setTimeout(() => keepProfileEditFieldVisible(input), 120);
+      setTimeout(() => keepProfileEditFieldVisible(input), 320);
+    });
+  });
+
   document.getElementById('profileEditSaveButton')?.addEventListener('click', async () => {
     const firstName = document.getElementById('profileFirstNameInput')?.value.trim() || '';
     const lastName = document.getElementById('profileLastNameInput')?.value.trim() || '';
