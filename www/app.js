@@ -236,6 +236,8 @@ const state = {
   totalDueFlashcards: 0,
   dueFlashcardsCache: null,
   dueFlashcardsPromise: null,
+  cardCompletionReconciled: false,
+  cardCompletionReconcilePromise: null,
   weeklyFlowRange: 'week',
   weeklyFlowNote: '',
   totalQuestionCount: 0,
@@ -1339,7 +1341,7 @@ function formatCompletedDate(iso) {
 function bankView() {
   const stats = getStats();
   const examSummary = getCompletedKadroExamSummary();
-  const visibleLimit = state.showAllCompletedExams ? Math.min(50, examSummary.count) : 5;
+  const visibleLimit = state.showAllCompletedExams ? Math.min(50, examSummary.count) : 3;
   const completedExams = getRecentCompletedKadroExams(Math.max(1, visibleLimit));
   const examAverage = examSummary.average;
   const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || 'Kadro';
@@ -1361,7 +1363,7 @@ function bankView() {
         </article>`;
       }).join('')}
     </div>
-    ${examSummary.count > 5 ? `<button type="button" class="bank-v2-show-all" id="showAllExamsButton" aria-expanded="${state.showAllCompletedExams ? 'true' : 'false'}" aria-controls="completedExamResults" data-total="${examSummary.count}">${state.showAllCompletedExams ? 'Daha az göster' : (examSummary.count > 50 ? `Son 50 denemeyi göster (${examSummary.count})` : `Tümünü göster (${examSummary.count})`)}</button>` : ''}` : '';
+    ${examSummary.count > 3 ? `<button type="button" class="bank-v2-show-all" id="showAllExamsButton" aria-expanded="${state.showAllCompletedExams ? 'true' : 'false'}" aria-controls="completedExamResults" data-total="${examSummary.count}">${state.showAllCompletedExams ? 'Daha az göster' : (examSummary.count > 50 ? `Son 50 denemeyi göster (${examSummary.count})` : `Tümünü göster (${examSummary.count})`)}</button>` : ''}` : '';
 
   return `<section class="screen content-screen bank-screen bank-v2">
     <header class="bank-v2-heading">
@@ -1704,8 +1706,86 @@ function markCardDeckCompleted(doc) {
   saveProgress({ rerender: false });
 }
 
+function markCardDeckCompletedById(deckId) {
+  if (!deckId) return false;
+  const key = cardDeckCompletionKey(deckId);
+  if (progress.completedSections?.[key]) return false;
+  window.SRProgressSync.setKey(progress, 'completedSections', key, new Date().toISOString());
+  return true;
+}
+
+// Gerçek flashcard destelerinde tamamlanma artık yalnız "desteyi kendi ekranından
+// tek seferde açıp bitirme" işaretine bağlı değil. Kullanıcının Supabase'teki
+// gerçek flashcard_progress satırları sayılır. Destedeki tüm kartlar en az bir kez
+// çalışılmışsa, kartlar ana sayfadaki karışık tekrar oturumundan çözülmüş olsa bile
+// deste tamamlandı olarak işaretlenir.
+async function maybeMarkRealFlashcardDeckCompleted(deckId) {
+  if (!window.currentUser || !deckId) return false;
+  if (progress.completedSections?.[cardDeckCompletionKey(deckId)]) return false;
+
+  try {
+    const [progressMap, countResult] = await Promise.all([
+      ContentRepo.fetchFlashcardProgress(deckId),
+      supabaseClient.rpc('get_flashcard_count', { p_deck_id: deckId })
+    ]);
+
+    if (countResult.error) throw countResult.error;
+    const total = Math.max(0, Number(countResult.data) || 0);
+    const reviewed = Object.keys(progressMap || {}).length;
+
+    if (total > 0 && reviewed >= total) {
+      const changed = markCardDeckCompletedById(deckId);
+      if (changed) saveProgress({ rerender: false });
+      return changed;
+    }
+  } catch (error) {
+    console.warn('Kart destesi ilerlemesi doğrulanamadı:', deckId, error?.message || error);
+  }
+  return false;
+}
+
+function reconcileFlashcardDeckCompletions({ force = false } = {}) {
+  if (!window.currentUser) return Promise.resolve(false);
+  if (!force && state.cardCompletionReconciled) return Promise.resolve(false);
+  if (!force && state.cardCompletionReconcilePromise) return state.cardCompletionReconcilePromise;
+
+  const catalogue = getCardCatalogue();
+  const deckIds = [...new Set(
+    Object.values(catalogue)
+      .flatMap(category => category?.documents || [])
+      .filter(doc => doc?.cardFile && doc?.id && !progress.completedSections?.[cardDeckCompletionKey(doc.id)])
+      .map(doc => doc.id)
+  )];
+
+  if (!deckIds.length) {
+    state.cardCompletionReconciled = true;
+    return Promise.resolve(false);
+  }
+
+  const request = Promise.all(deckIds.map(id => maybeMarkRealFlashcardDeckCompleted(id)))
+    .then(results => {
+      const changed = results.some(Boolean);
+      state.cardCompletionReconciled = true;
+      if (changed && state.view === 'cards') render();
+      return changed;
+    })
+    .catch(error => {
+      console.warn('Kart ilerleme eşitlemesi tamamlanamadı:', error?.message || error);
+      return false;
+    })
+    .finally(() => {
+      if (state.cardCompletionReconcilePromise === request) state.cardCompletionReconcilePromise = null;
+    });
+
+  state.cardCompletionReconcilePromise = request;
+  return request;
+}
+
 function cardsView() {
   const catalogue = getCardCatalogue();
+  if (window.currentUser && !state.cardCompletionReconciled && !state.cardCompletionReconcilePromise) {
+    setTimeout(() => reconcileFlashcardDeckCompletions().catch(() => {}), 0);
+  }
   const presentation = {
     'general-legislation': { title: 'Genel Mevzuat', icon: 'scale', tone: 'red' },
     'meb-legislation': { title: 'MEB Mevzuatı', icon: 'schoolbook', tone: 'blue' },
@@ -2136,6 +2216,14 @@ function renderCardStudy() {
         if (updated) {
           study.progressMap[current.id] = updated;
           invalidateDueFlashcardCache();
+          state.cardCompletionReconciled = false;
+          // Normal deste veya ana sayfadaki karışık tekrar fark etmez:
+          // kartın ait olduğu gerçek desteyi tamamlanma açısından kontrol et.
+          maybeMarkRealFlashcardDeckCompleted(deckIdForRating)
+            .then(changed => {
+              if (changed && state.view === 'cards') render();
+            })
+            .catch(() => {});
         }
       } catch (error) {
         showToast('Tekrar durumu kaydedilemedi, ama devam edebilirsin.');
@@ -2149,7 +2237,11 @@ function renderCardStudy() {
         const wasDueSession = !study.categoryKey;
         exitCardStudy(study);
         // Karışık tekrar oturumu bittiyse home'daki "N kart" sayacını tazele.
-        if (wasDueSession) { refreshDueFlashcardCount(); }
+        if (wasDueSession) {
+          refreshDueFlashcardCount();
+          state.cardCompletionReconciled = false;
+          reconcileFlashcardDeckCompletions({ force: true }).catch(() => {});
+        }
       }
     });
   });
@@ -2307,11 +2399,6 @@ function profileView() {
   const logoutIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></svg>`;
 
   return `<section class="screen content-screen profile-v2">
-    <header class="sp-page-head">
-      <h1>Profil</h1>
-      <div class="sp-wordmark">Sınav<span>Rotası</span></div>
-    </header>
-
     <button class="sp-profile-card" id="editProfileButton" type="button">
       <span class="sp-avatar"><b>${escapeHtml(first)}</b><b>${escapeHtml(second || '')}</b></span>
       <span class="sp-profile-copy">
@@ -4961,8 +5048,75 @@ function quizScore(quiz) {
   return quiz.questions.filter(question => question.userSelected === question.answerIndex).length;
 }
 
+function closeQuizFinishModal() {
+  document.getElementById('quizFinishModal')?.remove();
+}
+
+function openQuizFinishModal() {
+  const quiz = state.quiz;
+  if (!quiz) return;
+
+  closeQuizFinishModal();
+
+  const answeredCount = quiz.questions.filter(q => q.userSelected !== null && q.userSelected !== undefined).length;
+  const remaining = Math.max(0, quiz.questions.length - answeredCount);
+  const modal = document.createElement('div');
+  modal.className = 'quiz-finish-modal-overlay';
+  modal.id = 'quizFinishModal';
+  modal.innerHTML = `
+    <div class="quiz-finish-modal" role="dialog" aria-modal="true" aria-labelledby="quizFinishModalTitle">
+      <div class="quiz-finish-modal-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"></path>
+          <path d="m8 12 2.2 2.2L16 8.5"></path>
+        </svg>
+      </div>
+
+      <span class="quiz-finish-modal-eyebrow">SINAVI BİTİR</span>
+      <h2 id="quizFinishModalTitle">${remaining > 0 ? 'Sınavı şimdi bitirmek istiyor musun?' : 'Sınavı bitirmek istiyor musun?'}</h2>
+      <p>${remaining > 0
+        ? `Henüz cevaplamadığın <strong>${remaining} soru</strong> var. Bu sorular boş bırakılmış olarak değerlendirilecek.`
+        : 'Tüm soruları cevapladın. Sonuç ekranına geçebilirsin.'
+      }</p>
+
+      <div class="quiz-finish-modal-summary">
+        <div><span>Cevaplanan</span><strong>${answeredCount}</strong></div>
+        <i></i>
+        <div><span>Boş</span><strong class="${remaining > 0 ? 'is-warning' : ''}">${remaining}</strong></div>
+        <i></i>
+        <div><span>Toplam</span><strong>${quiz.questions.length}</strong></div>
+      </div>
+
+      <div class="quiz-finish-modal-actions">
+        <button type="button" class="quiz-finish-cancel" id="quizFinishModalCancel">Devam et</button>
+        <button type="button" class="quiz-finish-confirm" id="quizFinishModalConfirm">Sınavı bitir</button>
+      </div>
+    </div>
+  `;
+
+  topicSheet.appendChild(modal);
+
+  const close = () => closeQuizFinishModal();
+  document.getElementById('quizFinishModalCancel')?.addEventListener('click', close);
+  modal.addEventListener('click', event => {
+    if (event.target === modal) close();
+  });
+
+  document.getElementById('quizFinishModalConfirm')?.addEventListener('click', () => {
+    close();
+    document.getElementById('quizNavOverlay')?.classList.remove('open');
+    finalizeQuestionAnswer(quiz.questions[quiz.index]);
+    if (DEFERRED_REVEAL_KINDS.includes(quiz.kind) && !quiz.revealed) {
+      revealDeferredQuizAndFinish();
+    } else {
+      renderQuizResult();
+    }
+  });
+}
+
 
 function renderQuiz() {
+  closeQuizFinishModal();
   const quiz = state.quiz;
   if (!quiz) return;
   topicSheet.classList.add('quiz-active');
@@ -5461,19 +5615,7 @@ function bindQuizEvents() {
   // geçmeyi sağlıyor (boş bırakılanlar zaten yanlış sayılıyor, quizScore
   // zaten userSelected===null'ı otomatik "yanlış" kabul ediyor).
   document.getElementById('quizFinishEarlyButton')?.addEventListener('click', () => {
-    const answeredCount = quiz.questions.filter(q => q.userSelected !== null).length;
-    const remaining = quiz.questions.length - answeredCount;
-    const confirmMsg = remaining > 0
-      ? `${remaining} soru boş kalacak, yine de sınavı bitirmek istiyor musun?`
-      : 'Sınavı bitirmek istediğine emin misin?';
-    if (!window.confirm(confirmMsg)) return;
-    document.getElementById('quizNavOverlay')?.classList.remove('open');
-    finalizeQuestionAnswer(quiz.questions[quiz.index]);
-    if (DEFERRED_REVEAL_KINDS.includes(quiz.kind) && !quiz.revealed) {
-      revealDeferredQuizAndFinish();
-    } else {
-      renderQuizResult();
-    }
+    openQuizFinishModal();
   });
 }
 

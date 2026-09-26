@@ -6559,3 +6559,205 @@ html[data-ui-density="compact"] .profile-v2 .sp-study-preferences-entry{
   font-size:10px!important;
   color:#7a879a!important;
 }
+
+
+#appPhone :is(.bank-v2-hero-art,.cards-smart-art),
+#appPhone .mistakes-ref-hero::after{
+  width:92px!important;
+  height:100px!important;
+  right:8px!important;
+  top:22px!important;
+}
+#appPhone :is(.bank-v2-hero-copy,.cards-smart-copy,.mistakes-ref-hero-copy) h3{
+  margin-bottom:6px!important;
+}
+#appPhone :is(.bank-v2-hero-start,.cards-smart-start,.mistakes-ref-start){
+  margin-top:11px!important;
+}
+
+@media(max-width:370px){
+  #appPhone :is(.bank-v2-hero,.cards-smart-review,.mistakes-ref-hero){
+    min-height:162px!important;
+    padding-right:96px!important;
+  }
+  #appPhone :is(.bank-v2-hero-art,.cards-smart-art),
+  #appPhone .mistakes-ref-hero::after{
+    width:82px!important;
+    height:90px!important;
+    right:5px!important;
+    top:22px!important;
+  }
+}
+
+
+/* ============================================================
+   DENEMELER / KARTLARIM / YANLIŞLARIM
+   SADECE DIŞ KART YÜKSEKLİĞİ AZALTILDI
+   İçerik, padding ve illüstrasyon ölçüleri değiştirilmedi.
+   ============================================================ */
+#appPhone :is(.bank-v2-hero,.cards-smart-review,.mistakes-ref-hero){
+  min-height:180px!important;
+}
+
+
+/* ============================================================
+   PROFİL — ÜST "PROFİL / SINAVROTASI" BAŞLIĞI KALDIRILDI
+   ============================================================ */
+.profile-v2{
+  padding-top:max(12px,calc(env(safe-area-inset-top) + 4px))!important;
+}
+
+/* ============================================================
+   ALT EKRANLAR — GERİ BUTONU + BAŞLIK BİRAZ DAHA AŞAĞIDA
+   ============================================================ */
+.sp-subscreen .sp-subpage-head{
+  margin-top:13px!important;
+}
+.achievements-page .sp-subpage-head{
+  margin-top:13px!important;
+}
+
+/* ============================================================
+   SINAVI BİTİR — PREMIUM UYGULAMA İÇİ MODAL
+   ============================================================ */
+.quiz-finish-modal-overlay{
+  position:absolute;
+  inset:0;
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(5,24,49,.48);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  animation:quizFinishFade .16s ease-out;
+}
+
+.quiz-finish-modal{
+  width:min(100%,360px);
+  padding:22px 19px 18px;
+  border:1px solid rgba(8,40,90,.07);
+  border-radius:23px;
+  background:
+    radial-gradient(circle at 90% 0%,rgba(24,91,155,.07),transparent 35%),
+    linear-gradient(145deg,#ffffff,#fbfdff);
+  box-shadow:0 28px 70px rgba(4,27,57,.26);
+  text-align:center;
+  animation:quizFinishPop .18s ease-out;
+}
+
+.quiz-finish-modal-icon{
+  width:56px;
+  height:56px;
+  margin:0 auto 12px;
+  border-radius:17px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#eaf3fb,#f5f9fd);
+  color:#0a4b86;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 8px 18px rgba(20,72,125,.08);
+}
+.quiz-finish-modal-icon svg{
+  width:28px;
+  height:28px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.quiz-finish-modal-eyebrow{
+  display:block;
+  font-size:8px!important;
+  font-weight:820;
+  letter-spacing:1.3px;
+  color:#8795a9;
+}
+.quiz-finish-modal h2{
+  margin:6px 0 0;
+  color:#08285a;
+  font-size:18px!important;
+  line-height:1.25;
+  font-weight:790;
+  letter-spacing:-.35px;
+}
+.quiz-finish-modal p{
+  margin:9px auto 0;
+  max-width:290px;
+  color:#738198;
+  font-size:10.5px!important;
+  line-height:1.5;
+}
+.quiz-finish-modal p strong{
+  color:#d9343d;
+}
+
+.quiz-finish-modal-summary{
+  margin-top:16px;
+  padding:11px 12px;
+  border-radius:14px;
+  background:#f4f7fa;
+  display:grid;
+  grid-template-columns:1fr 1px 1fr 1px 1fr;
+  align-items:center;
+}
+.quiz-finish-modal-summary>i{
+  width:1px;
+  height:28px;
+  background:#dfe6ee;
+}
+.quiz-finish-modal-summary div span{
+  display:block;
+  font-size:8.5px!important;
+  color:#8290a4;
+}
+.quiz-finish-modal-summary div strong{
+  display:block;
+  margin-top:3px;
+  color:#08285a;
+  font-size:16px!important;
+  font-weight:800;
+}
+.quiz-finish-modal-summary div strong.is-warning{
+  color:#e93238;
+}
+
+.quiz-finish-modal-actions{
+  display:grid;
+  grid-template-columns:1fr 1.15fr;
+  gap:8px;
+  margin-top:15px;
+}
+.quiz-finish-modal-actions button{
+  min-height:44px;
+  border-radius:12px;
+  font-size:10.5px!important;
+  font-weight:720;
+  cursor:pointer;
+}
+.quiz-finish-cancel{
+  border:1px solid #dce4ed;
+  background:#fff;
+  color:#526278;
+}
+.quiz-finish-confirm{
+  border:0;
+  background:linear-gradient(145deg,#e93238,#f34d55);
+  color:#fff;
+  box-shadow:0 8px 17px rgba(233,50,56,.18);
+}
+.quiz-finish-confirm:active,
+.quiz-finish-cancel:active{
+  transform:scale(.985);
+}
+
+@keyframes quizFinishFade{
+  from{opacity:0}
+  to{opacity:1}
+}
+@keyframes quizFinishPop{
+  from{opacity:0;transform:translateY(8px) scale(.975)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
