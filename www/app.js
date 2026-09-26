@@ -4649,24 +4649,42 @@ roleGateContinue?.addEventListener('click', async () => {
   const savedRole = updatedRows[0].role;
   if (savedRole !== requestedRole) {
     const label = ROLES.find(r => r.key === savedRole)?.label || savedRole;
-    showToast(`Sunucu kadroyu değiştirmedi. Mevcut kadro: ${label}.`);
+    showToast(`Kadro değiştirilemedi. Mevcut kadro: ${label}.`);
+    roleGateContinue.disabled = false;
+    roleGateContinue.classList.add('enabled');
+    return;
   }
+
   window.currentUserRole = savedRole;
   window.currentUserRoleError = false;
   progress.selectedRole = savedRole;
   window.SRProgressSync.touchField(progress, 'selectedRole');
-  saveProgress();
+  saveProgress({ rerender: false });
 
   closeRoleGate();
 
   if (roleGateMode === 'change') {
+    // Kadroya bağlı tüm içerik/istatistik önbelleklerini temizle. Eski kadronun
+    // soru sayısı veya konu havuzu ekranda kalmasın.
     state.catalogue = null;
+    state.catalogueError = '';
     state.flashcardDecks = null;
+    state.questionBanks.clear();
+    state.activeCategoryKey = null;
+    state.activeDocument = null;
+    state.totalQuestionCount = 0;
+    state.totalDueFlashcards = 0;
+    state.dueFlashcardsCache = null;
+    state.dueFlashcardsPromise = null;
+    cardDecks.clear();
+
     state.view = 'profile';
     setNav('profile');
     render();
-    loadCatalogue();
-    showToast('Hedef kadron güncellendi.');
+    scrollArea.scrollTop = 0;
+
+    showToast('Hedef kadron güncellendi. İçerikler yenileniyor…');
+    await loadCatalogue();
   } else {
     initializeApp();
   }
