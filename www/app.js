@@ -92,6 +92,12 @@ function getCardCatalogue() {
 
 const cardDecks = new Map();
 
+const statisticsUi = {
+  range: 'week',
+  subjectMetric: 'correct',
+  openMenu: null
+};
+
 const state = {
   view: 'home',
   catalogue: null,
@@ -139,6 +145,17 @@ function dismissProfileGoalOnOutsidePress(event) {
 }
 
 document.addEventListener('pointerdown', dismissProfileGoalOnOutsidePress, { capture:true, passive:true });
+
+function dismissStatisticsMenuOnOutsidePress(event) {
+  if (state.view !== 'statistics' || !statisticsUi.openMenu) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest('.stats-dropdown')) return;
+  statisticsUi.openMenu = null;
+  render();
+}
+document.addEventListener('pointerdown', dismissStatisticsMenuOnOutsidePress, { capture:true, passive:true });
+
 
 // Profil düzenleme ekranında boş alana dokununca aktif input'tan çık ve
 // native klavyeyi kapat. Başka bir input'a dokunuluyorsa doğal focus geçişine
@@ -2311,6 +2328,110 @@ function getStatisticsLast7Days() {
   return rows;
 }
 
+
+function getStatisticsRangeRows(range = 'week') {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const countForDate = date => Number(progress.dailyAnswers?.[dateKey(date)] || 0);
+  const trDay = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+  const monthShort = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+
+  if (range === 'day') {
+    return [{
+      key: dateKey(today),
+      label: 'Bugün',
+      count: countForDate(today),
+      isToday: true
+    }];
+  }
+
+  if (range === 'week') {
+    const rows = [];
+    for (let offset = 6; offset >= 0; offset -= 1) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - offset);
+      rows.push({
+        key: dateKey(date),
+        label: trDay[date.getDay()],
+        count: countForDate(date),
+        isToday: offset === 0
+      });
+    }
+    return rows;
+  }
+
+  if (range === 'month') {
+    // 30 günü 6 adet 5 günlük blok halinde göster: okunaklı ve gerçek veri.
+    const rows = [];
+    for (let block = 5; block >= 0; block -= 1) {
+      let total = 0;
+      let firstDate = null;
+      let lastDate = null;
+      for (let inner = 0; inner < 5; inner += 1) {
+        const offset = block * 5 + inner;
+        const date = new Date(today);
+        date.setDate(today.getDate() - offset);
+        total += countForDate(date);
+        if (!lastDate) lastDate = new Date(date);
+        firstDate = new Date(date);
+      }
+      rows.push({
+        key: `m-${block}`,
+        label: `${firstDate.getDate()}–${lastDate.getDate()}`,
+        count: total,
+        isToday: block === 0
+      });
+    }
+    return rows;
+  }
+
+  // Yıllık: içinde bulunduğumuz yılın ay toplamları.
+  const year = today.getFullYear();
+  const rows = [];
+  for (let month = 0; month < 12; month += 1) {
+    let total = 0;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const date = new Date(year, month, day);
+      if (date > today) break;
+      total += countForDate(date);
+    }
+    rows.push({
+      key: `y-${month}`,
+      label: monthShort[month],
+      count: total,
+      isToday: month === today.getMonth()
+    });
+  }
+  return rows;
+}
+
+function getStatisticsRangeLabel(range) {
+  return ({
+    day: 'Gün',
+    week: 'Hafta',
+    month: 'Son 30 gün',
+    year: 'Yıllık'
+  })[range] || 'Hafta';
+}
+
+function renderStatisticsDropdown(id, label, options, openKey) {
+  const isOpen = statisticsUi.openMenu === openKey;
+  return `<div class="stats-dropdown${isOpen ? ' open' : ''}">
+    <button class="stats-dropdown-trigger" id="${id}" type="button" aria-expanded="${isOpen ? 'true' : 'false'}">
+      <span>${escapeHtml(label)}</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5"></path></svg>
+    </button>
+    <div class="stats-dropdown-menu">
+      ${options.map(option => `<button type="button" data-stats-option="${escapeHtml(openKey)}" data-value="${escapeHtml(option.value)}" class="${option.active ? 'active' : ''}">
+        <span>${escapeHtml(option.label)}</span>
+        ${option.active ? '<b>✓</b>' : ''}
+      </button>`).join('')}
+    </div>
+  </div>`;
+}
+
 function getStatisticsDocumentRows(limit = 5) {
   const tests = Array.isArray(progress.completedTests) ? progress.completedTests : [];
   const docs = new Map();
@@ -2358,11 +2479,42 @@ function statisticsView() {
   const wrong = Math.max(0, total - correct);
   const accuracy = total ? Math.round((correct / total) * 100) : 0;
   const mocks = Math.max(0, Number(stats.completedMocks || 0));
-  const days = getStatisticsLast7Days();
+  const range = statisticsUi.range || 'week';
+  const days = getStatisticsRangeRows(range);
   const maxDay = Math.max(1, ...days.map(day => day.count));
-  const docRows = getStatisticsDocumentRows(5);
+  const rawDocRows = getStatisticsDocumentRows(12);
+  const subjectMetric = statisticsUi.subjectMetric || 'correct';
+  const docRows = rawDocRows
+    .map(row => ({
+      ...row,
+      metricValue: subjectMetric === 'wrong' ? Math.max(0, 100 - row.accuracy) : row.accuracy
+    }))
+    .sort((a, b) => b.metricValue - a.metricValue || b.total - a.total)
+    .slice(0, 5);
 
   const formatNumber = value => Number(value || 0).toLocaleString('tr-TR');
+
+  const rangeDropdown = renderStatisticsDropdown(
+    'statisticsRangeButton',
+    getStatisticsRangeLabel(range),
+    [
+      { value:'day', label:'Gün', active:range === 'day' },
+      { value:'week', label:'Hafta', active:range === 'week' },
+      { value:'month', label:'Son 30 gün', active:range === 'month' },
+      { value:'year', label:'Yıllık', active:range === 'year' }
+    ],
+    'range'
+  );
+
+  const subjectDropdown = renderStatisticsDropdown(
+    'statisticsSubjectMetricButton',
+    subjectMetric === 'wrong' ? 'Yanlış oranı' : 'Doğru oranı',
+    [
+      { value:'correct', label:'Doğru oranı', active:subjectMetric === 'correct' },
+      { value:'wrong', label:'Yanlış oranı', active:subjectMetric === 'wrong' }
+    ],
+    'subject'
+  );
 
   return `<section class="screen content-screen statistics-page sp-subscreen">
     <header class="sp-page-head sp-subpage-head statistics-head">
@@ -2376,7 +2528,7 @@ function statisticsView() {
           <span class="stats-eyebrow">GENEL PERFORMANS</span>
           <strong>Çalışma özeti</strong>
         </div>
-        <span class="stats-period-pill">Tüm zamanlar</span>
+        <span class="stats-period-pill">Bugüne kadar</span>
       </div>
 
       <div class="stats-overview-grid">
@@ -2413,13 +2565,13 @@ function statisticsView() {
     <section class="stats-chart-card">
       <div class="stats-card-heading compact">
         <div>
-          <span class="stats-eyebrow">SON 7 GÜN</span>
+          <span class="stats-eyebrow">${escapeHtml(getStatisticsRangeLabel(range).toUpperCase())}</span>
           <strong>Soru çözme performansı</strong>
         </div>
-        <span class="stats-period-pill">${formatNumber(days.reduce((sum, day) => sum + day.count, 0))} soru</span>
+        ${rangeDropdown}
       </div>
 
-      <div class="stats-bars">
+      <div class="stats-bars stats-bars-${escapeHtml(range)}">
         ${days.map(day => {
           const height = day.count ? Math.max(14, Math.round((day.count / maxDay) * 100)) : 6;
           return `<div class="stats-bar-col${day.isToday ? ' today' : ''}">
@@ -2437,21 +2589,26 @@ function statisticsView() {
           <span class="stats-eyebrow">ÇÖZÜLEN TESTLER</span>
           <strong>Ders bazlı performans</strong>
         </div>
-        <span class="stats-period-pill">${formatNumber(stats.completedSections)} bölüm</span>
+        ${subjectDropdown}
       </div>
 
       <div class="stats-subject-list">
         ${docRows.length ? docRows.map((row, index) => {
-          const meta = categoryCardMeta(row.categoryKey);
+          const shownValue = row.metricValue;
+          const detailCorrect = Math.max(0, Number(row.correct) || 0);
+          const detailWrong = Math.max(0, Number(row.total) - detailCorrect);
           return `<article class="stats-subject-row">
             <span class="stats-subject-rank">${String(index + 1).padStart(2, '0')}</span>
             <div class="stats-subject-copy">
               <div class="stats-subject-title">
                 <strong>${escapeHtml(row.title)}</strong>
-                <span>%${row.accuracy}</span>
+                <span>%${shownValue}</span>
               </div>
-              <div class="stats-subject-progress"><i style="width:${row.accuracy}%"></i></div>
-              <small>${formatNumber(row.correct)} doğru / ${formatNumber(row.total)} soru · ${formatNumber(row.sessions)} oturum</small>
+              <div class="stats-subject-progress ${subjectMetric === 'wrong' ? 'wrong' : ''}"><i style="width:${shownValue}%"></i></div>
+              <small>${subjectMetric === 'wrong'
+                ? `${formatNumber(detailWrong)} yanlış / ${formatNumber(row.total)} soru · ${formatNumber(row.sessions)} oturum`
+                : `${formatNumber(detailCorrect)} doğru / ${formatNumber(row.total)} soru · ${formatNumber(row.sessions)} oturum`
+              }</small>
             </div>
           </article>`;
         }).join('') : `<div class="stats-empty">
@@ -2625,6 +2782,37 @@ function bindViewEvents() {
     render();
     scrollArea.scrollTop = 0;
   });
+
+  document.getElementById('statisticsRangeButton')?.addEventListener('click', event => {
+    event.stopPropagation();
+    statisticsUi.openMenu = statisticsUi.openMenu === 'range' ? null : 'range';
+    render();
+  });
+
+  document.getElementById('statisticsSubjectMetricButton')?.addEventListener('click', event => {
+    event.stopPropagation();
+    statisticsUi.openMenu = statisticsUi.openMenu === 'subject' ? null : 'subject';
+    render();
+  });
+
+  app.querySelectorAll('[data-stats-option="range"]').forEach(button => {
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      statisticsUi.range = button.dataset.value || 'week';
+      statisticsUi.openMenu = null;
+      render();
+    });
+  });
+
+  app.querySelectorAll('[data-stats-option="subject"]').forEach(button => {
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      statisticsUi.subjectMetric = button.dataset.value === 'wrong' ? 'wrong' : 'correct';
+      statisticsUi.openMenu = null;
+      render();
+    });
+  });
+
 
   document.getElementById('repeatPriorityButton')?.addEventListener('click', () => showToast('Tekrar önceliği: Yanlış yaptıklarım'));
   document.getElementById('pauseStudyButton')?.addEventListener('click', () => showToast('Çalışma planını duraklatma ayarı yakında.'));

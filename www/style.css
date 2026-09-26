@@ -5757,3 +5757,176 @@ body.auth-page{
   .stats-bars{gap:5px}
   .stats-bar-track{width:17px}
 }
+
+
+/* ============================================================
+   İSTATİSTİKLER — OKUNABİLİRLİK + PREMIUM FİLTRELER
+   ============================================================ */
+
+/* Açıklama/ikincil metinler biraz daha okunaklı */
+.statistics-page .stats-eyebrow{
+  font-size:8.5px!important;
+}
+.statistics-page .stats-period-pill{
+  font-size:10px!important;
+}
+.statistics-page .stats-donut-inner span{
+  font-size:11px!important;
+}
+.statistics-page .stats-metric small{
+  font-size:9.5px!important;
+  line-height:1.2!important;
+}
+.statistics-page .stats-subject-copy small{
+  font-size:9px!important;
+  line-height:1.35!important;
+}
+.statistics-page .stats-bar-col>span,
+.statistics-page .stats-bar-col>strong{
+  font-size:9px!important;
+}
+.statistics-page .stats-empty small{
+  font-size:9.5px!important;
+}
+
+/* Toplam çözüm dahil metrik kutularında taşmayı engelle */
+.statistics-page .stats-metric{
+  min-width:0!important;
+  overflow:hidden!important;
+}
+.statistics-page .stats-metric>div{
+  min-width:0!important;
+  overflow:hidden!important;
+}
+.statistics-page .stats-metric small{
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.statistics-page .stats-metric strong{
+  max-width:100%!important;
+  font-size:16px!important;
+  letter-spacing:-.35px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:clip!important;
+}
+.statistics-page .metric-total strong{
+  font-size:15px!important;
+}
+
+/* Uygulama içi premium dropdown */
+.stats-dropdown{
+  position:relative;
+  flex:0 0 auto;
+  z-index:30;
+}
+.stats-dropdown-trigger{
+  min-height:31px;
+  padding:0 10px 0 11px;
+  border:1px solid #dfe6ef;
+  border-radius:11px;
+  background:linear-gradient(180deg,#fff,#fbfcfe);
+  color:#52637b;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:9.5px;
+  font-weight:680;
+  box-shadow:0 3px 9px rgba(25,53,85,.035);
+  cursor:pointer;
+}
+.stats-dropdown-trigger svg{
+  width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round;
+  transition:transform .16s ease;
+}
+.stats-dropdown.open .stats-dropdown-trigger svg{transform:rotate(180deg)}
+
+.stats-dropdown-menu{
+  display:none;
+  position:absolute;
+  top:calc(100% + 6px);
+  right:0;
+  min-width:132px;
+  padding:5px;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(8,40,90,.09);
+  border-radius:13px;
+  box-shadow:0 12px 30px rgba(15,43,75,.14);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  z-index:60;
+}
+.stats-dropdown.open .stats-dropdown-menu{display:block}
+.stats-dropdown-menu button{
+  width:100%;
+  min-height:34px;
+  padding:0 9px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:#5f6e84;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  font-size:9.5px;
+  font-weight:600;
+  text-align:left;
+  cursor:pointer;
+}
+.stats-dropdown-menu button.active{
+  background:#eef4fa;
+  color:#08285a;
+  font-weight:750;
+}
+.stats-dropdown-menu button b{
+  color:#0a4b86;
+  font-size:10px;
+}
+
+/* Filtreye göre grafik yoğunluğu */
+.stats-bars-day{
+  grid-template-columns:1fr!important;
+  max-width:110px;
+  margin:0 auto;
+}
+.stats-bars-month{
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+}
+.stats-bars-year{
+  grid-template-columns:repeat(12,minmax(0,1fr))!important;
+  gap:4px!important;
+}
+.stats-bars-year .stats-bar-track{
+  width:13px!important;
+}
+.stats-bars-year .stats-bar-col>span,
+.stats-bars-year .stats-bar-col>strong{
+  font-size:7.5px!important;
+}
+
+/* Yanlış oranı seçildiğinde kırmızı vurgu; diğer her şey sade lacivert kalır */
+.stats-subject-progress.wrong i{
+  background:linear-gradient(90deg,#d82b34,#ef5960)!important;
+}
+
+@media(max-width:390px){
+  .stats-dropdown-trigger{
+    padding:0 8px;
+    font-size:9px;
+  }
+  .statistics-page .stats-metric strong{
+    font-size:15px!important;
+  }
+  .statistics-page .metric-total strong{
+    font-size:14px!important;
+  }
+  .stats-bars-year{
+    gap:2px!important;
+  }
+  .stats-bars-year .stats-bar-track{
+    width:11px!important;
+  }
+}
