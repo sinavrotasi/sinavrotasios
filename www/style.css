@@ -5131,3 +5131,295 @@ body.auth-page{
     width:100%!important;
   }
 }
+
+
+/* ============================================================
+   SINAV HEDEFİ KARTI — LACİVERT PREMIUM / REFERANS YERLEŞİMİ
+   ============================================================ */
+
+.profile-v2 .sp-exam-card.sp-exam-card-v2{
+  position:relative!important;
+  overflow:hidden!important;
+  min-height:112px!important;
+  margin-top:10px!important;
+  padding:14px 15px 14px 15px!important;
+
+  display:grid!important;
+  grid-template-columns:64px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:14px!important;
+
+  background:
+    radial-gradient(circle at 88% 18%, rgba(36,92,157,.24), transparent 30%),
+    linear-gradient(112deg,#08264f 0%,#082b56 45%,#0a3565 100%)!important;
+
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  border-radius:20px!important;
+
+  box-shadow:
+    0 13px 30px rgba(7,31,73,.18),
+    inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+
+/* Katmanlı premium arka plan */
+.profile-v2 .sp-exam-card.sp-exam-card-v2:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(122deg,rgba(255,255,255,.025),transparent 36%),
+    radial-gradient(circle at 18% 110%,rgba(3,22,49,.52),transparent 50%);
+  z-index:0;
+}
+
+.profile-v2 .sp-exam-card.sp-exam-card-v2:after{
+  content:""!important;
+  position:absolute!important;
+  right:-58px!important;
+  top:-50px!important;
+  width:190px!important;
+  height:190px!important;
+  border-radius:50%!important;
+  pointer-events:none!important;
+  background:
+    radial-gradient(circle,transparent 0 58%,rgba(255,255,255,.025) 59% 69%,transparent 70%)!important;
+  z-index:0!important;
+}
+
+/* İnce kırmızı köşe yayı */
+.profile-v2 .sp-exam-curve-v2{
+  position:absolute!important;
+  right:-31px!important;
+  top:-67px!important;
+  width:155px!important;
+  height:132px!important;
+  border-radius:50%!important;
+  border:3px solid transparent!important;
+  border-bottom-color:#e93238!important;
+  transform:rotate(24deg)!important;
+  opacity:.96!important;
+  pointer-events:none!important;
+  z-index:1!important;
+}
+.profile-v2 .sp-exam-curve-v2:after{
+  content:"";
+  position:absolute;
+  inset:12px;
+  border-radius:50%;
+  border:1px solid transparent;
+  border-bottom-color:rgba(233,50,56,.30);
+}
+
+/* Sol ikon: beyaz dış disk + kırmızı merkez */
+.profile-v2 .sp-exam-icon-v2{
+  position:relative!important;
+  z-index:2!important;
+  width:64px!important;
+  height:64px!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+
+  background:linear-gradient(145deg,#f8fbff,#edf3f9)!important;
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.16),
+    0 0 0 7px rgba(255,255,255,.035),
+    inset 0 1px 0 rgba(255,255,255,.95)!important;
+}
+.profile-v2 .sp-exam-icon-v2:before{
+  content:""!important;
+  position:absolute!important;
+  inset:8px!important;
+  border-radius:50%!important;
+  background:linear-gradient(145deg,#ff4b52 0%,#e93238 60%,#cb232d 100%)!important;
+  box-shadow:
+    0 7px 15px rgba(233,50,56,.30),
+    inset 0 1px 0 rgba(255,255,255,.32)!important;
+}
+.profile-v2 .sp-exam-icon-ring{
+  position:relative!important;
+  z-index:2!important;
+  width:29px!important;
+  height:29px!important;
+  color:#fff!important;
+}
+.profile-v2 .sp-exam-icon-ring svg{
+  width:29px!important;
+  height:29px!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:1.75!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+
+/* Metin alanı */
+.profile-v2 .sp-exam-copy.sp-exam-copy-v2{
+  position:relative!important;
+  z-index:2!important;
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+}
+.profile-v2 .sp-exam-kicker-v2{
+  display:block!important;
+  margin:0!important;
+  color:#b8c7da!important;
+  font-size:12.5px!important;
+  line-height:1.1!important;
+  font-weight:540!important;
+  letter-spacing:-.08px!important;
+}
+.profile-v2 .sp-exam-copy.sp-exam-copy-v2>strong{
+  display:block!important;
+  margin:6px 0 0!important;
+  color:#fff!important;
+  font-size:29px!important;
+  line-height:.98!important;
+  font-weight:800!important;
+  letter-spacing:-.85px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* Sağ buton: koyu cam pill */
+.profile-v2 .sp-exam-date.sp-exam-date-v2{
+  position:relative!important;
+  z-index:3!important;
+  min-width:150px!important;
+  width:auto!important;
+  max-width:none!important;
+  height:44px!important;
+  padding:0 13px!important;
+  border-radius:24px!important;
+
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+
+  color:#fff!important;
+  font-size:11px!important;
+  font-weight:680!important;
+
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.035))!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 7px 16px rgba(3,24,53,.15)!important;
+
+  transition:transform .14s ease, background .14s ease!important;
+}
+
+.profile-v2 .sp-exam-date.sp-exam-date-v2:hover{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.05))!important;
+}
+
+.profile-v2 .sp-exam-date.sp-exam-date-v2:active{
+  transform:scale(.975)!important;
+}
+
+.profile-v2 .sp-exam-date.sp-exam-date-v2 span{
+  color:#fff!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+}
+.profile-v2 .sp-exam-date.sp-exam-date-v2 b{
+  color:#fff!important;
+  font-size:20px!important;
+  line-height:1!important;
+  font-weight:320!important;
+}
+.profile-v2 .sp-swap-icon-v2{
+  width:18px!important;
+  height:18px!important;
+  flex:0 0 auto!important;
+  fill:none!important;
+  stroke:#fff!important;
+  stroke-width:1.85!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+  opacity:.95!important;
+}
+
+/* Önceki kırmızı-beyaz varyant kalıntılarını kapat */
+.profile-v2 .sp-exam-card-v2 .sp-exam-label,
+.profile-v2 .sp-exam-card-v2 .sp-target-icon{
+  display:none!important;
+}
+
+/* iPhone genişlikleri */
+@media(max-width:410px){
+  .profile-v2 .sp-exam-card.sp-exam-card-v2{
+    min-height:108px!important;
+    grid-template-columns:58px minmax(0,1fr) auto!important;
+    gap:10px!important;
+    padding:13px 11px 13px 13px!important;
+  }
+
+  .profile-v2 .sp-exam-icon-v2{
+    width:58px!important;
+    height:58px!important;
+  }
+
+  .profile-v2 .sp-exam-icon-v2:before{
+    inset:7px!important;
+  }
+
+  .profile-v2 .sp-exam-copy.sp-exam-copy-v2>strong{
+    font-size:25px!important;
+  }
+
+  .profile-v2 .sp-exam-kicker-v2{
+    font-size:11px!important;
+  }
+
+  .profile-v2 .sp-exam-date.sp-exam-date-v2{
+    min-width:137px!important;
+    height:40px!important;
+    padding:0 9px!important;
+    gap:6px!important;
+    font-size:10px!important;
+  }
+
+  .profile-v2 .sp-swap-icon-v2{
+    width:16px!important;
+    height:16px!important;
+  }
+}
+
+@media(max-width:360px){
+  .profile-v2 .sp-exam-card.sp-exam-card-v2{
+    grid-template-columns:52px minmax(0,1fr)!important;
+    grid-template-areas:
+      "icon copy"
+      "button button"!important;
+    row-gap:10px!important;
+  }
+
+  .profile-v2 .sp-exam-icon-v2{
+    grid-area:icon!important;
+    width:52px!important;
+    height:52px!important;
+  }
+
+  .profile-v2 .sp-exam-copy.sp-exam-copy-v2{
+    grid-area:copy!important;
+  }
+
+  .profile-v2 .sp-exam-date.sp-exam-date-v2{
+    grid-area:button!important;
+    width:100%!important;
+    min-width:0!important;
+    justify-self:stretch!important;
+  }
+}
