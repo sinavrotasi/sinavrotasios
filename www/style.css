@@ -4874,3 +4874,260 @@ body.auth-page{
     margin-left:34px!important;
   }
 }
+
+
+/* ============================================================
+   SINAV HEDEFİ KARTI — TASARIM 2
+   Beyaz/porselen yüzey + kırmızı ikon + lacivert tipografi
+   ============================================================ */
+
+.profile-v2 .sp-exam-card.sp-exam-card-v2{
+  position:relative!important;
+  overflow:hidden!important;
+  min-height:112px!important;
+  margin-top:10px!important;
+  padding:15px 15px 15px 16px!important;
+  display:grid!important;
+  grid-template-columns:62px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:14px!important;
+
+  background:
+    radial-gradient(circle at 66% 52%,rgba(8,40,90,.035),transparent 34%),
+    linear-gradient(145deg,#ffffff 0%,#fbfcfe 58%,#f5f7fb 100%)!important;
+  color:#08285a!important;
+
+  border:1px solid rgba(8,40,90,.075)!important;
+  border-radius:20px!important;
+
+  box-shadow:
+    0 12px 30px rgba(24,51,84,.095),
+    inset 0 1px 0 rgba(255,255,255,.98)!important;
+}
+
+/* Önceki koyu kart dekorunu tamamen iptal et */
+.profile-v2 .sp-exam-card.sp-exam-card-v2:after{
+  content:""!important;
+  position:absolute!important;
+  right:-50px!important;
+  top:-44px!important;
+  width:165px!important;
+  height:165px!important;
+  border-radius:50%!important;
+  background:
+    radial-gradient(circle at 56% 50%,transparent 0 57%,rgba(8,40,90,.04) 58% 67%,transparent 68%)!important;
+  pointer-events:none!important;
+}
+
+/* Sağ üstte tasarım 2'deki ince kırmızı yay */
+.profile-v2 .sp-exam-curve-v2{
+  position:absolute;
+  right:-35px;
+  top:-56px;
+  width:150px;
+  height:122px;
+  border-radius:50%;
+  border:3px solid transparent;
+  border-bottom-color:#e93238;
+  transform:rotate(24deg);
+  opacity:.95;
+  pointer-events:none;
+  z-index:0;
+}
+.profile-v2 .sp-exam-curve-v2:after{
+  content:"";
+  position:absolute;
+  inset:11px;
+  border-radius:50%;
+  border:1px solid transparent;
+  border-bottom-color:rgba(233,50,56,.26);
+}
+
+/* Sol kırmızı ikon */
+.profile-v2 .sp-exam-icon-v2{
+  position:relative;
+  z-index:2;
+  width:62px;
+  height:62px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#fff,#f6f7fa);
+  box-shadow:
+    0 9px 18px rgba(233,50,56,.13),
+    0 6px 16px rgba(22,49,83,.07),
+    inset 0 1px 0 #fff;
+}
+.profile-v2 .sp-exam-icon-v2:before{
+  content:"";
+  position:absolute;
+  inset:6px;
+  border-radius:50%;
+  background:linear-gradient(145deg,#ff4b52 0%,#e93238 58%,#d9252e 100%);
+  box-shadow:
+    0 7px 14px rgba(233,50,56,.22),
+    inset 0 1px 0 rgba(255,255,255,.34);
+}
+.profile-v2 .sp-exam-icon-ring{
+  position:relative;
+  z-index:1;
+  width:29px;
+  height:29px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+}
+.profile-v2 .sp-exam-icon-ring svg{
+  width:27px;
+  height:27px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* Metin */
+.profile-v2 .sp-exam-copy.sp-exam-copy-v2{
+  position:relative!important;
+  z-index:2!important;
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+}
+.profile-v2 .sp-exam-kicker-v2{
+  display:block;
+  color:#71809a;
+  font-size:12px;
+  line-height:1.15;
+  font-weight:560;
+  letter-spacing:-.1px;
+}
+.profile-v2 .sp-exam-copy.sp-exam-copy-v2>strong{
+  display:block!important;
+  margin:5px 0 0!important;
+  color:#071f49!important;
+  font-size:28px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  letter-spacing:-.8px!important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* Sağdaki beyaz premium pill */
+.profile-v2 .sp-exam-date.sp-exam-date-v2{
+  position:relative!important;
+  z-index:2!important;
+  min-width:0!important;
+  width:auto!important;
+  max-width:none!important;
+  height:42px!important;
+  padding:0 12px!important;
+  border-radius:22px!important;
+  border:1px solid rgba(8,40,90,.09)!important;
+
+  background:
+    linear-gradient(180deg,#ffffff 0%,#fbfcfe 100%)!important;
+  color:#071f49!important;
+
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+
+  font-size:11px!important;
+  font-weight:680!important;
+
+  box-shadow:
+    0 7px 17px rgba(20,47,80,.075),
+    inset 0 1px 0 #fff!important;
+
+  transition:transform .14s ease,box-shadow .14s ease!important;
+}
+.profile-v2 .sp-exam-date.sp-exam-date-v2:active{
+  transform:scale(.975)!important;
+  box-shadow:
+    0 4px 10px rgba(20,47,80,.06),
+    inset 0 1px 0 #fff!important;
+}
+.profile-v2 .sp-exam-date.sp-exam-date-v2 span{
+  display:block!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+}
+.profile-v2 .sp-exam-date.sp-exam-date-v2 b{
+  color:#071f49!important;
+  font-size:20px!important;
+  line-height:1!important;
+  font-weight:350!important;
+}
+.profile-v2 .sp-swap-icon-v2{
+  width:18px!important;
+  height:18px!important;
+  flex:0 0 auto!important;
+  fill:none!important;
+  stroke:#e93238!important;
+  stroke-width:1.9!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+
+/* Önceki stillerin çakışmasını engelle */
+.profile-v2 .sp-exam-card-v2 .sp-exam-label,
+.profile-v2 .sp-exam-card-v2 .sp-target-icon{
+  display:none!important;
+}
+
+@media(max-width:410px){
+  .profile-v2 .sp-exam-card.sp-exam-card-v2{
+    grid-template-columns:56px minmax(0,1fr) auto!important;
+    gap:10px!important;
+    min-height:106px!important;
+    padding:14px 11px 14px 13px!important;
+  }
+  .profile-v2 .sp-exam-icon-v2{
+    width:56px;
+    height:56px;
+  }
+  .profile-v2 .sp-exam-copy.sp-exam-copy-v2>strong{
+    font-size:24px!important;
+  }
+  .profile-v2 .sp-exam-kicker-v2{
+    font-size:10.5px;
+  }
+  .profile-v2 .sp-exam-date.sp-exam-date-v2{
+    height:38px!important;
+    padding:0 9px!important;
+    gap:6px!important;
+    font-size:10px!important;
+  }
+  .profile-v2 .sp-swap-icon-v2{
+    width:16px!important;
+    height:16px!important;
+  }
+}
+
+@media(max-width:355px){
+  .profile-v2 .sp-exam-card.sp-exam-card-v2{
+    grid-template-columns:50px minmax(0,1fr)!important;
+    grid-template-areas:
+      "icon copy"
+      "button button"!important;
+    row-gap:10px!important;
+  }
+  .profile-v2 .sp-exam-icon-v2{
+    grid-area:icon;
+    width:50px;
+    height:50px;
+  }
+  .profile-v2 .sp-exam-copy.sp-exam-copy-v2{grid-area:copy}
+  .profile-v2 .sp-exam-date.sp-exam-date-v2{
+    grid-area:button;
+    justify-self:stretch!important;
+    width:100%!important;
+  }
+}

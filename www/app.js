@@ -2109,14 +2109,35 @@ function profileView() {
       <span class="sp-chevron">›</span>
     </button>
 
-    <section class="sp-exam-card">
-      <div class="sp-exam-copy">
-        <div class="sp-exam-label"><span class="sp-target-icon">${targetIcon}</span><span>Sınav hedefim</span></div>
+    <section class="sp-exam-card sp-exam-card-v2">
+      <div class="sp-exam-icon-v2" aria-hidden="true">
+        <span class="sp-exam-icon-ring">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="5" y="7.5" width="14" height="10.5" rx="2.3"></rect>
+            <path d="M9 7.5V6.2A2.2 2.2 0 0 1 11.2 4h1.6A2.2 2.2 0 0 1 15 6.2v1.3"></path>
+            <path d="M5 11.5h14"></path>
+            <path d="M10 11.5v1.3h4v-1.3"></path>
+          </svg>
+        </span>
+      </div>
+
+      <div class="sp-exam-copy sp-exam-copy-v2">
+        <span class="sp-exam-kicker-v2">Sınav hedefim</span>
         <strong>${escapeHtml(roleLabel)}</strong>
       </div>
-      <button class="sp-exam-date" id="profileChangeRoleButton" type="button">
-        ${calendarIcon}<span>${escapeHtml(examLabel)}</span><b>›</b>
+
+      <button class="sp-exam-date sp-exam-date-v2" id="profileChangeRoleButton" type="button">
+        <svg class="sp-swap-icon-v2" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 7h11l-2.7-2.7"></path>
+          <path d="m18 7-2.7 2.7"></path>
+          <path d="M17 17H6l2.7 2.7"></path>
+          <path d="m6 17 2.7-2.7"></path>
+        </svg>
+        <span>${escapeHtml(examLabel)}</span>
+        <b>›</b>
       </button>
+
+      <span class="sp-exam-curve-v2" aria-hidden="true"></span>
     </section>
 
     <section class="sp-study-card">
