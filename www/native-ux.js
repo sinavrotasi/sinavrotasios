@@ -109,6 +109,11 @@
       Plugins.Keyboard.addListener('keyboardWillHide', () => {
         document.body.classList.remove('keyboard-open');
         document.documentElement.style.setProperty('--keyboard-height', '0px');
+        if (keyboardScrollUnlockTimer) {
+          clearTimeout(keyboardScrollUnlockTimer);
+          keyboardScrollUnlockTimer = null;
+        }
+        setKeyboardScrollDisabled(false);
       });
     } catch (err) {
       console.warn('[NativeUX] Keyboard listener kurulamadı:', err);
@@ -119,6 +124,27 @@
     // Web'de etkisiz; Android/iOS'ta görünür klavyeyi kapatır. Arama sheet'i
     // kapanırken input odağı da app.js tarafından kaldırılır.
     safeCall('Keyboard', 'hide');
+  }
+
+  // iOS'ta WKWebView, input focus değişiminde sayfayı otomatik kaydırabilir.
+  // Capacitor Keyboard.setScroll ile bunu kısa süreliğine durdurup focus
+  // animasyonu bittikten sonra tekrar açıyoruz; kullanıcı manuel kaydırmayı
+  // normal şekilde kullanmaya devam eder.
+  let keyboardScrollUnlockTimer = null;
+
+  function setKeyboardScrollDisabled(isDisabled) {
+    if (!Plugins.Keyboard) return;
+    safeCall('Keyboard', 'setScroll', { isDisabled: Boolean(isDisabled) });
+  }
+
+  function freezeKeyboardScroll(durationMs) {
+    const ms = Number.isFinite(Number(durationMs)) ? Number(durationMs) : 500;
+    if (keyboardScrollUnlockTimer) clearTimeout(keyboardScrollUnlockTimer);
+    setKeyboardScrollDisabled(true);
+    keyboardScrollUnlockTimer = setTimeout(() => {
+      keyboardScrollUnlockTimer = null;
+      setKeyboardScrollDisabled(false);
+    }, Math.max(120, ms));
   }
 
   // ---- UYGULAMA YAŞAM DÖNGÜSÜ + ANDROID GERİ TUŞU ----
@@ -295,5 +321,15 @@
     initAppLifecycle();
   }
 
-  window.NativeUX = { isNative, platform, init, haptic, hideSplash, hideKeyboard, scheduleStudyReminders };
+  window.NativeUX = {
+    isNative,
+    platform,
+    init,
+    haptic,
+    hideSplash,
+    hideKeyboard,
+    setKeyboardScrollDisabled,
+    freezeKeyboardScroll,
+    scheduleStudyReminders
+  };
 })();

@@ -158,29 +158,12 @@ function dismissProfileEditInputOnOutsidePress(event) {
 }
 document.addEventListener('pointerdown', dismissProfileEditInputOnOutsidePress, { capture:true, passive:true });
 
-// Native Keyboard resizeMode='none' olduğu için WebView küçülmez. Profil düzenleme
-// alanlarını klavyenin üzerinde tutmak için gerçek kaydırıcıyı (.scroll-area)
-// kontrollü kaydırıyoruz. NativeUX'in smooth scroll'u bu ekranda devre dışıdır.
-function keepProfileEditFieldVisible(input) {
-  if (state.view !== 'profile-edit' || !input?.isConnected) return;
-  const scrollRect = scrollArea.getBoundingClientRect();
-  const fieldRect = input.getBoundingClientRect();
-  const rawKeyboardHeight = parseFloat(
-    getComputedStyle(document.documentElement).getPropertyValue('--keyboard-height')
-  ) || 0;
-  const fallbackKeyboardHeight =
-    document.body.classList.contains('keyboard-open') && rawKeyboardHeight === 0
-      ? Math.min(320, scrollRect.height * 0.42)
-      : 0;
-  const keyboardHeight = Math.max(rawKeyboardHeight, fallbackKeyboardHeight);
-  const visibleHeight = Math.max(180, scrollRect.height - keyboardHeight);
-  const preferredCenter = scrollRect.top + visibleHeight * 0.48;
-  const fieldCenter = fieldRect.top + fieldRect.height / 2;
-  const delta = fieldCenter - preferredCenter;
+// Profil düzenle ekranında input odaklanınca ekran otomatik kaydırılmaz.
+let profileEditFocusScrollTop = null;
 
-  if (Math.abs(delta) > 6) {
-    scrollArea.scrollTop += delta;
-  }
+function restoreProfileEditScrollPosition(expectedTop) {
+  if (state.view !== 'profile-edit' || !Number.isFinite(expectedTop)) return;
+  scrollArea.scrollTop = expectedTop;
 }
 
 
@@ -2455,15 +2438,55 @@ function bindViewEvents() {
   });
 
   document.getElementById('profileEditBackButton')?.addEventListener('click', () => {
+    window.NativeUX?.setKeyboardScrollDisabled?.(false);
+    window.NativeUX?.hideKeyboard?.();
     state.view = 'profile'; setNav('profile'); render(); scrollArea.scrollTop = 0;
   });
   const profileEditInputs = [...app.querySelectorAll('.profile-edit-page .sp-text-input')];
   profileEditInputs.forEach(input => {
+    input.addEventListener('pointerdown', event => {
+      // Kullanıcının mevcut kaydırma konumunu kilitle. iOS, farklı input'a
+      // odaklanırken WKWebView'i kendi kendine yukarı/aşağı taşımaya çalışabiliyor.
+      const topBeforeFocus = scrollArea.scrollTop;
+      profileEditFocusScrollTop = topBeforeFocus;
+
+      if (document.activeElement !== input) {
+        // Native scroll'u yalnız focus/keyboard animasyonu boyunca geçici kapat.
+        // Sonrasında kullanıcı yine elle kaydırabilir.
+        window.NativeUX?.freezeKeyboardScroll?.(520);
+
+        // Tarayıcının varsayılan "focused element'i görünür yap" kaydırmasını
+        // engelle; focus kullanıcı gesture'ı içinde verildiği için klavye açılır.
+        event.preventDefault();
+        try {
+          input.focus({ preventScroll: true });
+        } catch (_) {
+          input.focus();
+        }
+
+        // iOS sürümüne göre otomatik pan farklı anda gelebiliyor. Aynı konumu
+        // birkaç frame boyunca geri yazarak hiçbir görünür zıplamaya izin verme.
+        const restore = () => restoreProfileEditScrollPosition(topBeforeFocus);
+        restore();
+        requestAnimationFrame(restore);
+        setTimeout(restore, 50);
+        setTimeout(restore, 140);
+        setTimeout(restore, 280);
+        setTimeout(restore, 500);
+      }
+    }, { passive: false });
+
     input.addEventListener('focus', () => {
-      // İlk çağrı focus anı için, ikincisi iOS klavye yüksekliği geldikten sonra.
-      requestAnimationFrame(() => keepProfileEditFieldVisible(input));
-      setTimeout(() => keepProfileEditFieldVisible(input), 120);
-      setTimeout(() => keepProfileEditFieldVisible(input), 320);
+      const top = Number.isFinite(profileEditFocusScrollTop)
+        ? profileEditFocusScrollTop
+        : scrollArea.scrollTop;
+      requestAnimationFrame(() => restoreProfileEditScrollPosition(top));
+      setTimeout(() => restoreProfileEditScrollPosition(top), 80);
+      setTimeout(() => restoreProfileEditScrollPosition(top), 220);
+    });
+
+    input.addEventListener('blur', () => {
+      profileEditFocusScrollTop = null;
     });
   });
 
@@ -2507,6 +2530,8 @@ function bindViewEvents() {
       }
 
       showToast(password ? 'Profilin ve şifren güncellendi.' : 'Profilin güncellendi.');
+      window.NativeUX?.setKeyboardScrollDisabled?.(false);
+      window.NativeUX?.hideKeyboard?.();
       state.view = 'profile';
       setNav('profile');
       render();
