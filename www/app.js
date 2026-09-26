@@ -1997,39 +1997,204 @@ function getAvatarInitials(fullName) {
   return { first, second };
 }
 
+
+function getProfileWeekDays() {
+  const now = new Date();
+  const jsDay = now.getDay(); // Pazar=0
+  const mondayOffset = (jsDay + 6) % 7;
+  const monday = new Date(now);
+  monday.setHours(0, 0, 0, 0);
+  monday.setDate(now.getDate() - mondayOffset);
+  const labels = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+  return labels.map((label, index) => {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+    const count = Number(progress.dailyAnswers?.[dateKey(date)] || 0);
+    return {
+      label,
+      date,
+      count,
+      isToday: dateKey(date) === dateKey(now),
+      isStudyDay: index < 5,
+      completed: count > 0
+    };
+  });
+}
+
+function getDailyGoalPreset(goal) {
+  if (goal <= 20) return 'light';
+  if (goal <= 50) return 'balanced';
+  return 'intense';
+}
+
+function renderProfileDay(day) {
+  const classes = [
+    'sp-day',
+    day.isStudyDay ? 'planned' : 'off',
+    day.completed ? 'done' : '',
+    day.isToday ? 'today' : ''
+  ].filter(Boolean).join(' ');
+  const marker = day.completed && !day.isToday
+    ? `${svg('check', 'sp-day-check')}`
+    : '<span class="sp-day-circle"></span>';
+  return `<div class="${classes}">
+    <strong>${escapeHtml(day.label)}</strong>
+    ${marker}
+    ${day.isToday ? '<small>Bugün</small>' : '<small>&nbsp;</small>'}
+  </div>`;
+}
+
 function profileView() {
   const stats = getStats();
   const user = window.currentUser;
   const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Aday';
-  const email = user?.email || '';
-  const { first: avatarFirst } = getAvatarInitials(fullName);
-  const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || '';
-  const badges = getBadges(stats);
+  const { first, second } = getAvatarInitials(fullName);
+  const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || 'Hedef belirlenmedi';
   const prefs = progress.notificationPrefs || DEFAULT_NOTIFICATION_PREFS;
-  const bell = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a2 2 0 0 1 2 2v.35A6 6 0 0 1 18 10v4l2 3v1H4v-1l2-3v-4a6 6 0 0 1 4-5.65V4a2 2 0 0 1 2-2Z"/><path d="M9 20h6a3 3 0 0 1-6 0Z"/></svg>';
-  return `<section class="screen content-screen profile-final">
-    <header class="pv-hero">
-      <svg class="pv-landscape" viewBox="0 0 940 280" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H940V280H0Z" fill="#0b2348"/><path d="M0 0H940V72C823 12 815 115 709 78S493 155 336 170S105 189 0 45Z" fill="#17365e"/><path d="M0 0H76C129 75 242 89 428 0Z" fill="#264970" opacity=".35"/><path d="M0 48C174 231 281 178 439 153S653 54 743 82S858 27 940 60V280H0Z" fill="#102d54"/><path d="M0 217C233 178 342 178 492 128S712 96 940 179V280H0Z" fill="#071d40" opacity=".5"/><path d="M0 117L238 280H0Z" fill="#ad2b49"/><path d="M940 61C847 32 830 108 718 78S492 155 340 177" stroke="#345580" stroke-width="4" fill="none" opacity=".5"/></svg>
-      <div class="pv-brand">Sınav<span>Rotası</span></div><span class="pv-tagline">Hedefine giden yol burada.</span>
-      <svg class="pv-route" viewBox="0 0 180 92" fill="none" aria-hidden="true"><path d="M5 90C34 62 61 81 103 77C141 73 105 60 101 55C82 35 127 36 145 33C153 31 153 23 153 20" stroke="#f24056" stroke-width="2" stroke-dasharray="8 6"/><path d="M153 5C144 5 142 14 146 20L153 30L160 20C164 14 162 5 153 5Z" fill="#ef344d"/><circle cx="153" cy="14" r="3.5" fill="#18345c"/></svg>
+  const weekDays = getProfileWeekDays();
+  const completedStudyDays = weekDays.filter(day => day.isStudyDay && day.completed).length;
+  const goalPreset = getDailyGoalPreset(stats.dailyGoal);
+  const examLabel = getExamDate() ? formatExamDate(getExamDate()) : 'Sınav tarihi belirle';
+
+  const targetIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.8 9.2 21 3m0 0v5m0-5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>`;
+  const pencilIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.3-1 10.8-10.8a2.1 2.1 0 0 0-3-3L5.3 16 4 20Z"/><path d="m14.8 6.5 2.7 2.7"/></svg>`;
+  const calendarIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3m10-3v3M4 9h16"/><rect x="4" y="5" width="16" height="16" rx="3"/></svg>`;
+  const focusIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="1.5"/></svg>`;
+  const gearIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 10 3.01V3h4v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.8 7l-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.96 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>`;
+  const cupIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"/><path d="M16 10h2a3 3 0 0 1 0 6h-2M7 3v2m4-2v2m4-2v2"/></svg>`;
+  const userIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`;
+  const aaIcon = `<span class="sp-aa">Aa</span>`;
+  const bellIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>`;
+
+  return `<section class="screen content-screen profile-v2">
+    <header class="sp-page-head">
+      <h1>Profil</h1>
+      <div class="sp-wordmark">Sınav<span>Rotası</span></div>
     </header>
-    <article class="pv-id"><div class="pv-avatar">${escapeHtml(avatarFirst)}</div><div class="pv-person"><strong>${escapeHtml(fullName)}</strong><span class="pv-email">${escapeHtml(email)}</span><button class="pv-role" id="changeRoleButton" type="button">${escapeHtml(roleLabel)}</button></div></article>
-    <div class="pv-settings">
-      <section class="pv-setting"><span class="pv-medallion">${svg('target')}</span><h3 class="pv-heading">GÜNLÜK ÇALIŞMA HEDEFİ</h3><p class="pv-desc">Her gün çözmek istediğin soru sayısını belirle, ana sayfadaki ilerleme halkası buna göre hesaplanır.</p><div class="pv-goal"><input id="profileDailyGoalInput" type="number" min="${DAILY_GOAL_MIN}" max="${DAILY_GOAL_MAX}" step="1" inputmode="numeric" value="${stats.dailyGoal}" aria-label="Günlük hedef soru sayısı"><button class="pv-save" id="profileDailyGoalSaveButton" type="button">Kaydet</button></div></section>
-      <section class="pv-setting"><span class="pv-medallion">${bell}</span><h3 class="pv-heading">BİLDİRİMLER</h3><p class="pv-desc">Günlük çalışma hatırlatıcını aç, kapat veya saatini değiştir.</p><div class="pv-reminder"><div><strong>Günlük çalışma hatırlatıcısı</strong><small>Seçtiğin saatte, her gün</small></div><button class="notif-switch${prefs.dailyReminder ? ' on' : ''}" type="button" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Günlük çalışma hatırlatıcısı"><i></i></button></div><label class="pv-time" for="notifReminderTimeInput">Hatırlatma saati<input type="time" id="notifReminderTimeInput" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati"></label></section>
-    </div>
-    <section class="pv-badges"><div class="pv-badge-head"><strong>ROZETLERİM</strong></div><p>Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</p><div class="pv-badge-grid" id="profileBadgesGrid">${badges.map(badge => `<div class="badge-item${badge.unlocked ? ' unlocked' : ''}"><span class="badge-image-wrap"><img src="${badge.image}" alt="${escapeHtml(badge.label)}" class="badge-image" loading="eager"></span><small>${badge.unlocked ? escapeHtml(badge.label) : `${badge.value}/${badge.target} ${escapeHtml(badge.unit)}`}</small></div>`).join('')}</div></section>
-    ${renderWeeklyFlowCard()}
-    <div class="pv-sync">${svg('refresh')}<span>İstatistiklerin hesabına otomatik olarak senkronize ediliyor; başka bir cihazdan giriş yaptığında da seninle gelir.</span></div>
-    <section class="pv-actions"><button class="reset-progress" id="resetProgressButton" type="button">${svg('refresh')}<span>İlerleme verisini sıfırla</span></button><button class="signout-btn" id="signOutButton" type="button">${svg('lock')}<span>Çıkış Yap</span></button></section>
-    <a class="delete-account-link" id="deleteAccountLink" href="https://sinavrotasi.github.io/sinavrotasi-legal/hesapsilme.html" target="_blank" rel="noopener">Hesabımı silmek istiyorum</a>
+
+    <button class="sp-profile-card" id="editProfileButton" type="button">
+      <span class="sp-avatar"><b>${escapeHtml(first)}</b><b>${escapeHtml(second || '')}</b></span>
+      <span class="sp-profile-copy">
+        <strong>${escapeHtml(fullName)}</strong>
+        <small>${pencilIcon}<span>Profilimi düzenle</span></small>
+      </span>
+      <span class="sp-chevron">›</span>
+    </button>
+
+    <section class="sp-exam-card">
+      <div class="sp-exam-copy">
+        <div class="sp-exam-label"><span class="sp-target-icon">${targetIcon}</span><span>Sınav hedefim</span></div>
+        <strong>${escapeHtml(roleLabel)}</strong>
+      </div>
+      <button class="sp-exam-date" id="profileExamDateButton" type="button">
+        ${calendarIcon}<span>${escapeHtml(examLabel)}</span><b>›</b>
+      </button>
+    </section>
+
+    <section class="sp-study-card">
+      <div class="sp-section-title">
+        <div>${calendarIcon}<strong>Haftalık ritim</strong></div>
+        <span><b>${completedStudyDays}</b> / 5 gün</span>
+      </div>
+      <div class="sp-week-grid">${weekDays.map(renderProfileDay).join('')}</div>
+
+      <div class="sp-card-rule"></div>
+
+      <h2 class="sp-daily-title">Günlük hedef</h2>
+      <div class="sp-goal-segments" role="group" aria-label="Günlük hedef yoğunluğu">
+        <button type="button" data-goal-preset="20" class="${goalPreset === 'light' ? 'active' : ''}">Hafif</button>
+        <button type="button" data-goal-preset="40" class="${goalPreset === 'balanced' ? 'active' : ''}">Dengeli</button>
+        <button type="button" data-goal-preset="60" class="${goalPreset === 'intense' ? 'active' : ''}">Yoğun</button>
+      </div>
+      <div class="sp-goal-bottom">
+        <div class="sp-goal-number"><strong>${stats.dailyGoal}</strong><span>soru / gün</span></div>
+        <button class="sp-customize" id="profileCustomizeGoalButton" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10m4 0h2M4 17h3m4 0h9M14 4v6m-7 4v6"/></svg>
+          <span>Özelleştir</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="sp-reminder-item">
+      <span class="sp-round-icon red">${svg('clock')}</span>
+      <label class="sp-reminder-copy" for="notifReminderTimeInput">
+        <strong>Hatırlatma saati</strong>
+        <input type="time" id="notifReminderTimeInput" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati">
+        <small>Hafta içi</small>
+      </label>
+      <button class="sp-switch${prefs.dailyReminder ? ' on' : ''}" type="button" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Hatırlatma">${'<i></i>'}</button>
+    </section>
+
+    <section class="sp-reminder-item">
+      <span class="sp-round-icon navy">${focusIcon}</span>
+      <div class="sp-focus-copy"><strong>Odak modu</strong><small>Dikkatini dağıtan bildirimleri sınırla.</small></div>
+      <button class="sp-switch" id="profileFocusModeButton" type="button" role="switch" aria-checked="false" aria-label="Odak modu"><i></i></button>
+    </section>
+
+    <section class="sp-pref-card">
+      <div class="sp-list-heading">${gearIcon}<strong>Çalışma tercihlerim</strong></div>
+      <button class="sp-list-row" id="repeatPriorityButton" type="button">
+        ${svg('refresh')}<span>Tekrar önceliği</span><small>Yanlış yaptıklarım</small><b>›</b>
+      </button>
+      <button class="sp-list-row" id="pauseStudyButton" type="button">
+        ${cupIcon}<span>Çalışmaya ara ver</span><small>Planını geçici olarak duraklat</small><b>›</b>
+      </button>
+    </section>
+
+    <section class="sp-menu-card">
+      <button class="sp-list-row sp-main-row" id="openAchievementsButton" type="button">
+        ${svg('trophy')}<span>Başarılarım</span><b>›</b>
+      </button>
+      <button class="sp-list-row sp-main-row" id="appearanceSettingsButton" type="button">
+        ${aaIcon}<span>Görünüm ve yazı boyutu</span><b>›</b>
+      </button>
+      <button class="sp-list-row sp-main-row" id="dataAccountButton" type="button">
+        ${userIcon}<span>Verilerim ve hesap</span><small class="sp-sync-state"><i></i>Eşitlendi</small><b>›</b>
+      </button>
+    </section>
+  </section>`;
+}
+
+function achievementsView() {
+  const stats = getStats();
+  const badges = getBadges(stats);
+  const unlockedCount = badges.filter(badge => badge.unlocked).length;
+  return `<section class="screen content-screen achievements-page">
+    <header class="sp-page-head sp-subpage-head">
+      <button class="sp-back" id="achievementsBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <h1>Başarılarım</h1>
+      <div class="sp-wordmark">Sınav<span>Rotası</span></div>
+    </header>
+
+    <section class="ach-summary">
+      <div>
+        <span>Toplam başarı</span>
+        <strong>${unlockedCount} / ${badges.length}</strong>
+      </div>
+      <div class="ach-summary-icon">${svg('trophy')}</div>
+    </section>
+
+    <section class="ach-card">
+      <div class="ach-card-head">
+        <div><strong>Rozetlerim</strong><small>Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</small></div>
+        <span>${unlockedCount} kazanıldı</span>
+      </div>
+      <div class="ach-grid">
+        ${badges.map(badge => `<article class="ach-badge${badge.unlocked ? ' unlocked' : ' locked'}">
+          <div class="ach-badge-img"><img src="${badge.image}" alt="${escapeHtml(badge.label)}" loading="eager"></div>
+          <strong>${escapeHtml(badge.label)}</strong>
+          <small>${badge.unlocked ? 'Kazanıldı' : `${badge.value} / ${badge.target} ${escapeHtml(badge.unit)}`}</small>
+          <div class="ach-progress"><i style="width:${Math.min(100, Math.round((badge.value / badge.target) * 100))}%"></i></div>
+        </article>`).join('')}
+      </div>
+    </section>
   </section>`;
 }
 
 function render() {
-  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView };
+  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, achievements: achievementsView };
   const appHeader = document.querySelector('.app-header');
-  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes'].includes(state.view));
+  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'achievements'].includes(state.view));
   app.innerHTML = (views[state.view] || homeView)();
   bindViewEvents();
   updateHeader();
@@ -2112,6 +2277,48 @@ function bindViewEvents() {
     setReminderTime(event.target.value);
   });
   bindWeeklyFlowEvents();
+
+  // Profil v2 etkileşimleri
+  document.getElementById('editProfileButton')?.addEventListener('click', () => {
+    showToast('Profil düzenleme ekranı sonraki adımda bağlanabilir.');
+  });
+  document.getElementById('profileExamDateButton')?.addEventListener('click', () => {
+    showToast(getExamDate() ? `Sınav tarihi: ${formatExamDate(getExamDate())}` : 'Sınav tarihi henüz merkezi olarak belirlenmedi.');
+  });
+  app.querySelectorAll('[data-goal-preset]').forEach(button => {
+    button.addEventListener('click', () => {
+      setDailyGoal(button.dataset.goalPreset);
+    });
+  });
+  document.getElementById('profileCustomizeGoalButton')?.addEventListener('click', () => {
+    const current = getDailyGoal();
+    const value = window.prompt(`Günlük hedefini belirle (${DAILY_GOAL_MIN}-${DAILY_GOAL_MAX} soru):`, String(current));
+    if (value !== null) setDailyGoal(value);
+  });
+  document.getElementById('profileFocusModeButton')?.addEventListener('click', event => {
+    const button = event.currentTarget;
+    const next = button.getAttribute('aria-checked') !== 'true';
+    button.setAttribute('aria-checked', String(next));
+    button.classList.toggle('on', next);
+    showToast(next ? 'Odak modu açıldı.' : 'Odak modu kapatıldı.');
+  });
+  document.getElementById('repeatPriorityButton')?.addEventListener('click', () => showToast('Tekrar önceliği: Yanlış yaptıklarım'));
+  document.getElementById('pauseStudyButton')?.addEventListener('click', () => showToast('Çalışma planını duraklatma ayarı yakında.'));
+  document.getElementById('appearanceSettingsButton')?.addEventListener('click', () => showToast('Görünüm ve yazı boyutu ayarı yakında.'));
+  document.getElementById('dataAccountButton')?.addEventListener('click', () => showToast('Verilerim ve hesap ekranı sonraki adımda bağlanabilir.'));
+
+  document.getElementById('openAchievementsButton')?.addEventListener('click', () => {
+    state.view = 'achievements';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
+  });
+  document.getElementById('achievementsBackButton')?.addEventListener('click', () => {
+    state.view = 'profile';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
+  });
 
 }
 
