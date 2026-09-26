@@ -128,6 +128,17 @@ const app = document.getElementById('app');
 const scrollArea = document.getElementById('scroll-area');
 const toast = document.getElementById('toast');
 const navButtons = [...document.querySelectorAll('[data-nav]')];
+// Sayfa yeniden çizilse de tek dinleyici: hedef alanının dışına dokununca klavyeyi bırak.
+function dismissProfileGoalOnOutsidePress(event) {
+  const input = document.getElementById('profileDailyGoalInput');
+  if (!input || document.activeElement !== input) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest('.pv-goal') || target.closest('input,textarea,select,[contenteditable="true"]')) return;
+  input.blur(); // Mevcut blur dinleyicisi native klavyeyi ve klavye durumunu kapatır.
+}
+document.addEventListener('pointerdown', dismissProfileGoalOnOutsidePress, { capture:true, passive:true });
+
 
 // Eski HTML önbellekten gelse de gezinme ikonlarını tek SVG biçimine getirir.
 function prepareNavIcons() {
@@ -1089,16 +1100,16 @@ function formatCompletedDate(iso) {
 
 function bankView() {
   const stats = getStats();
-  const completedExams = getCompletedKadroExams();
+  const completedExams = getCompletedKadroExams(Infinity);
   const examAverage = completedExams.length ? Math.round(completedExams.reduce((sum, test) => sum + (test.total ? (test.score / test.total) * 100 : 0), 0) / completedExams.length) : 0;
   const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || 'Kadro';
   const completedExamsHtml = completedExams.length ? `
     <div class="bank-v2-section-head"><h3>Son Çözülenler</h3></div>
-    <div class="bank-v2-results">
-      ${completedExams.slice(0, 6).map(test => {
+    <div class="bank-v2-results" id="completedExamResults">
+      ${completedExams.map((test, index) => {
         const percentage = test.total ? Math.round((test.score / test.total) * 100) : 0;
         const tone = percentage >= 80 ? 'good' : percentage >= 60 ? 'mid' : 'low';
-        return `<article class="bank-v2-result">
+        return `<article class="bank-v2-result" ${index >= 5 ? 'data-extra-exam hidden' : ''}>
           <div class="bank-v2-result-icon" aria-hidden="true">${svg('statTrials')}</div>
           <div class="bank-v2-result-main">
             <strong>${escapeHtml(test.title)}</strong>
@@ -1108,7 +1119,8 @@ function bankView() {
           <div class="bank-v2-result-score"><b>%${percentage}</b><small>${test.score}/${test.total}</small></div>
         </article>`;
       }).join('')}
-    </div>` : '';
+    </div>
+    ${completedExams.length > 5 ? `<button type="button" class="bank-v2-show-all" id="showAllExamsButton" aria-expanded="false" aria-controls="completedExamResults" data-total="${completedExams.length}">Tümünü göster (${completedExams.length})</button>` : ''}` : '';
 
   return `<section class="screen content-screen bank-screen bank-v2">
     <header class="bank-v2-heading">
@@ -2024,6 +2036,13 @@ function render() {
 }
 
 function bindViewEvents() {
+  const showAllExamsButton = document.getElementById('showAllExamsButton');
+  showAllExamsButton?.addEventListener('click', () => {
+    const expanded = showAllExamsButton.getAttribute('aria-expanded') !== 'true';
+    app.querySelectorAll('[data-extra-exam]').forEach(row => { row.hidden = !expanded; });
+    showAllExamsButton.setAttribute('aria-expanded', String(expanded));
+    showAllExamsButton.textContent = expanded ? 'Daha az göster' : `Tümünü göster (${showAllExamsButton.dataset.total})`;
+  });
   if (state.catalogueError) document.getElementById('retryLoadButton')?.addEventListener('click', loadCatalogue);
   app.querySelectorAll('[data-open-category]').forEach(element => {
     element.addEventListener('click', () => openTopicSheet(element.dataset.openCategory));

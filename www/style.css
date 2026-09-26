@@ -4282,3 +4282,126 @@ body.auth-page{
   /* Önceki HTML yüklenmişse ikon kaybolmadan lacivert görünür. */
   #appPhone > .bottom-nav button.active > svg:not(:has(.nav-icon-solid)) {fill:currentColor;}
 }
+
+/* İçerik kadar kaydırma: menü kendi alanını kaplar, yapay alt boşluk oluşmaz. */
+#appPhone > .scroll-area:has(> .app-scroll > :is(.home-screen,.mistakes-screen)) {
+  overscroll-behavior-y:none;
+}
+#appPhone .app-scroll:has(> :is(.home-screen,.mistakes-screen)) {
+  padding-bottom:0; min-height:0;
+}
+#appPhone .app-scroll > :is(.home-screen,.mistakes-screen.mistakes-reference) {
+  min-height:0; padding-bottom:12px;
+}
+@media (max-width:999px) {
+  #appPhone:has(.app-scroll > :is(.home-screen,.mistakes-screen)) > .bottom-nav {
+    position:relative; left:auto; right:auto; bottom:auto; flex:0 0 auto;
+  }
+}
+/* Profil açıklamaları ve saat etiketi. */
+#appPhone .profile-final :is(.pv-desc,.pv-badges > p,.profile-goal-desc,.pv-sync) {
+  font-size:12px; line-height:1.55; color:#637189;
+}
+#appPhone .profile-final .pv-heading {font-size:10px;line-height:1.4;}
+#appPhone .profile-final .pv-reminder strong {font-size:11.5px;line-height:1.4;}
+#appPhone .profile-final .pv-reminder small,
+#appPhone .profile-final .pv-badge-grid small {font-size:10.5px;line-height:1.4;color:#637189;}
+#appPhone .profile-final .pv-time {
+  font-size:12px;font-weight:750;line-height:1.4;color:#071f49;gap:7px;
+}
+#appPhone .profile-final .pv-time input {font-size:16px;width:88px;min-height:34px;}
+
+/* Aynı görevdeki öğeler için üç sekmenin ortak ölçüleri. */
+#appPhone :is(.bank-v2,.cards-dashboard,.mistakes-reference) {
+  --tab-font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Arial,sans-serif;
+  font-family:var(--tab-font); font-size:12px;
+}
+#appPhone :is(.bank-v2,.cards-dashboard,.mistakes-reference) :is(button,input) {font-family:inherit;}
+#appPhone :is(.bank-v2-heading,.cards-dashboard-heading,.mistakes-ref-heading) {
+  min-height:116px; padding:2px 112px 12px 4px; margin:0;
+}
+#appPhone :is(.bank-v2-heading,.cards-dashboard-heading,.mistakes-ref-heading) h2 {
+  font-size:28px;line-height:1.12;font-weight:800;letter-spacing:-.6px;margin:0 0 7px;
+}
+#appPhone :is(.bank-v2-heading,.cards-dashboard-heading,.mistakes-ref-heading) p {
+  font-size:12px;line-height:1.5;font-weight:500;
+}
+#appPhone :is(.bank-v2-heading-art,.cards-dashboard-mark),
+#appPhone .mistakes-ref-heading::after {width:104px;height:96px;right:4px;top:-4px;}
+#appPhone :is(.bank-v2-hero,.cards-smart-review,.mistakes-ref-hero) {
+  min-height:200px;padding:16px 118px 16px 16px;margin:0 0 12px;border-radius:18px;
+}
+#appPhone :is(.bank-v2-hero-copy,.cards-smart-copy,.mistakes-ref-hero-copy) {position:relative;top:auto;left:auto;right:auto;width:auto;max-width:none;}
+#appPhone :is(.bank-v2-hero-copy,.cards-smart-copy,.mistakes-ref-hero-copy) h3 {
+  font-size:22px;line-height:1.15;font-weight:800;letter-spacing:-.4px;margin:0 0 8px;
+}
+#appPhone :is(.bank-v2-hero-copy,.cards-smart-copy,.mistakes-ref-hero-copy) p {
+  font-size:12px;line-height:1.5;font-weight:500;margin:0;max-width:none;
+}
+#appPhone :is(.bank-v2-hero-start,.cards-smart-start,.mistakes-ref-start) {
+  position:relative;top:auto;right:auto;bottom:auto;left:auto;transform:none;
+  min-height:36px;margin:14px 0 0;padding:0 14px;font-size:11px;font-weight:750;line-height:1.3;
+}
+#appPhone :is(.bank-v2-hero-art,.cards-smart-art),#appPhone .mistakes-ref-hero::after {
+  width:100px;height:108px;right:8px;top:26px;
+}
+#appPhone :is(.bank-v2-metrics,.cards-dashboard-metrics,.mistakes-ref-metrics) {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 12px;
+}
+#appPhone :is(.bank-v2-metric,.cards-dashboard-metric,.mistakes-ref-metric) {
+  display:flex;align-items:center;min-height:84px;padding:10px;gap:9px;border-radius:14px;
+}
+#appPhone :is(.bank-v2-metric-icon,.cards-dashboard-metric-icon,.mistakes-ref-metric-icon) {
+  width:36px;height:36px;flex:0 0 36px;border-radius:10px;
+}
+#appPhone :is(.bank-v2-metric-icon,.cards-dashboard-metric-icon,.mistakes-ref-metric-icon) svg,
+#appPhone .mistakes-ref-metric-icon::after {width:20px;height:20px;}
+#appPhone :is(.bank-v2-metric small,.cards-dashboard-metric div > span,.mistakes-ref-metric small) {
+  display:block;font-size:11px;line-height:1.35;font-weight:600;margin:0 0 4px;
+}
+#appPhone :is(.bank-v2-metric,.cards-dashboard-metric,.mistakes-ref-metric) strong {
+  font-size:22px;line-height:1.1;font-weight:800;
+}
+#appPhone :is(.bank-v2-type,.cards-set-card,.mistakes-ref-topic) {
+  min-height:108px;padding:12px;gap:12px;border-radius:16px;
+}
+#appPhone :is(.bank-v2-type-icon,.cards-set-icon,.mistakes-ref-topic-icon) {
+  width:42px;height:42px;flex:0 0 42px;border-radius:12px;
+}
+#appPhone :is(.bank-v2-type-icon,.cards-set-icon,.mistakes-ref-topic-icon) svg,
+#appPhone .mistakes-ref-topic-icon::after {width:22px;height:22px;}
+#appPhone :is(.bank-v2-type-copy strong,.cards-set-title-row h4,.mistakes-ref-topic h4) {
+  font-size:14px;font-weight:750;line-height:1.35;letter-spacing:0;
+}
+#appPhone :is(.bank-v2-type-copy p,.cards-set-title-row > div > span,.mistakes-ref-topic p) {
+  font-size:11px;line-height:1.45;
+}
+#appPhone :is(.cards-set-meta,.mistakes-ref-topic-stats) {font-size:10px;line-height:1.4;gap:6px;flex-wrap:wrap;}
+#appPhone :is(.cards-set-meta,.mistakes-ref-topic-stats) svg {width:13px;height:13px;}
+#appPhone :is(.bank-v2-type-btn,.cards-set-work,.mistakes-ref-work) {
+  min-height:32px;font-size:11px;line-height:1.2;padding:0 10px;
+}
+#appPhone :is(.bank-v2-types,.cards-set-list,.mistakes-ref-topics) {gap:10px;}
+#appPhone :is(.bank-v2-section-head,.cards-set-head) h3 {font-size:17px;line-height:1.3;font-weight:800;}
+#appPhone .bank-v2-result {min-height:80px;padding:12px;border-radius:16px;}
+#appPhone .bank-v2-result-main strong {font-size:13px;line-height:1.35;}
+#appPhone .bank-v2-result-main > span {font-size:11px;line-height:1.4;}
+#appPhone .bank-v2-result-icon {width:36px;height:36px;}
+#appPhone .bank-v2-result-icon svg {width:20px;height:20px;}
+#appPhone .bank-v2-result[hidden] {display:none;}
+#appPhone .bank-v2-show-all {
+  display:block;width:100%;min-height:44px;margin:10px 0 0;padding:10px 16px;
+  border:1px solid #dce5f1;border-radius:12px;background:#edf4fc;color:#071f49;
+  font:700 12px/1.4 var(--tab-font);cursor:pointer;touch-action:manipulation;
+}
+#appPhone .bank-v2-show-all:focus-visible {outline:2px solid #2d7ef7;outline-offset:2px;}
+@media(max-width:370px) {
+  #appPhone :is(.bank-v2-heading,.cards-dashboard-heading,.mistakes-ref-heading) {padding-right:96px;}
+  #appPhone :is(.bank-v2-heading-art,.cards-dashboard-mark),#appPhone .mistakes-ref-heading::after {width:90px;height:86px;}
+  #appPhone :is(.bank-v2-hero,.cards-smart-review,.mistakes-ref-hero) {padding-right:100px;}
+  #appPhone :is(.bank-v2-hero-art,.cards-smart-art),#appPhone .mistakes-ref-hero::after {width:84px;height:96px;right:6px;}
+  #appPhone :is(.bank-v2-type,.cards-set-card,.mistakes-ref-topic) {padding:10px;gap:8px;}
+}
+
+#appPhone :is(.cards-set-card,.mistakes-ref-topic) {grid-template-columns:42px minmax(0,1fr);}
+#appPhone .mistakes-ref-topic-stats {display:flex;flex-wrap:wrap;}
