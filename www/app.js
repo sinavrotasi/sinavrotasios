@@ -2261,7 +2261,6 @@ function profileView() {
       <div class="sp-daily-premium">
         <div class="sp-daily-head">
           <div><h2 class="sp-daily-title">Günlük çalışma ilerlemesi</h2></div>
-          <span class="sp-daily-mini">${svg('target')}</span>
         </div>
         <div class="sp-goal-segments" role="group" aria-label="Günlük hedef yoğunluğu">
           <button type="button" data-goal-preset="20" class="${goalPreset === 'light' ? 'active' : ''}">Hafif</button>
@@ -2278,19 +2277,26 @@ function profileView() {
       </div>
     </section>
 
-    <section class="sp-reminder-item">
-      <span class="sp-round-icon red">${svg('clock')}</span>
-      <label class="sp-reminder-copy" for="notifReminderTimeInput">
-        <strong>Hatırlatma saati</strong>
-        <input type="time" id="notifReminderTimeInput" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati">
-      </label>
-      <button class="sp-switch${prefs.dailyReminder ? ' on' : ''}" type="button" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Hatırlatma">${'<i></i>'}</button>
-    </section>
+    <section class="sp-tools-card">
+      <div class="sp-tools-row sp-tools-row-reminder">
+        <span class="sp-round-icon red">${svg('clock')}</span>
+        <label class="sp-reminder-copy" for="notifReminderTimeInput">
+          <strong>Hatırlatma saati</strong>
+          <input type="time" id="notifReminderTimeInput" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati">
+        </label>
+        <button class="sp-switch${prefs.dailyReminder ? ' on' : ''}" type="button" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Günlük hatırlatma"><i></i></button>
+      </div>
 
-    <section class="sp-reminder-item">
-      <span class="sp-round-icon navy">${focusIcon}</span>
-      <div class="sp-focus-copy"><strong>Odak modu</strong><small>Dikkatini dağıtan bildirimleri sınırla.</small></div>
-      <button class="sp-switch" id="profileFocusModeButton" type="button" role="switch" aria-checked="false" aria-label="Odak modu"><i></i></button>
+      <div class="sp-tools-divider" aria-hidden="true"></div>
+
+      <div class="sp-tools-row sp-tools-row-focus">
+        <span class="sp-round-icon navy">${focusIcon}</span>
+        <div class="sp-focus-copy">
+          <strong>Odak modu</strong>
+          <small>Dikkatini dağıtan bildirimleri sınırla.</small>
+        </div>
+        <button class="sp-switch" id="profileFocusModeButton" type="button" role="switch" aria-checked="false" aria-label="Odak modu"><i></i></button>
+      </div>
     </section>
 
     <button class="sp-statistics-entry" id="openStatisticsButton" type="button">
@@ -2303,7 +2309,7 @@ function profileView() {
       </span>
       <span class="sp-statistics-entry-copy">
         <strong>İstatistiklerim</strong>
-        <small>Performansını ve çalışma eğilimlerini gör</small>
+        <small>Performansını ve çalışma eğilimlerini görüntüle</small>
       </span>
       <span class="sp-statistics-entry-arrow">›</span>
     </button>
@@ -2314,7 +2320,7 @@ function profileView() {
         ${svg('refresh')}<span>Tekrar önceliği</span><small>Yanlış yaptıklarım</small><b>›</b>
       </button>
       <button class="sp-list-row" id="pauseStudyButton" type="button">
-        ${cupIcon}<span>Çalışmaya ara ver</span><small>Planını geçici olarak duraklat</small><b>›</b>
+        ${cupIcon}<span>Çalışmaya ara ver</span><small>Çalışma planını geçici olarak duraklat</small><b>›</b>
       </button>
     </section>
 
@@ -2328,10 +2334,16 @@ function profileView() {
       <button class="sp-list-row sp-main-row" id="dataAccountButton" type="button">
         ${userIcon}<span>Hesap ve Verilerim</span><small class="sp-sync-state"><i></i>Eşitlendi</small><b>›</b>
       </button>
-      <button class="sp-list-row sp-main-row sp-signout-row" id="profileSignOutButton" type="button">
-        ${logoutIcon}<span>Çıkış yap</span><b>›</b>
-      </button>
     </section>
+
+    <button class="sp-signout-card" id="profileSignOutButton" type="button">
+      <span class="sp-signout-card-icon">${logoutIcon}</span>
+      <span class="sp-signout-card-copy">
+        <strong>Çıkış yap</strong>
+        <small>Bu cihazdaki oturumunu güvenli şekilde kapat</small>
+      </span>
+      <span class="sp-signout-card-arrow">›</span>
+    </button>
   </section>`;
 }
 
@@ -2373,7 +2385,7 @@ function appearanceSettingsView() {
     <section class="appearance-setting-card">
       <div class="appearance-setting-head">
         <span class="appearance-setting-icon">${layoutIcon}</span>
-        <div><strong>Arayüz yoğunluğu</strong><small>Kart aralıklarını ve ekranda görünen içerik miktarını ayarla.</small></div>
+        <div><strong>Arayüz yoğunluğu</strong><small>Kartların yüksekliğini, iç boşluklarını ve ekran başına düşen içerik miktarını ayarla.</small></div>
       </div>
       <div class="appearance-density-list">
         <button type="button" data-ui-density="comfortable" class="${density === 'comfortable' ? 'active' : ''}">
@@ -3095,7 +3107,7 @@ function bindViewEvents() {
     const next = button.getAttribute('aria-checked') !== 'true';
     button.setAttribute('aria-checked', String(next));
     button.classList.toggle('on', next);
-    showToast(next ? 'Odak modu görünümü açıldı.' : 'Odak modu görünümü kapatıldı.');
+    showToast(next ? 'Odak modu açıldı.' : 'Odak modu kapatıldı.');
   });
 
   document.getElementById('openStatisticsButton')?.addEventListener('click', () => {

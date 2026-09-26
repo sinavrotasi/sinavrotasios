@@ -6106,3 +6106,321 @@ html[data-ui-density="compact"] .sp-reminder-item{min-height:66px!important}html
 @media(max-width:999px){
   .phone:has(.data-account-page)>.bottom-nav,.phone:has(.appearance-page)>.bottom-nav{position:absolute;left:0;right:0;bottom:0;border-radius:18px 18px 0 0;padding:6px 4px calc(8px + env(safe-area-inset-bottom));height:auto;min-height:66px;background:rgba(255,255,255,.97);box-shadow:0 -4px 18px rgba(20,45,78,.06)}
 }
+
+
+/* ============================================================
+   PROFİL — NİHAİ REDAKSİYON / YERLEŞİM
+   ============================================================ */
+
+/* Günlük çalışma ilerlemesi: sağ ikon kaldırıldıktan sonra başlık doğal hizalansın. */
+.profile-v2 .sp-daily-head{
+  display:block!important;
+  margin-bottom:12px!important;
+}
+.profile-v2 .sp-daily-title{
+  margin:0!important;
+}
+
+/* Hatırlatma saati + Odak modu tek premium kart */
+.profile-v2 .sp-tools-card{
+  margin-top:9px;
+  padding:0 15px;
+  border:1px solid rgba(8,40,90,.055);
+  border-radius:19px;
+  background:
+    radial-gradient(circle at 96% 0%,rgba(38,102,165,.035),transparent 34%),
+    linear-gradient(145deg,#fff,#fbfdff);
+  box-shadow:0 8px 22px rgba(24,51,84,.055);
+  overflow:hidden;
+}
+.profile-v2 .sp-tools-row{
+  min-height:76px;
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:10px 1px;
+}
+.profile-v2 .sp-tools-divider{
+  height:1px;
+  margin-left:61px;
+  background:#e8edf3;
+}
+.profile-v2 .sp-tools-card .sp-round-icon{
+  width:46px;
+  height:46px;
+}
+.profile-v2 .sp-tools-card .sp-round-icon svg{
+  width:23px;
+  height:23px;
+}
+.profile-v2 .sp-tools-card .sp-reminder-copy>strong,
+.profile-v2 .sp-tools-card .sp-focus-copy>strong{
+  font-size:14.5px;
+  line-height:1.2;
+}
+.profile-v2 .sp-tools-card .sp-focus-copy>small{
+  margin-top:4px;
+  font-size:11px;
+  line-height:1.35;
+}
+.profile-v2 .sp-tools-card .sp-reminder-copy input[type=time]{
+  margin-top:5px!important;
+  font-size:24px!important;
+}
+
+/* Çalışma tercihleri: başlık ve açıklamalar daha okunaklı */
+.profile-v2 .sp-pref-card .sp-list-row{
+  min-height:48px;
+  padding-top:9px;
+  padding-bottom:9px;
+}
+.profile-v2 .sp-pref-card .sp-list-row>span:not(.sp-aa){
+  font-size:13.5px!important;
+  font-weight:620;
+}
+.profile-v2 .sp-pref-card .sp-list-row>small{
+  font-size:11.5px!important;
+  line-height:1.3;
+  color:#6f7d91;
+}
+.profile-v2 .sp-list-heading strong{
+  font-size:16.5px!important;
+}
+
+/* Ana profil menüsü de aynı tipografik kaliteye yaklaşsın */
+.profile-v2 .sp-menu-card .sp-main-row{
+  min-height:47px;
+}
+.profile-v2 .sp-menu-card .sp-main-row>span:not(.sp-aa){
+  font-size:12.8px!important;
+}
+
+/* Çıkış yap: yaygın ayarlar ekranı alışkanlığına uygun şekilde
+   tüm ayarlardan sonra, tek başına ve düşük risk vurgusuyla. */
+.profile-v2 .sp-signout-card{
+  width:100%;
+  min-height:64px;
+  margin-top:12px;
+  margin-bottom:10px;
+  padding:10px 14px;
+  border:1px solid rgba(8,40,90,.07);
+  border-radius:18px;
+  background:
+    linear-gradient(145deg,#fff,#fbfcfe);
+  color:#08285a;
+  display:grid;
+  grid-template-columns:40px minmax(0,1fr) 16px;
+  align-items:center;
+  gap:11px;
+  text-align:left;
+  box-shadow:0 8px 22px rgba(24,51,84,.05);
+  cursor:pointer;
+}
+.profile-v2 .sp-signout-card:active{
+  transform:scale(.992);
+}
+.profile-v2 .sp-signout-card-icon{
+  width:40px;
+  height:40px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:#f2f5f8;
+  color:#51637a;
+}
+.profile-v2 .sp-signout-card-icon svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:currentColor!important;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.profile-v2 .sp-signout-card-copy{
+  min-width:0;
+}
+.profile-v2 .sp-signout-card-copy strong{
+  display:block;
+  font-size:13px;
+  font-weight:720;
+  color:#08285a;
+}
+.profile-v2 .sp-signout-card-copy small{
+  display:block;
+  margin-top:3px;
+  font-size:10px;
+  line-height:1.3;
+  color:#7b8799;
+}
+.profile-v2 .sp-signout-card-arrow{
+  color:#64748a;
+  font-size:23px;
+  font-weight:300;
+  line-height:1;
+}
+
+/* Eski menü-içi çıkış görünümünü etkisiz bırak */
+.profile-v2 .sp-signout-row{display:none!important}
+
+/* ============================================================
+   ARAYÜZ YOĞUNLUĞU — GERÇEKTEN GÖRÜNÜR FARK
+   ============================================================ */
+
+/* Rahat: kartlar daha yüksek, iç boşluklar daha geniş */
+html[data-ui-density="comfortable"] .profile-v2{
+  padding-top:13px!important;
+}
+html[data-ui-density="comfortable"] .profile-v2 :is(
+  .sp-profile-card,
+  .sp-exam-card,
+  .sp-study-card,
+  .sp-tools-card,
+  .sp-statistics-entry,
+  .sp-pref-card,
+  .sp-menu-card,
+  .sp-signout-card
+){
+  margin-top:14px!important;
+}
+html[data-ui-density="comfortable"] .profile-v2 .sp-profile-card{
+  min-height:92px!important;
+  padding:17px 16px!important;
+}
+html[data-ui-density="comfortable"] .profile-v2 .sp-exam-card{
+  min-height:122px!important;
+  padding-top:18px!important;
+  padding-bottom:18px!important;
+}
+html[data-ui-density="comfortable"] .profile-v2 .sp-daily-premium{
+  padding:19px 17px 18px!important;
+}
+html[data-ui-density="comfortable"] .profile-v2 .sp-tools-row{
+  min-height:84px!important;
+  padding-top:14px!important;
+  padding-bottom:14px!important;
+}
+html[data-ui-density="comfortable"] .profile-v2 .sp-pref-card{
+  padding-top:13px!important;
+  padding-bottom:13px!important;
+}
+html[data-ui-density="comfortable"] .profile-v2 .sp-list-row{
+  min-height:52px!important;
+  padding-top:11px!important;
+  padding-bottom:11px!important;
+}
+html[data-ui-density="comfortable"] .profile-v2 .sp-statistics-entry{
+  min-height:82px!important;
+}
+html[data-ui-density="comfortable"] .profile-v2 .sp-signout-card{
+  min-height:72px!important;
+}
+
+/* Kompakt: fark edilir şekilde daha sıkı ama okunabilir */
+html[data-ui-density="compact"] .profile-v2{
+  padding-top:5px!important;
+}
+html[data-ui-density="compact"] .profile-v2 :is(
+  .sp-profile-card,
+  .sp-exam-card,
+  .sp-study-card,
+  .sp-tools-card,
+  .sp-statistics-entry,
+  .sp-pref-card,
+  .sp-menu-card,
+  .sp-signout-card
+){
+  margin-top:5px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-profile-card{
+  min-height:68px!important;
+  padding:9px 12px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-avatar{
+  width:52px!important;
+  height:52px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-exam-card{
+  min-height:94px!important;
+  padding-top:10px!important;
+  padding-bottom:10px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-daily-premium{
+  padding:11px 13px 10px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-goal-bottom{
+  margin-top:8px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-tools-row{
+  min-height:60px!important;
+  padding-top:6px!important;
+  padding-bottom:6px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-tools-card .sp-round-icon{
+  width:39px!important;
+  height:39px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-tools-divider{
+  margin-left:52px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-statistics-entry{
+  min-height:62px!important;
+  padding-top:8px!important;
+  padding-bottom:8px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-pref-card{
+  padding-top:6px!important;
+  padding-bottom:6px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-list-heading{
+  padding-bottom:5px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-list-row{
+  min-height:38px!important;
+  padding-top:5px!important;
+  padding-bottom:5px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-menu-card .sp-main-row{
+  min-height:39px!important;
+}
+html[data-ui-density="compact"] .profile-v2 .sp-signout-card{
+  min-height:54px!important;
+  padding-top:7px!important;
+  padding-bottom:7px!important;
+}
+
+/* Görünüm ekranının kendi önizlemesi de yoğunluk seçimini gözle görünür yansıtsın */
+html[data-ui-density="comfortable"] .appearance-page .appearance-preview-card,
+html[data-ui-density="comfortable"] .appearance-page .appearance-setting-card{
+  padding-top:21px!important;
+  padding-bottom:21px!important;
+  margin-top:14px!important;
+}
+html[data-ui-density="comfortable"] .appearance-page .appearance-density-list button{
+  min-height:66px!important;
+}
+html[data-ui-density="compact"] .appearance-page .appearance-preview-card,
+html[data-ui-density="compact"] .appearance-page .appearance-setting-card{
+  padding-top:11px!important;
+  padding-bottom:11px!important;
+  margin-top:6px!important;
+}
+html[data-ui-density="compact"] .appearance-page .appearance-density-list button{
+  min-height:46px!important;
+}
+
+/* Önceki etkisiz yoğunluk override'larını son sırada kesin biçimde ez */
+html[data-ui-density="comfortable"] .profile-v2 .sp-tools-card{margin-top:14px!important}
+html[data-ui-density="compact"] .profile-v2 .sp-tools-card{margin-top:5px!important}
+
+@media(max-width:390px){
+  .profile-v2 .sp-pref-card .sp-list-row>small{
+    font-size:10.8px!important;
+    max-width:150px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .profile-v2 .sp-signout-card-copy small{
+    font-size:9.5px;
+  }
+}
