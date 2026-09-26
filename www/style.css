@@ -5999,25 +5999,41 @@ body.auth-page{
   .statistics-page .stats-subject-copy small{font-size:11px!important}
 }
 
-/* ============================================================
-   VERİLERİM VE HESAP
-   ============================================================ */
+
+/* ===== BAŞARILARIM PREMIUM ===== */
+.ach-summary.ach-summary-premium{
+  position:relative;overflow:hidden;min-height:128px;padding:19px 20px;border-radius:22px;
+  background:radial-gradient(circle at 88% 15%,rgba(55,116,180,.28),transparent 34%),linear-gradient(115deg,#062c59 0%,#073b70 55%,#0a437b 100%);
+  border:1px solid rgba(255,255,255,.08);box-shadow:0 14px 32px rgba(4,42,82,.18),inset 0 1px 0 rgba(255,255,255,.08)
+}
+.ach-summary.ach-summary-premium:after{content:"";position:absolute;right:-44px;bottom:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.07),transparent 66%)}
+.ach-summary-copy{position:relative;z-index:2;min-width:0;flex:1;padding-right:18px}
+.ach-summary-eyebrow{font-size:8px!important;font-weight:820!important;letter-spacing:1.25px;color:#9fb6d3!important}
+.ach-summary.ach-summary-premium strong{display:flex;align-items:baseline;gap:6px;margin-top:5px;font-size:31px;line-height:1;font-weight:820;letter-spacing:-1px}
+.ach-summary.ach-summary-premium strong small{font-size:12px;font-weight:600;color:#c8d6e7}
+.ach-summary.ach-summary-premium p{margin:8px 0 0;font-size:10px;line-height:1.4;color:#c2d0e1}
+.ach-summary-progress{width:min(220px,100%);height:5px;margin-top:12px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.12)}
+.ach-summary-progress i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#ff5b61,#e93238)}
+.ach-summary.ach-summary-premium .ach-summary-icon{position:relative;z-index:2;width:62px;height:62px;border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.07));box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 10px 20px rgba(2,26,55,.16)}
+.ach-summary.ach-summary-premium .ach-summary-icon span{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:rgba(255,255,255,.08)}
+.ach-card-head.ach-card-head-premium{align-items:center}
+.ach-card-head.ach-card-head-premium>span{font-size:11.5px!important;font-weight:720!important;padding:7px 10px!important;background:linear-gradient(180deg,#fff1f2,#ffebed)!important;color:#e93238!important;border:1px solid rgba(233,50,56,.08);box-shadow:0 4px 10px rgba(233,50,56,.05)}
+
+/* ===== PROFİL ÇIKIŞ ===== */
+.sp-signout-row{color:#c8323a!important}
+.sp-signout-row svg{stroke:#d43b43!important}
+.sp-signout-row>span{font-weight:650}
+.sp-signout-row>b{color:#c8323a!important}
+
+/* ===== HESAP VE VERİLERİM ===== */
 .phone .scroll-area:has(> .app-scroll > .data-account-page) > .app-header{display:none!important}
 .phone .app-scroll:has(> .data-account-page){padding:0 0 86px;background:transparent}
-.phone .scroll-area > .app-scroll > .data-account-page{
-  padding:max(25px,calc(env(safe-area-inset-top) + 15px)) 16px 24px;
-  min-height:100%;
-}
+.phone .scroll-area > .app-scroll > .data-account-page{padding:max(25px,calc(env(safe-area-inset-top) + 15px)) 16px 24px;min-height:100%}
 .data-account-page{--account-navy:#08285a;--account-red:#e93238;--account-muted:#75839a}
-.account-user-card{
-  min-height:82px;display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:12px;align-items:center;
-  padding:14px;background:linear-gradient(145deg,#fff,#fbfdff);border:1px solid rgba(8,40,90,.065);
-  border-radius:18px;box-shadow:0 8px 22px rgba(24,51,84,.055)
-}
+.account-user-card{min-height:82px;display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px;background:linear-gradient(145deg,#fff,#fbfdff);border:1px solid rgba(8,40,90,.065);border-radius:18px;box-shadow:0 8px 22px rgba(24,51,84,.055)}
 .account-user-mark{width:46px;height:46px;border-radius:14px;background:#eef4fa;color:var(--account-navy);display:grid;place-items:center}
-.account-user-mark svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.account-user-copy{min-width:0}
-.account-user-copy strong{display:block;font-size:15px;font-weight:780;color:var(--account-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.account-user-mark svg{width:22px;height:22px}
+.account-user-copy{min-width:0}.account-user-copy strong{display:block;font-size:15px;font-weight:780;color:var(--account-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .account-user-copy span{display:block;margin-top:4px;font-size:10px;color:var(--account-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .account-sync-pill{display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:12px;background:#f2f8f3;color:#5c7461;font-size:9px;font-weight:650;white-space:nowrap}
 .account-sync-pill i{width:7px;height:7px;border-radius:50%;background:#43c832}
@@ -6025,22 +6041,68 @@ body.auth-page{
 .account-section-head{display:flex;align-items:center;gap:11px;padding:2px 2px 11px}
 .account-section-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex-shrink:0}
 .account-section-icon svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.account-section-icon.blue{background:#eef5fc;color:#1769aa}.account-section-icon.navy{background:#eef2f7;color:#08285a}
+.account-section-icon.blue{background:#eef5fc;color:#1769aa}
+.account-section-icon.subscription{background:linear-gradient(145deg,#fff5d9,#fce8b0);color:#b57608}
 .account-section-head strong{display:block;font-size:14px;color:var(--account-navy);font-weight:760}
 .account-section-head small{display:block;margin-top:3px;font-size:9.5px;color:var(--account-muted)}
+.account-subscription-row{min-height:72px;padding:11px 2px 4px;border-top:1px solid #edf1f5;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.account-subscription-copy{min-width:0}
+.account-subscription-copy>span{display:block;font-size:8px;font-weight:780;letter-spacing:.9px;color:#8a96a8;text-transform:uppercase}
+.account-subscription-copy>strong{display:block;margin-top:3px;font-size:15px;font-weight:800;color:#08285a}
+.account-subscription-copy>small{display:block;margin-top:4px;font-size:9.5px;line-height:1.35;color:#78869a}
+.account-plan-badge{flex:0 0 auto;min-width:56px;padding:7px 10px;border-radius:12px;background:#eef2f6;color:#607086;font-size:10px;font-weight:760;text-align:center}
+.account-plan-badge.premium{background:linear-gradient(145deg,#fff4cf,#f9dda0);color:#9b6505}
 .account-action-row{width:100%;min-height:58px;padding:9px 2px;border:0;border-top:1px solid #edf1f5;background:transparent;display:grid;grid-template-columns:34px minmax(0,1fr) 14px;align-items:center;gap:10px;color:var(--account-navy);text-align:left;cursor:pointer}
-.account-action-row:disabled{opacity:.55}
 .account-action-icon{width:32px;height:32px;border-radius:10px;background:#f2f5f8;color:#64758b;display:grid;place-items:center}
 .account-action-icon svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.account-action-copy{min-width:0}.account-action-copy strong{display:block;font-size:11.5px;font-weight:720}.account-action-copy small{display:block;margin-top:3px;font-size:9px;line-height:1.35;color:#7d899c}.account-action-row>b{font-size:21px;line-height:1;font-weight:300;color:#6d7a8f}
+.account-action-copy strong{display:block;font-size:11.5px}.account-action-copy small{display:block;margin-top:3px;font-size:9px;line-height:1.35;color:#7d899c}
+.account-action-row>b{font-size:21px;line-height:1;font-weight:300;color:#6d7a8f}
 .account-danger-card{border-color:rgba(233,50,56,.10);background:linear-gradient(145deg,#fff,#fffafa)}
 .account-danger-eyebrow{display:block;padding:1px 2px 8px;font-size:7.5px;font-weight:820;letter-spacing:1.2px;color:#d14a51}
-.account-action-row.danger{border-top:1px solid #f5e3e5}.account-action-row.danger .account-action-icon{background:#fff0f1;color:var(--account-red)}.account-action-row.danger .account-action-copy strong{color:#cf2c35}
+.account-action-row.danger{border-top:1px solid #f5e3e5}.account-action-row.danger .account-action-icon{background:#fff0f1;color:#e93238}.account-action-row.danger .account-action-copy strong{color:#cf2c35}
 .account-confirm-overlay{position:absolute;inset:0;z-index:250;padding:18px;display:flex;align-items:center;justify-content:center;background:rgba(7,31,73,.42);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .account-confirm-card{width:min(100%,360px);padding:21px 18px 17px;border-radius:22px;background:#fff;box-shadow:0 24px 60px rgba(7,31,73,.22);text-align:center}
-.account-confirm-icon{width:52px;height:52px;margin:0 auto 12px;border-radius:16px;display:grid;place-items:center}.account-confirm-icon svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.account-confirm-icon.warning{background:#eef4fa;color:#0a4b86}.account-confirm-icon.danger{background:#fff0f1;color:var(--account-red)}
-.account-confirm-card h2{margin:0;font-size:17px;color:var(--account-navy);letter-spacing:-.35px}.account-confirm-card p{margin:9px 0 0;font-size:10px;line-height:1.55;color:#758298}.account-confirm-card p strong{color:#485972}.account-confirm-card.delete p strong{color:#cf2c35}
-.account-delete-confirm-label{display:block;margin-top:14px;text-align:left;font-size:9px;font-weight:650;color:#65748a}.account-delete-confirm-label b{color:#cf2c35}.account-delete-confirm-label input{display:block;width:100%;height:44px;margin-top:6px;padding:0 12px;border:1px solid #dce3ec;border-radius:12px;background:#f8fafc;color:#08285a;font-size:16px;font-weight:750;text-align:center;outline:none;-webkit-text-size-adjust:100%}.account-delete-confirm-label input:focus{border-color:#d6575e;background:#fff}
+.account-confirm-icon{width:52px;height:52px;margin:0 auto 12px;border-radius:16px;display:grid;place-items:center}
+.account-confirm-icon svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.account-confirm-icon.warning{background:#eef4fa;color:#0a4b86}.account-confirm-icon.danger{background:#fff0f1;color:#e93238}
+.account-confirm-card h2{margin:0;font-size:17px;color:#08285a}.account-confirm-card p{margin:9px 0 0;font-size:10px;line-height:1.55;color:#758298}.account-confirm-card p strong{color:#cf2c35}
+.account-delete-confirm-label{display:block;margin-top:14px;text-align:left;font-size:9px;font-weight:650;color:#65748a}
+.account-delete-confirm-label input{display:block;width:100%;height:44px;margin-top:6px;padding:0 12px;border:1px solid #dce3ec;border-radius:12px;background:#f8fafc;color:#08285a;font-size:16px;font-weight:750;text-align:center;outline:none}
 .account-action-error{min-height:16px!important;margin-top:7px!important;color:#cf2c35!important;font-size:9px!important}
-.account-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.account-confirm-actions button{min-height:43px;border-radius:12px;font-size:10.5px;font-weight:720;cursor:pointer}.account-confirm-cancel{border:1px solid #dfe5ed;background:#fff;color:#53637a}.account-confirm-danger{border:0;background:#e93238;color:#fff}.account-confirm-danger:disabled{opacity:.38;cursor:default}
-@media(max-width:999px){.phone:has(.data-account-page)>.bottom-nav{position:absolute;left:0;right:0;bottom:0;border-radius:18px 18px 0 0;padding:6px 4px calc(8px + env(safe-area-inset-bottom));height:auto;min-height:66px;background:rgba(255,255,255,.97);box-shadow:0 -4px 18px rgba(20,45,78,.06)}}
+.account-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.account-confirm-actions button{min-height:43px;border-radius:12px;font-size:10.5px;font-weight:720}
+.account-confirm-cancel{border:1px solid #dfe5ed;background:#fff;color:#53637a}.account-confirm-danger{border:0;background:#e93238;color:#fff}.account-confirm-danger:disabled{opacity:.38}
+
+/* ===== GÖRÜNÜM VE YAZI BOYUTU ===== */
+.phone .scroll-area:has(> .app-scroll > .appearance-page) > .app-header{display:none!important}
+.phone .app-scroll:has(> .appearance-page){padding:0 0 86px;background:transparent}
+.phone .scroll-area > .app-scroll > .appearance-page{padding:max(25px,calc(env(safe-area-inset-top) + 15px)) 16px 24px;min-height:100%}
+.appearance-preview-card,.appearance-setting-card{background:linear-gradient(145deg,#fff,#fbfdff);border:1px solid rgba(8,40,90,.065);border-radius:19px;box-shadow:0 9px 24px rgba(24,51,84,.055)}
+.appearance-preview-card{padding:17px;margin-bottom:10px}
+.appearance-preview-eyebrow{display:block;font-size:7.5px;font-weight:820;letter-spacing:1.2px;color:#8b98aa}
+.appearance-preview-card>strong{display:block;margin-top:5px;font-size:17px;color:#08285a}.appearance-preview-card>p{margin:5px 0 0;font-size:10px;line-height:1.45;color:#77859a}
+.appearance-preview-sample{margin-top:14px;padding:12px;border-radius:14px;background:#f3f7fb;display:flex;align-items:center;gap:11px}
+.appearance-preview-sample>b{width:42px;height:42px;border-radius:12px;background:#082f60;color:#fff;display:grid;place-items:center;font-size:18px}
+.appearance-preview-sample div strong{display:block;font-size:12px;color:#08285a}.appearance-preview-sample div small{display:block;margin-top:3px;font-size:9.5px;color:#7b889c}
+.appearance-setting-card{padding:15px;margin-top:10px}.appearance-setting-head{display:flex;align-items:center;gap:11px;margin-bottom:13px}
+.appearance-setting-icon{width:38px;height:38px;border-radius:12px;background:#eef4fa;color:#08285a;display:grid;place-items:center;font-size:17px;font-weight:650}
+.appearance-setting-icon svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8}
+.appearance-setting-head strong{display:block;font-size:14px;color:#08285a}.appearance-setting-head small{display:block;margin-top:3px;font-size:9.5px;color:#78869a}
+.appearance-segment{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.appearance-segment button{min-height:72px;border:1px solid #e0e6ee;border-radius:13px;background:#f8fafc;color:#617087;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.appearance-segment button.active{background:linear-gradient(145deg,#082f60,#0a3c72);border-color:#082f60;color:#fff;box-shadow:0 7px 16px rgba(8,47,96,.14)}
+.appearance-segment .size-small{font-size:13px}.appearance-segment .size-standard{font-size:17px}.appearance-segment .size-large{font-size:21px}
+.appearance-segment button small{font-size:8.5px;color:inherit;opacity:.82}
+.appearance-density-list{display:flex;flex-direction:column}.appearance-density-list button{min-height:58px;padding:9px 2px;border:0;border-top:1px solid #edf1f5;background:transparent;color:#08285a;display:flex;align-items:center;justify-content:space-between;text-align:left}
+.appearance-density-list button:first-child{border-top:0}.appearance-density-list button span b{display:block;font-size:11px}.appearance-density-list button span small{display:block;margin-top:3px;font-size:9px;color:#7b899c}
+.appearance-density-list button i{width:20px;height:20px;border-radius:50%;border:1.5px solid #cbd4df;position:relative}.appearance-density-list button.active i{border-color:#0a4b86}.appearance-density-list button.active i:after{content:"";position:absolute;inset:4px;border-radius:50%;background:#0a4b86}
+html[data-text-size="small"] .phone{-webkit-text-size-adjust:92%!important;text-size-adjust:92%!important}
+html[data-text-size="standard"] .phone{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important}
+html[data-text-size="large"] .phone{-webkit-text-size-adjust:112%!important;text-size-adjust:112%!important}
+html[data-ui-density="comfortable"] :is(.sp-profile-card,.sp-exam-card,.sp-study-card,.sp-reminder-item,.sp-statistics-entry,.sp-pref-card,.sp-menu-card,.ach-card,.account-section-card,.account-danger-card){margin-top:13px!important}
+html[data-ui-density="compact"] :is(.sp-profile-card,.sp-exam-card,.sp-study-card,.sp-reminder-item,.sp-statistics-entry,.sp-pref-card,.sp-menu-card,.ach-card,.account-section-card,.account-danger-card){margin-top:6px!important}
+html[data-ui-density="compact"] .sp-reminder-item{min-height:66px!important}html[data-ui-density="compact"] .sp-list-row{min-height:35px!important}
+
+@media(max-width:999px){
+  .phone:has(.data-account-page)>.bottom-nav,.phone:has(.appearance-page)>.bottom-nav{position:absolute;left:0;right:0;bottom:0;border-radius:18px 18px 0 0;padding:6px 4px calc(8px + env(safe-area-inset-bottom));height:auto;min-height:66px;background:rgba(255,255,255,.97);box-shadow:0 -4px 18px rgba(20,45,78,.06)}
+}

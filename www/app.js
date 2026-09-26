@@ -12,6 +12,34 @@ const DAILY_GOAL_MAX = 500;
 const QUESTION_TIME_LIMIT = 60;
 const PROGRESS_DEVICE_ID_STORAGE_KEY = 'sinavrotasi-progress-device-id-v1';
 
+const UI_PREFS_STORAGE_KEY = 'sinavrotasi-ui-prefs-v1';
+const DEFAULT_UI_PREFS = { textSize: 'standard', density: 'standard' };
+
+function loadUiPrefs() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(UI_PREFS_STORAGE_KEY) || '{}');
+    return {
+      textSize: ['small', 'standard', 'large'].includes(saved.textSize) ? saved.textSize : 'standard',
+      density: ['comfortable', 'standard', 'compact'].includes(saved.density) ? saved.density : 'standard'
+    };
+  } catch (_) {
+    return { ...DEFAULT_UI_PREFS };
+  }
+}
+
+let uiPrefs = loadUiPrefs();
+
+function applyUiPrefs() {
+  document.documentElement.dataset.textSize = uiPrefs.textSize;
+  document.documentElement.dataset.uiDensity = uiPrefs.density;
+}
+
+function saveUiPrefs() {
+  localStorage.setItem(UI_PREFS_STORAGE_KEY, JSON.stringify(uiPrefs));
+  applyUiPrefs();
+}
+
+
 // ---- Zamanlama sabitleri (önceden dosya içinde dağınık "magic number" olarak vardı) ----
 const TOAST_DURATION_MS = 2400;          // Toast bildiriminin ekranda kalma süresi
 const CLOUD_SYNC_DEBOUNCE_MS = 1500;     // Progress değişikliğinden sonra Supabase'e yazana kadar bekleme (debounce)
@@ -134,6 +162,7 @@ const routeSettings = {
 // Native (Capacitor) katmanı — ana uygulama koyu header'a sahip olduğu için
 // durum çubuğu açık/beyaz ikonlarla başlatılır. Web'de tamamen etkisizdir.
 window.NativeUX?.init({ statusBarStyle: 'DARK' });
+applyUiPrefs();
 
 const app = document.getElementById('app');
 const scrollArea = document.getElementById('scroll-area');
@@ -2180,6 +2209,7 @@ function profileView() {
   const userIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`;
   const aaIcon = `<span class="sp-aa">Aa</span>`;
   const bellIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>`;
+  const logoutIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></svg>`;
 
   return `<section class="screen content-screen profile-v2">
     <header class="sp-page-head">
@@ -2296,7 +2326,10 @@ function profileView() {
         ${aaIcon}<span>Görünüm ve yazı boyutu</span><b>›</b>
       </button>
       <button class="sp-list-row sp-main-row" id="dataAccountButton" type="button">
-        ${userIcon}<span>Verilerim ve hesap</span><small class="sp-sync-state"><i></i>Eşitlendi</small><b>›</b>
+        ${userIcon}<span>Hesap ve Verilerim</span><small class="sp-sync-state"><i></i>Eşitlendi</small><b>›</b>
+      </button>
+      <button class="sp-list-row sp-main-row sp-signout-row" id="profileSignOutButton" type="button">
+        ${logoutIcon}<span>Çıkış yap</span><b>›</b>
       </button>
     </section>
   </section>`;
@@ -2304,24 +2337,80 @@ function profileView() {
 
 
 
+function appearanceSettingsView() {
+  const textSize = uiPrefs.textSize || 'standard';
+  const density = uiPrefs.density || 'standard';
+  const layoutIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M9 10h12"/></svg>`;
+
+  return `<section class="screen content-screen sp-subscreen appearance-page">
+    <header class="sp-page-head sp-subpage-head">
+      <button class="sp-back" id="appearanceBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <h1>Görünüm ve yazı boyutu</h1>
+    </header>
+
+    <section class="appearance-preview-card">
+      <span class="appearance-preview-eyebrow">ÖNİZLEME</span>
+      <strong>Okumayı kendine göre ayarla</strong>
+      <p>Seçimlerin bu cihazda saklanır ve uygulamaya anında uygulanır.</p>
+      <div class="appearance-preview-sample">
+        <b>Aa</b>
+        <div><strong>Örnek soru metni</strong><small>Metin boyutu ve ekran yoğunluğu seçimine göre değişir.</small></div>
+      </div>
+    </section>
+
+    <section class="appearance-setting-card">
+      <div class="appearance-setting-head">
+        <span class="appearance-setting-icon">Aa</span>
+        <div><strong>Yazı boyutu</strong><small>Metinlerin okunabilirliğini ayarla.</small></div>
+      </div>
+      <div class="appearance-segment" role="group" aria-label="Yazı boyutu">
+        <button type="button" data-text-size="small" class="${textSize === 'small' ? 'active' : ''}"><span class="size-small">Aa</span><small>Küçük</small></button>
+        <button type="button" data-text-size="standard" class="${textSize === 'standard' ? 'active' : ''}"><span class="size-standard">Aa</span><small>Standart</small></button>
+        <button type="button" data-text-size="large" class="${textSize === 'large' ? 'active' : ''}"><span class="size-large">Aa</span><small>Büyük</small></button>
+      </div>
+    </section>
+
+    <section class="appearance-setting-card">
+      <div class="appearance-setting-head">
+        <span class="appearance-setting-icon">${layoutIcon}</span>
+        <div><strong>Arayüz yoğunluğu</strong><small>Kart aralıklarını ve ekranda görünen içerik miktarını ayarla.</small></div>
+      </div>
+      <div class="appearance-density-list">
+        <button type="button" data-ui-density="comfortable" class="${density === 'comfortable' ? 'active' : ''}">
+          <span><b>Rahat</b><small>Daha ferah kartlar ve geniş boşluklar</small></span><i></i>
+        </button>
+        <button type="button" data-ui-density="standard" class="${density === 'standard' ? 'active' : ''}">
+          <span><b>Standart</b><small>Önerilen varsayılan görünüm</small></span><i></i>
+        </button>
+        <button type="button" data-ui-density="compact" class="${density === 'compact' ? 'active' : ''}">
+          <span><b>Kompakt</b><small>Ekranda daha fazla içerik gösterir</small></span><i></i>
+        </button>
+      </div>
+    </section>
+  </section>`;
+}
+
 function dataAccountView() {
   const user = window.currentUser;
   const email = user?.email || 'E-posta bilgisi yok';
   const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Kullanıcı';
+  const isPremium = window.currentUserIsPremium === true;
+  const subscriptionLabel = isPremium ? 'Premium' : 'Free';
+  const subscriptionText = isPremium ? 'Premium erişimin aktif.' : 'Şu anda ücretsiz planı kullanıyorsun.';
   const isResetConfirm = accountConfirmAction === 'reset';
   const isDeleteConfirm = accountConfirmAction === 'delete';
 
-  const cloudIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 8.1 5 5 0 0 0 7 18Z"/><path d="m9 14 2 2 4-4"/></svg>`;
-  const trashIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="m6 7 1 14h10l1-14"/><path d="M10 11v6m4-6v6"/></svg>`;
-  const logoutIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></svg>`;
-  const databaseIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>`;
   const userIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`;
+  const cloudIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 8.1 5 5 0 0 0 7 18Z"/><path d="m9 14 2 2 4-4"/></svg>`;
+  const databaseIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>`;
+  const trashIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="m6 7 1 14h10l1-14"/><path d="M10 11v6m4-6v6"/></svg>`;
+  const starIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9L12 3Z"/></svg>`;
 
   const confirmOverlay = isResetConfirm ? `
-    <div class="account-confirm-overlay" id="accountConfirmOverlay" role="dialog" aria-modal="true" aria-labelledby="accountConfirmTitle">
+    <div class="account-confirm-overlay" id="accountConfirmOverlay" role="dialog" aria-modal="true">
       <div class="account-confirm-card">
         <span class="account-confirm-icon warning">${databaseIcon}</span>
-        <h2 id="accountConfirmTitle">İlerleme verilerini temizle?</h2>
+        <h2>İlerleme verilerini temizle?</h2>
         <p>Soru çözüm geçmişin, yanlışların, deneme sonuçların, seri ve rozet ilerlemen ile kart tekrarların sıfırlanacak. <strong>Kadron, günlük hedefin ve bildirim tercihlerinin korunacak.</strong></p>
         <div class="account-confirm-actions">
           <button type="button" class="account-confirm-cancel" id="accountConfirmCancelButton">Vazgeç</button>
@@ -2329,12 +2418,12 @@ function dataAccountView() {
         </div>
       </div>
     </div>` : isDeleteConfirm ? `
-    <div class="account-confirm-overlay" id="accountConfirmOverlay" role="dialog" aria-modal="true" aria-labelledby="accountConfirmTitle">
+    <div class="account-confirm-overlay" id="accountConfirmOverlay" role="dialog" aria-modal="true">
       <div class="account-confirm-card delete">
         <span class="account-confirm-icon danger">${trashIcon}</span>
-        <h2 id="accountConfirmTitle">Hesabını kalıcı olarak sil?</h2>
-        <p>Hesabın, çalışma verilerin ve oturumun kalıcı olarak silinecek. Bu işlem <strong>geri alınamaz.</strong></p>
-        <label class="account-delete-confirm-label" for="accountDeleteConfirmInput">Devam etmek için <b>SİL</b> yaz
+        <h2>Hesabını kalıcı olarak sil?</h2>
+        <p>Hesabın ve ilişkili çalışma verilerin kalıcı olarak silinecek. Bu işlem <strong>geri alınamaz.</strong></p>
+        <label class="account-delete-confirm-label">Devam etmek için <b>SİL</b> yaz
           <input id="accountDeleteConfirmInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SİL">
         </label>
         <p class="account-action-error" id="accountDeleteError" aria-live="polite"></p>
@@ -2348,7 +2437,7 @@ function dataAccountView() {
   return `<section class="screen content-screen sp-subscreen data-account-page">
     <header class="sp-page-head sp-subpage-head">
       <button class="sp-back" id="dataAccountBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
-      <h1>Verilerim ve hesap</h1>
+      <h1>Hesap ve Verilerim</h1>
     </header>
 
     <section class="account-user-card">
@@ -2357,19 +2446,27 @@ function dataAccountView() {
       <span class="account-sync-pill"><i></i>Eşitlendi</span>
     </section>
 
-    <section class="account-section-card">
-      <div class="account-section-head"><span class="account-section-icon blue">${cloudIcon}</span><div><strong>Veri ve senkronizasyon</strong><small>Çalışma ilerlemen hesabınla eşitlenir.</small></div></div>
-      <button class="account-action-row" id="accountResetProgressButton" type="button">
-        <span class="account-action-icon">${databaseIcon}</span>
-        <span class="account-action-copy"><strong>İlerleme verilerini temizle</strong><small>Soru geçmişini ve çalışma ilerlemeni sıfırla</small></span><b>›</b>
-      </button>
+    <section class="account-section-card account-subscription-card">
+      <div class="account-section-head">
+        <span class="account-section-icon subscription">${starIcon}</span>
+        <div><strong>Abonelik</strong><small>Mevcut planın ve erişim durumun.</small></div>
+      </div>
+      <div class="account-subscription-row">
+        <div class="account-subscription-copy">
+          <span>Plan</span><strong>${subscriptionLabel}</strong><small>${subscriptionText}</small>
+        </div>
+        <span class="account-plan-badge${isPremium ? ' premium' : ''}">${subscriptionLabel}</span>
+      </div>
     </section>
 
     <section class="account-section-card">
-      <div class="account-section-head"><span class="account-section-icon navy">${userIcon}</span><div><strong>Hesap</strong><small>Oturumunu ve hesabını yönet.</small></div></div>
-      <button class="account-action-row" id="accountSignOutButton" type="button">
-        <span class="account-action-icon">${logoutIcon}</span>
-        <span class="account-action-copy"><strong>Çıkış yap</strong><small>Bu cihazdaki oturumunu kapat</small></span><b>›</b>
+      <div class="account-section-head">
+        <span class="account-section-icon blue">${cloudIcon}</span>
+        <div><strong>Veri ve senkronizasyon</strong><small>Çalışma ilerlemen hesabınla eşitlenir.</small></div>
+      </div>
+      <button class="account-action-row" id="accountResetProgressButton" type="button">
+        <span class="account-action-icon">${databaseIcon}</span>
+        <span class="account-action-copy"><strong>İlerleme verilerini temizle</strong><small>Soru geçmişini ve çalışma ilerlemeni sıfırla</small></span><b>›</b>
       </button>
     </section>
 
@@ -2860,18 +2957,20 @@ function achievementsView() {
       <h1>Başarılarım</h1>
     </header>
 
-    <section class="ach-summary">
-      <div>
-        <span>Toplam başarı</span>
-        <strong>${unlockedCount} / ${badges.length}</strong>
+    <section class="ach-summary ach-summary-premium">
+      <div class="ach-summary-copy">
+        <span class="ach-summary-eyebrow">BAŞARI DURUMU</span>
+        <strong>${unlockedCount} / ${badges.length} <small>rozet</small></strong>
+        <p>Hedeflerine ilerledikçe koleksiyonun büyür.</p>
+        <div class="ach-summary-progress"><i style="width:${Math.round((unlockedCount / Math.max(1, badges.length)) * 100)}%"></i></div>
       </div>
-      <div class="ach-summary-icon">${svg('trophy')}</div>
+      <div class="ach-summary-icon"><span>${svg('trophy')}</span></div>
     </section>
 
     <section class="ach-card">
-      <div class="ach-card-head">
+      <div class="ach-card-head ach-card-head-premium">
         <div><strong>Rozetlerim</strong><small>Çalışma alışkanlığın büyüdükçe yeni rozetler açılır.</small></div>
-        <span>${unlockedCount} kazanıldı</span>
+        <span>${unlockedCount} rozet kazanıldı</span>
       </div>
       <div class="ach-grid">
         ${badges.map(badge => `<article class="ach-badge${badge.unlocked ? ' unlocked' : ' locked'}">
@@ -2886,9 +2985,9 @@ function achievementsView() {
 }
 
 function render() {
-  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, statistics: statisticsView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView, 'data-account': dataAccountView };
+  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, statistics: statisticsView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView, 'data-account': dataAccountView, appearance: appearanceSettingsView };
   const appHeader = document.querySelector('.app-header');
-  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account'].includes(state.view));
+  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance'].includes(state.view));
   app.innerHTML = (views[state.view] || homeView)();
   bindViewEvents();
   updateHeader();
@@ -3061,13 +3160,55 @@ function bindViewEvents() {
 
   document.getElementById('repeatPriorityButton')?.addEventListener('click', () => showToast('Tekrar önceliği: Yanlış yaptıklarım'));
   document.getElementById('pauseStudyButton')?.addEventListener('click', () => showToast('Çalışma planını duraklatma ayarı yakında.'));
-  document.getElementById('appearanceSettingsButton')?.addEventListener('click', () => showToast('Görünüm ve yazı boyutu ayarı yakında.'));
+  document.getElementById('appearanceSettingsButton')?.addEventListener('click', () => {
+    state.view = 'appearance';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
+  });
+
   document.getElementById('dataAccountButton')?.addEventListener('click', () => {
     accountConfirmAction = null;
     state.view = 'data-account';
     setNav('profile');
     render();
     scrollArea.scrollTop = 0;
+  });
+
+  document.getElementById('profileSignOutButton')?.addEventListener('click', async event => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    try {
+      await flushProgressSync();
+      await window.signOut();
+    } catch (error) {
+      console.error('Çıkış yapılamadı:', error);
+      button.disabled = false;
+      showToast('Çıkış yapılamadı. Lütfen tekrar dene.');
+    }
+  });
+
+  document.getElementById('appearanceBackButton')?.addEventListener('click', () => {
+    state.view = 'profile';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
+  });
+
+  app.querySelectorAll('[data-text-size]').forEach(button => {
+    button.addEventListener('click', () => {
+      uiPrefs.textSize = button.dataset.textSize || 'standard';
+      saveUiPrefs();
+      render();
+    });
+  });
+
+  app.querySelectorAll('[data-ui-density]').forEach(button => {
+    button.addEventListener('click', () => {
+      uiPrefs.density = button.dataset.uiDensity || 'standard';
+      saveUiPrefs();
+      render();
+    });
   });
 
   document.getElementById('dataAccountBackButton')?.addEventListener('click', () => {
@@ -3107,45 +3248,25 @@ function bindViewEvents() {
     button.disabled = true;
     button.textContent = 'Temizleniyor…';
     accountConfirmAction = null;
-    const ok = await resetProgress({ skipConfirm: true, returnStatus: true });
+    await resetProgress({ skipConfirm: true });
     state.view = 'data-account';
     setNav('profile');
     render();
     scrollArea.scrollTop = 0;
-    if (!ok) showToast('İlerleme verileri tamamen temizlenemedi.');
   });
 
-  document.getElementById('accountSignOutButton')?.addEventListener('click', async event => {
-    const button = event.currentTarget;
-    button.disabled = true;
-    try {
-      await flushProgressSync();
-      if (typeof window.signOut === 'function') {
-        await window.signOut();
-      } else {
-        await supabaseClient.auth.signOut({ scope: 'local' });
-        window.location.replace('login.html');
-      }
-    } catch (error) {
-      console.error('Çıkış yapılamadı:', error);
-      button.disabled = false;
-      showToast('Çıkış yapılamadı. Lütfen tekrar dene.');
-    }
+  const deleteConfirmInput = document.getElementById('accountDeleteConfirmInput');
+  const deleteConfirmButton = document.getElementById('accountDeleteConfirmButton');
+  deleteConfirmInput?.addEventListener('input', () => {
+    const confirmed = deleteConfirmInput.value.trim().toLocaleUpperCase('tr-TR') === 'SİL';
+    if (deleteConfirmButton) deleteConfirmButton.disabled = !confirmed;
   });
 
-  const accountDeleteConfirmInput = document.getElementById('accountDeleteConfirmInput');
-  const accountDeleteConfirmButton = document.getElementById('accountDeleteConfirmButton');
-  accountDeleteConfirmInput?.addEventListener('input', () => {
-    const confirmed = accountDeleteConfirmInput.value.trim().toLocaleUpperCase('tr-TR') === 'SİL';
-    if (accountDeleteConfirmButton) accountDeleteConfirmButton.disabled = !confirmed;
-  });
-
-  accountDeleteConfirmButton?.addEventListener('click', async () => {
+  deleteConfirmButton?.addEventListener('click', async () => {
     const errorEl = document.getElementById('accountDeleteError');
-    const confirmed = accountDeleteConfirmInput?.value.trim().toLocaleUpperCase('tr-TR') === 'SİL';
-    if (!confirmed) return;
-    accountDeleteConfirmButton.disabled = true;
-    accountDeleteConfirmButton.textContent = 'Siliniyor…';
+    if (deleteConfirmInput?.value.trim().toLocaleUpperCase('tr-TR') !== 'SİL') return;
+    deleteConfirmButton.disabled = true;
+    deleteConfirmButton.textContent = 'Siliniyor…';
     if (errorEl) errorEl.textContent = '';
 
     try {
@@ -3164,8 +3285,8 @@ function bindViewEvents() {
     } catch (error) {
       console.error('Hesap silinemedi:', error);
       if (errorEl) errorEl.textContent = error?.message || 'Hesap silinemedi. Lütfen tekrar dene.';
-      accountDeleteConfirmButton.disabled = false;
-      accountDeleteConfirmButton.textContent = 'Hesabımı sil';
+      deleteConfirmButton.disabled = false;
+      deleteConfirmButton.textContent = 'Hesabımı sil';
     }
   });
 
@@ -3443,13 +3564,12 @@ function updateHeader() {
 
 async function resetProgress(options = {}) {
   const skipConfirm = options?.skipConfirm === true;
-  const returnStatus = options?.returnStatus === true;
   // O-10 (2026-09-15): Sıfırlama artık bir "dönem" (resetAt) başlatır.
   // Birleştirmede bu tarihten önceki çalışma verisi (sayaçlar, yanlışlar,
   // işaretler, testler) başka cihazlardan veya buluttan geri gelmez.
   // Kart (Leitner) ilerlemesi de sunucudan silinir. Kadro, günlük hedef ve
   // bildirim tercihleri korunur.
-  if (!skipConfirm && !window.confirm('Tüm çalışma ilerlemen (bu cihazda ve hesabında; kart tekrarları dahil) sıfırlansın mı? Bu işlem geri alınamaz.')) return returnStatus ? false : undefined;
+  if (!skipConfirm && !window.confirm('Tüm çalışma ilerlemen (bu cihazda ve hesabında; kart tekrarları dahil) sıfırlansın mı? Bu işlem geri alınamaz.')) return;
   const keep = {
     userId: progress.userId,
     selectedRole: progress.selectedRole,
@@ -3460,7 +3580,6 @@ async function resetProgress(options = {}) {
   };
   progress = { ...defaultProgress(), ...keep, resetAt: Date.now() };
   saveProgress();
-  await flushProgressSync();
 
   if (window.currentUser?.id) {
     const { error } = await supabaseClient
@@ -3470,13 +3589,12 @@ async function resetProgress(options = {}) {
     if (error) {
       console.error('Kart ilerlemesi silinemedi:', error);
       showToast('Çalışma ilerlemen sıfırlandı; kart tekrarları silinemedi, tekrar dene.');
-      return returnStatus ? false : undefined;
+      return;
     }
     state.totalDueFlashcards = 0;
   }
   showToast('İlerleme verisi sıfırlandı.');
   render();
-  return returnStatus ? true : undefined;
 }
 
 // --- ROTA PANELİ YÖNETİMİ ---
@@ -5321,7 +5439,7 @@ function handleHardwareBack() {
     return true;
   }
   if (routeSheet.classList.contains('open')) { closeRouteSheet(); return true; }
-  if (['statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account'].includes(state.view)) {
+  if (['statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance'].includes(state.view)) {
     state.view = 'profile';
     setNav('profile');
     render();
