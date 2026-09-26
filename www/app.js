@@ -100,6 +100,8 @@ const statisticsUi = {
   openMenu: null
 };
 
+let accountConfirmAction = null;
+
 const state = {
   view: 'home',
   catalogue: null,
@@ -2301,6 +2303,87 @@ function profileView() {
 }
 
 
+
+function dataAccountView() {
+  const user = window.currentUser;
+  const email = user?.email || 'E-posta bilgisi yok';
+  const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Kullanıcı';
+  const isResetConfirm = accountConfirmAction === 'reset';
+  const isDeleteConfirm = accountConfirmAction === 'delete';
+
+  const cloudIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 8.1 5 5 0 0 0 7 18Z"/><path d="m9 14 2 2 4-4"/></svg>`;
+  const trashIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="m6 7 1 14h10l1-14"/><path d="M10 11v6m4-6v6"/></svg>`;
+  const logoutIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></svg>`;
+  const databaseIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>`;
+  const userIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`;
+
+  const confirmOverlay = isResetConfirm ? `
+    <div class="account-confirm-overlay" id="accountConfirmOverlay" role="dialog" aria-modal="true" aria-labelledby="accountConfirmTitle">
+      <div class="account-confirm-card">
+        <span class="account-confirm-icon warning">${databaseIcon}</span>
+        <h2 id="accountConfirmTitle">İlerleme verilerini temizle?</h2>
+        <p>Soru çözüm geçmişin, yanlışların, deneme sonuçların, seri ve rozet ilerlemen ile kart tekrarların sıfırlanacak. <strong>Kadron, günlük hedefin ve bildirim tercihlerinin korunacak.</strong></p>
+        <div class="account-confirm-actions">
+          <button type="button" class="account-confirm-cancel" id="accountConfirmCancelButton">Vazgeç</button>
+          <button type="button" class="account-confirm-danger" id="accountResetConfirmButton">Verileri temizle</button>
+        </div>
+      </div>
+    </div>` : isDeleteConfirm ? `
+    <div class="account-confirm-overlay" id="accountConfirmOverlay" role="dialog" aria-modal="true" aria-labelledby="accountConfirmTitle">
+      <div class="account-confirm-card delete">
+        <span class="account-confirm-icon danger">${trashIcon}</span>
+        <h2 id="accountConfirmTitle">Hesabını kalıcı olarak sil?</h2>
+        <p>Hesabın, çalışma verilerin ve oturumun kalıcı olarak silinecek. Bu işlem <strong>geri alınamaz.</strong></p>
+        <label class="account-delete-confirm-label" for="accountDeleteConfirmInput">Devam etmek için <b>SİL</b> yaz
+          <input id="accountDeleteConfirmInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SİL">
+        </label>
+        <p class="account-action-error" id="accountDeleteError" aria-live="polite"></p>
+        <div class="account-confirm-actions">
+          <button type="button" class="account-confirm-cancel" id="accountConfirmCancelButton">Vazgeç</button>
+          <button type="button" class="account-confirm-danger" id="accountDeleteConfirmButton" disabled>Hesabımı sil</button>
+        </div>
+      </div>
+    </div>` : '';
+
+  return `<section class="screen content-screen sp-subscreen data-account-page">
+    <header class="sp-page-head sp-subpage-head">
+      <button class="sp-back" id="dataAccountBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <h1>Verilerim ve hesap</h1>
+    </header>
+
+    <section class="account-user-card">
+      <div class="account-user-mark">${userIcon}</div>
+      <div class="account-user-copy"><strong>${escapeHtml(fullName)}</strong><span>${escapeHtml(email)}</span></div>
+      <span class="account-sync-pill"><i></i>Eşitlendi</span>
+    </section>
+
+    <section class="account-section-card">
+      <div class="account-section-head"><span class="account-section-icon blue">${cloudIcon}</span><div><strong>Veri ve senkronizasyon</strong><small>Çalışma ilerlemen hesabınla eşitlenir.</small></div></div>
+      <button class="account-action-row" id="accountResetProgressButton" type="button">
+        <span class="account-action-icon">${databaseIcon}</span>
+        <span class="account-action-copy"><strong>İlerleme verilerini temizle</strong><small>Soru geçmişini ve çalışma ilerlemeni sıfırla</small></span><b>›</b>
+      </button>
+    </section>
+
+    <section class="account-section-card">
+      <div class="account-section-head"><span class="account-section-icon navy">${userIcon}</span><div><strong>Hesap</strong><small>Oturumunu ve hesabını yönet.</small></div></div>
+      <button class="account-action-row" id="accountSignOutButton" type="button">
+        <span class="account-action-icon">${logoutIcon}</span>
+        <span class="account-action-copy"><strong>Çıkış yap</strong><small>Bu cihazdaki oturumunu kapat</small></span><b>›</b>
+      </button>
+    </section>
+
+    <section class="account-danger-card">
+      <span class="account-danger-eyebrow">TEHLİKELİ BÖLGE</span>
+      <button class="account-action-row danger" id="accountDeleteButton" type="button">
+        <span class="account-action-icon">${trashIcon}</span>
+        <span class="account-action-copy"><strong>Hesabımı sil</strong><small>Hesabını ve ilişkili verilerini kalıcı olarak sil</small></span><b>›</b>
+      </button>
+    </section>
+    ${confirmOverlay}
+  </section>`;
+}
+
 function profileEditView() {
   const user = window.currentUser;
   const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
@@ -2803,9 +2886,9 @@ function achievementsView() {
 }
 
 function render() {
-  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, statistics: statisticsView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView };
+  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, statistics: statisticsView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView, 'data-account': dataAccountView };
   const appHeader = document.querySelector('.app-header');
-  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'statistics', 'achievements', 'profile-edit', 'goal-settings'].includes(state.view));
+  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account'].includes(state.view));
   app.innerHTML = (views[state.view] || homeView)();
   bindViewEvents();
   updateHeader();
@@ -2979,7 +3062,112 @@ function bindViewEvents() {
   document.getElementById('repeatPriorityButton')?.addEventListener('click', () => showToast('Tekrar önceliği: Yanlış yaptıklarım'));
   document.getElementById('pauseStudyButton')?.addEventListener('click', () => showToast('Çalışma planını duraklatma ayarı yakında.'));
   document.getElementById('appearanceSettingsButton')?.addEventListener('click', () => showToast('Görünüm ve yazı boyutu ayarı yakında.'));
-  document.getElementById('dataAccountButton')?.addEventListener('click', () => showToast('Verilerim ve hesap ekranı sonraki adımda bağlanabilir.'));
+  document.getElementById('dataAccountButton')?.addEventListener('click', () => {
+    accountConfirmAction = null;
+    state.view = 'data-account';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
+  });
+
+  document.getElementById('dataAccountBackButton')?.addEventListener('click', () => {
+    accountConfirmAction = null;
+    state.view = 'profile';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
+  });
+
+  document.getElementById('accountResetProgressButton')?.addEventListener('click', () => {
+    accountConfirmAction = 'reset';
+    render();
+  });
+
+  document.getElementById('accountDeleteButton')?.addEventListener('click', () => {
+    accountConfirmAction = 'delete';
+    render();
+    setTimeout(() => document.getElementById('accountDeleteConfirmInput')?.focus({ preventScroll: true }), 60);
+  });
+
+  document.getElementById('accountConfirmCancelButton')?.addEventListener('click', () => {
+    accountConfirmAction = null;
+    window.NativeUX?.hideKeyboard?.();
+    render();
+  });
+
+  document.getElementById('accountConfirmOverlay')?.addEventListener('click', event => {
+    if (event.target?.id !== 'accountConfirmOverlay') return;
+    accountConfirmAction = null;
+    window.NativeUX?.hideKeyboard?.();
+    render();
+  });
+
+  document.getElementById('accountResetConfirmButton')?.addEventListener('click', async event => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    button.textContent = 'Temizleniyor…';
+    accountConfirmAction = null;
+    const ok = await resetProgress({ skipConfirm: true, returnStatus: true });
+    state.view = 'data-account';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
+    if (!ok) showToast('İlerleme verileri tamamen temizlenemedi.');
+  });
+
+  document.getElementById('accountSignOutButton')?.addEventListener('click', async event => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    try {
+      await flushProgressSync();
+      if (typeof window.signOut === 'function') {
+        await window.signOut();
+      } else {
+        await supabaseClient.auth.signOut({ scope: 'local' });
+        window.location.replace('login.html');
+      }
+    } catch (error) {
+      console.error('Çıkış yapılamadı:', error);
+      button.disabled = false;
+      showToast('Çıkış yapılamadı. Lütfen tekrar dene.');
+    }
+  });
+
+  const accountDeleteConfirmInput = document.getElementById('accountDeleteConfirmInput');
+  const accountDeleteConfirmButton = document.getElementById('accountDeleteConfirmButton');
+  accountDeleteConfirmInput?.addEventListener('input', () => {
+    const confirmed = accountDeleteConfirmInput.value.trim().toLocaleUpperCase('tr-TR') === 'SİL';
+    if (accountDeleteConfirmButton) accountDeleteConfirmButton.disabled = !confirmed;
+  });
+
+  accountDeleteConfirmButton?.addEventListener('click', async () => {
+    const errorEl = document.getElementById('accountDeleteError');
+    const confirmed = accountDeleteConfirmInput?.value.trim().toLocaleUpperCase('tr-TR') === 'SİL';
+    if (!confirmed) return;
+    accountDeleteConfirmButton.disabled = true;
+    accountDeleteConfirmButton.textContent = 'Siliniyor…';
+    if (errorEl) errorEl.textContent = '';
+
+    try {
+      await flushProgressSync();
+      const { data, error } = await supabaseClient.functions.invoke('delete-account', {
+        body: { confirmation: 'delete-own-account' }
+      });
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'Hesap silinemedi.');
+
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(PROGRESS_DEVICE_ID_STORAGE_KEY);
+      try { await supabaseClient.auth.signOut({ scope: 'local' }); } catch (_) {}
+      window.currentUser = null;
+      window.location.replace('login.html');
+    } catch (error) {
+      console.error('Hesap silinemedi:', error);
+      if (errorEl) errorEl.textContent = error?.message || 'Hesap silinemedi. Lütfen tekrar dene.';
+      accountDeleteConfirmButton.disabled = false;
+      accountDeleteConfirmButton.textContent = 'Hesabımı sil';
+    }
+  });
 
   document.getElementById('openAchievementsButton')?.addEventListener('click', () => {
     state.view = 'achievements';
@@ -3253,13 +3441,15 @@ function updateHeader() {
   if (message) message.textContent = stats.dailyPercentage >= 100 ? 'Günlük hedefini tamamladın. Harika iş!' : stats.todayAnswers ? 'Hedefine düzenli biçimde yaklaşıyorsun.' : 'İlk soruyla günlük hedefini başlat.';
 }
 
-async function resetProgress() {
+async function resetProgress(options = {}) {
+  const skipConfirm = options?.skipConfirm === true;
+  const returnStatus = options?.returnStatus === true;
   // O-10 (2026-09-15): Sıfırlama artık bir "dönem" (resetAt) başlatır.
   // Birleştirmede bu tarihten önceki çalışma verisi (sayaçlar, yanlışlar,
   // işaretler, testler) başka cihazlardan veya buluttan geri gelmez.
   // Kart (Leitner) ilerlemesi de sunucudan silinir. Kadro, günlük hedef ve
   // bildirim tercihleri korunur.
-  if (!window.confirm('Tüm çalışma ilerlemen (bu cihazda ve hesabında; kart tekrarları dahil) sıfırlansın mı? Bu işlem geri alınamaz.')) return;
+  if (!skipConfirm && !window.confirm('Tüm çalışma ilerlemen (bu cihazda ve hesabında; kart tekrarları dahil) sıfırlansın mı? Bu işlem geri alınamaz.')) return returnStatus ? false : undefined;
   const keep = {
     userId: progress.userId,
     selectedRole: progress.selectedRole,
@@ -3270,6 +3460,7 @@ async function resetProgress() {
   };
   progress = { ...defaultProgress(), ...keep, resetAt: Date.now() };
   saveProgress();
+  await flushProgressSync();
 
   if (window.currentUser?.id) {
     const { error } = await supabaseClient
@@ -3279,12 +3470,13 @@ async function resetProgress() {
     if (error) {
       console.error('Kart ilerlemesi silinemedi:', error);
       showToast('Çalışma ilerlemen sıfırlandı; kart tekrarları silinemedi, tekrar dene.');
-      return;
+      return returnStatus ? false : undefined;
     }
     state.totalDueFlashcards = 0;
   }
   showToast('İlerleme verisi sıfırlandı.');
   render();
+  return returnStatus ? true : undefined;
 }
 
 // --- ROTA PANELİ YÖNETİMİ ---
@@ -5129,7 +5321,7 @@ function handleHardwareBack() {
     return true;
   }
   if (routeSheet.classList.contains('open')) { closeRouteSheet(); return true; }
-  if (['statistics', 'achievements', 'profile-edit', 'goal-settings'].includes(state.view)) {
+  if (['statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account'].includes(state.view)) {
     state.view = 'profile';
     setNav('profile');
     render();

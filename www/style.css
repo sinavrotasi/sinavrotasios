@@ -5998,3 +5998,49 @@ body.auth-page{
   .statistics-page .metric-mock small{font-size:10px!important}
   .statistics-page .stats-subject-copy small{font-size:11px!important}
 }
+
+/* ============================================================
+   VERİLERİM VE HESAP
+   ============================================================ */
+.phone .scroll-area:has(> .app-scroll > .data-account-page) > .app-header{display:none!important}
+.phone .app-scroll:has(> .data-account-page){padding:0 0 86px;background:transparent}
+.phone .scroll-area > .app-scroll > .data-account-page{
+  padding:max(25px,calc(env(safe-area-inset-top) + 15px)) 16px 24px;
+  min-height:100%;
+}
+.data-account-page{--account-navy:#08285a;--account-red:#e93238;--account-muted:#75839a}
+.account-user-card{
+  min-height:82px;display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:12px;align-items:center;
+  padding:14px;background:linear-gradient(145deg,#fff,#fbfdff);border:1px solid rgba(8,40,90,.065);
+  border-radius:18px;box-shadow:0 8px 22px rgba(24,51,84,.055)
+}
+.account-user-mark{width:46px;height:46px;border-radius:14px;background:#eef4fa;color:var(--account-navy);display:grid;place-items:center}
+.account-user-mark svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.account-user-copy{min-width:0}
+.account-user-copy strong{display:block;font-size:15px;font-weight:780;color:var(--account-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.account-user-copy span{display:block;margin-top:4px;font-size:10px;color:var(--account-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.account-sync-pill{display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:12px;background:#f2f8f3;color:#5c7461;font-size:9px;font-weight:650;white-space:nowrap}
+.account-sync-pill i{width:7px;height:7px;border-radius:50%;background:#43c832}
+.account-section-card,.account-danger-card{margin-top:10px;padding:12px 14px;background:#fff;border:1px solid rgba(8,40,90,.06);border-radius:18px;box-shadow:0 8px 22px rgba(24,51,84,.05)}
+.account-section-head{display:flex;align-items:center;gap:11px;padding:2px 2px 11px}
+.account-section-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex-shrink:0}
+.account-section-icon svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.account-section-icon.blue{background:#eef5fc;color:#1769aa}.account-section-icon.navy{background:#eef2f7;color:#08285a}
+.account-section-head strong{display:block;font-size:14px;color:var(--account-navy);font-weight:760}
+.account-section-head small{display:block;margin-top:3px;font-size:9.5px;color:var(--account-muted)}
+.account-action-row{width:100%;min-height:58px;padding:9px 2px;border:0;border-top:1px solid #edf1f5;background:transparent;display:grid;grid-template-columns:34px minmax(0,1fr) 14px;align-items:center;gap:10px;color:var(--account-navy);text-align:left;cursor:pointer}
+.account-action-row:disabled{opacity:.55}
+.account-action-icon{width:32px;height:32px;border-radius:10px;background:#f2f5f8;color:#64758b;display:grid;place-items:center}
+.account-action-icon svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.account-action-copy{min-width:0}.account-action-copy strong{display:block;font-size:11.5px;font-weight:720}.account-action-copy small{display:block;margin-top:3px;font-size:9px;line-height:1.35;color:#7d899c}.account-action-row>b{font-size:21px;line-height:1;font-weight:300;color:#6d7a8f}
+.account-danger-card{border-color:rgba(233,50,56,.10);background:linear-gradient(145deg,#fff,#fffafa)}
+.account-danger-eyebrow{display:block;padding:1px 2px 8px;font-size:7.5px;font-weight:820;letter-spacing:1.2px;color:#d14a51}
+.account-action-row.danger{border-top:1px solid #f5e3e5}.account-action-row.danger .account-action-icon{background:#fff0f1;color:var(--account-red)}.account-action-row.danger .account-action-copy strong{color:#cf2c35}
+.account-confirm-overlay{position:absolute;inset:0;z-index:250;padding:18px;display:flex;align-items:center;justify-content:center;background:rgba(7,31,73,.42);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.account-confirm-card{width:min(100%,360px);padding:21px 18px 17px;border-radius:22px;background:#fff;box-shadow:0 24px 60px rgba(7,31,73,.22);text-align:center}
+.account-confirm-icon{width:52px;height:52px;margin:0 auto 12px;border-radius:16px;display:grid;place-items:center}.account-confirm-icon svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.account-confirm-icon.warning{background:#eef4fa;color:#0a4b86}.account-confirm-icon.danger{background:#fff0f1;color:var(--account-red)}
+.account-confirm-card h2{margin:0;font-size:17px;color:var(--account-navy);letter-spacing:-.35px}.account-confirm-card p{margin:9px 0 0;font-size:10px;line-height:1.55;color:#758298}.account-confirm-card p strong{color:#485972}.account-confirm-card.delete p strong{color:#cf2c35}
+.account-delete-confirm-label{display:block;margin-top:14px;text-align:left;font-size:9px;font-weight:650;color:#65748a}.account-delete-confirm-label b{color:#cf2c35}.account-delete-confirm-label input{display:block;width:100%;height:44px;margin-top:6px;padding:0 12px;border:1px solid #dce3ec;border-radius:12px;background:#f8fafc;color:#08285a;font-size:16px;font-weight:750;text-align:center;outline:none;-webkit-text-size-adjust:100%}.account-delete-confirm-label input:focus{border-color:#d6575e;background:#fff}
+.account-action-error{min-height:16px!important;margin-top:7px!important;color:#cf2c35!important;font-size:9px!important}
+.account-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.account-confirm-actions button{min-height:43px;border-radius:12px;font-size:10.5px;font-weight:720;cursor:pointer}.account-confirm-cancel{border:1px solid #dfe5ed;background:#fff;color:#53637a}.account-confirm-danger{border:0;background:#e93238;color:#fff}.account-confirm-danger:disabled{opacity:.38;cursor:default}
+@media(max-width:999px){.phone:has(.data-account-page)>.bottom-nav{position:absolute;left:0;right:0;bottom:0;border-radius:18px 18px 0 0;padding:6px 4px calc(8px + env(safe-area-inset-bottom));height:auto;min-height:66px;background:rgba(255,255,255,.97);box-shadow:0 -4px 18px rgba(20,45,78,.06)}}
