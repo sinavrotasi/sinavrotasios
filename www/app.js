@@ -2123,7 +2123,7 @@ function profileView() {
 
       <div class="sp-exam-copy sp-exam-copy-v2">
         <span class="sp-exam-kicker-v2">Sınav hedefim</span>
-        <strong>${escapeHtml(roleLabel)}</strong>
+        <strong class="${roleLabel === 'Şube Müdürü' ? 'is-long-role' : ''}">${escapeHtml(roleLabel)}</strong>
       </div>
 
       <button class="sp-exam-date sp-exam-date-v2" id="profileChangeRoleButton" type="button">

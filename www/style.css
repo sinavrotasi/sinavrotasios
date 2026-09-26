@@ -5423,3 +5423,118 @@ body.auth-page{
     justify-self:stretch!important;
   }
 }
+
+
+/* ============================================================
+   SINAV HEDEFİ KARTI — SON DÜZELTMELER
+   - Sağ kırmızı yaylar kaldırıldı
+   - Şube Müdürü eksiksiz gösterilir
+   - Türkçe karakter kırpılması engellendi
+   ============================================================ */
+
+/* Sağ taraftaki kırmızı dekoratif şerit/yayları tamamen kaldır */
+.profile-v2 .sp-exam-curve-v2,
+.profile-v2 .sp-exam-curve-v2:after{
+  display:none!important;
+  content:none!important;
+}
+
+/* Sağ üstteki eski kırmızı/ışıklı kalıntıları da nötrle */
+.profile-v2 .sp-exam-card.sp-exam-card-v2:after{
+  background:
+    radial-gradient(circle,transparent 0 58%,rgba(255,255,255,.025) 59% 69%,transparent 70%)!important;
+}
+
+/* Metin alanına biraz daha fazla yer ver */
+.profile-v2 .sp-exam-card.sp-exam-card-v2{
+  grid-template-columns:58px minmax(0,1fr) 134px!important;
+  gap:11px!important;
+}
+
+/* Kadro adı hiçbir zaman ellipsis ile kesilmesin */
+.profile-v2 .sp-exam-copy.sp-exam-copy-v2>strong{
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+  line-height:1.12!important;
+  padding-top:1px!important;
+}
+
+/* Uzun kadro adı için kontrollü küçültme */
+.profile-v2 .sp-exam-copy.sp-exam-copy-v2>strong.is-long-role{
+  font-size:21px!important;
+  letter-spacing:-.45px!important;
+  line-height:1.16!important;
+}
+
+/* Butonu biraz daralt; metin yine tam kalsın */
+.profile-v2 .sp-exam-date.sp-exam-date-v2{
+  min-width:0!important;
+  width:134px!important;
+  padding:0 9px!important;
+  gap:6px!important;
+  font-size:9.8px!important;
+}
+
+/* Küçük iPhone genişliklerinde de Şube Müdürü tam görünür */
+@media(max-width:410px){
+  .profile-v2 .sp-exam-card.sp-exam-card-v2{
+    grid-template-columns:54px minmax(0,1fr) 126px!important;
+    gap:9px!important;
+    padding-left:12px!important;
+    padding-right:10px!important;
+  }
+
+  .profile-v2 .sp-exam-icon-v2{
+    width:54px!important;
+    height:54px!important;
+  }
+
+  .profile-v2 .sp-exam-copy.sp-exam-copy-v2>strong{
+    font-size:23px!important;
+  }
+
+  .profile-v2 .sp-exam-copy.sp-exam-copy-v2>strong.is-long-role{
+    font-size:19px!important;
+    letter-spacing:-.4px!important;
+    line-height:1.18!important;
+  }
+
+  .profile-v2 .sp-exam-kicker-v2{
+    font-size:10.5px!important;
+  }
+
+  .profile-v2 .sp-exam-date.sp-exam-date-v2{
+    width:126px!important;
+    height:39px!important;
+    padding:0 7px!important;
+    font-size:9.2px!important;
+  }
+
+  .profile-v2 .sp-swap-icon-v2{
+    width:14px!important;
+    height:14px!important;
+  }
+
+  .profile-v2 .sp-exam-date.sp-exam-date-v2 b{
+    font-size:18px!important;
+  }
+}
+
+@media(max-width:365px){
+  .profile-v2 .sp-exam-card.sp-exam-card-v2{
+    grid-template-columns:50px minmax(0,1fr) 116px!important;
+    gap:7px!important;
+  }
+
+  .profile-v2 .sp-exam-copy.sp-exam-copy-v2>strong.is-long-role{
+    font-size:17.5px!important;
+  }
+
+  .profile-v2 .sp-exam-date.sp-exam-date-v2{
+    width:116px!important;
+    font-size:8.6px!important;
+    gap:4px!important;
+    padding:0 6px!important;
+  }
+}
