@@ -2255,57 +2255,6 @@ body.auth-page{
 
 
 
-/* Kartlarım — dikey beyaz kartlar; tüm kurallar bu ekranla sınırlıdır. */
-.cards-showcase{position:relative;isolation:isolate;overflow:hidden;min-height:0;padding:14px 14px 32px;background:radial-gradient(ellipse at 100% 45%,#dce8f7,transparent 65%),linear-gradient(150deg,#f9fcff,#edf3fa);font-family:inherit}
-.cards-showcase::before{content:"";position:absolute;z-index:-1;right:-35%;top:160px;width:95%;height:90%;background:linear-gradient(145deg,#cbdcf044,#f5f9ff00);border-radius:70% 0 0 0;transform:rotate(15deg);pointer-events:none}
-.cards-showcase .cards-showcase-heading{text-align:left;margin:12px 0 30px;padding:8px 5px;color:var(--navy)}
-.cards-showcase .cards-showcase-heading>span{display:block;margin:0 0 9px;color:var(--red);font-size:8.5px;font-weight:800;letter-spacing:1.25px}
-.cards-showcase .cards-showcase-heading>i{display:none}
-.cards-showcase .cards-showcase-heading h2{margin:0 0 6px;color:var(--navy);font-size:21px;font-weight:800;line-height:1.12;letter-spacing:-.45px}
-.cards-showcase .cards-showcase-heading h2::before{content:"";display:inline-block;width:20px;height:3px;margin:0 9px 5px 0;border-radius:999px;background:var(--red);vertical-align:middle}
-.cards-showcase .cards-showcase-heading p{margin:0;max-width:340px;color:#75839a;font-size:11px;line-height:1.5;font-weight:500}
-.cards-showcase .cards-showcase-stage{display:flex;flex-direction:column;gap:26px;width:100%;max-width:780px;margin:0 auto;position:relative}
-.cards-showcase .cards-showcase-card{position:relative;cursor:pointer;color:var(--navy);outline-offset:5px;--card-accent:#ed2335;--card-tint:#fbe5e9}
-.cards-showcase .cards-showcase-meb{--card-accent:#1e7cfa;--card-tint:#e2edff}
-.cards-showcase .cards-showcase-culture{--card-accent:#0a315f;--card-tint:#e1e8f2}
-.cards-showcase .cards-showcase-card::before{content:"";position:absolute;inset:-8px 1px 7px 12px;border-radius:16px;background:var(--card-accent);box-shadow:inset 0 1px 2px #ffffff55;transform:rotate(-.65deg);transform-origin:100% 100%;pointer-events:none}
-.cards-showcase .cards-showcase-face{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:76px minmax(0,1fr) 38px;column-gap:22px;align-items:center;min-height:147px;padding:22px 26px;border:1px solid #fff;border-radius:17px;background:linear-gradient(135deg,#fff,#f7f9fd);box-shadow:0 13px 23px #1638591c,0 3px 1px #24497813}
-.cards-showcase .cards-showcase-icon{position:relative;z-index:2;grid-column:1;grid-row:1/3;display:grid;place-items:center;width:76px;height:76px;color:#fff;border-radius:22px;background:var(--card-accent);box-shadow:inset 0 1px 2px #ffffff38}
-.cards-showcase .cards-showcase-icon svg{width:43px;height:43px;stroke-width:1.8}
-.cards-showcase .cards-showcase-copy{position:relative;z-index:2;grid-column:2;grid-row:1;align-self:end}
-.cards-showcase .cards-showcase-copy h3{margin:0 0 7px;font-size:20px;font-weight:750;line-height:1.2;letter-spacing:-.4px}
-.cards-showcase .cards-showcase-copy p{margin:0;max-width:380px;color:#516889;font-size:13px;font-weight:400;line-height:1.4}
-.cards-showcase .cards-showcase-bottom{display:contents}
-.cards-showcase .cards-showcase-bottom small{position:relative;z-index:2;grid-column:2;grid-row:2;align-self:start;display:block;margin-top:8px;color:#6380a8;font-size:11px;font-weight:400;line-height:1.35}
-.cards-showcase .cards-showcase-arrow{position:relative;z-index:2;grid-column:3;grid-row:1/3;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;color:var(--card-accent);background:var(--card-tint)}
-.cards-showcase .cards-showcase-arrow svg{width:22px;height:22px}
-.cards-showcase .cards-showcase-photo{position:absolute;z-index:0;pointer-events:none;right:0;top:0;width:27%;height:100%;background-repeat:no-repeat;opacity:.23;mask-image:linear-gradient(90deg,transparent,#000 80%);-webkit-mask-image:linear-gradient(90deg,transparent,#000 80%)}
-.cards-showcase .cards-showcase-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,#ffffff50 50%,transparent)}
-.cards-showcase .cards-showcase-card:focus-visible{outline:2px solid var(--card-accent)}
-@media(max-width:600px){
-.cards-showcase{padding:14px 14px 26px}
-.cards-showcase .cards-showcase-stage{gap:22px}
-.cards-showcase .cards-showcase-face{grid-template-columns:54px minmax(0,1fr) 28px;column-gap:12px;padding:18px 14px;min-height:125px;border-radius:14px}
-.cards-showcase .cards-showcase-icon{width:54px;height:58px;border-radius:16px}
-.cards-showcase .cards-showcase-icon svg{width:32px;height:32px}
-.cards-showcase .cards-showcase-copy h3{font-size:15px;letter-spacing:-.2px;margin-bottom:5px}
-.cards-showcase .cards-showcase-copy p{font-size:11px;line-height:1.4}
-.cards-showcase .cards-showcase-bottom small{font-size:10px;margin-top:6px}
-.cards-showcase .cards-showcase-arrow{width:28px;height:28px}
-.cards-showcase .cards-showcase-arrow svg{width:18px;height:18px}
-.cards-showcase .cards-showcase-photo{width:32%}
-}
-
-.cards-showcase .cards-showcase-photo{background-image:url("images/cards-showcase-general.webp")}
-.cards-showcase .cards-showcase-general .cards-showcase-photo{background-size:1058.2278% 611.0390%;background-position:68.0317% 33.5451%}
-.cards-showcase .cards-showcase-meb .cards-showcase-photo{background-size:950.0000% 662.6761%;background-position:87.5668% 57.0713%}
-.cards-showcase .cards-showcase-culture .cards-showcase-photo{background-size:756.5611% 718.3206%;background-position:94.7622% 79.0123%}
-
-/* Kartlar mevcut ekran alanını doldurur; özgün ekran boşlukları korunur. */
-.cards-showcase .cards-showcase-stage{width:100%;max-width:none}
-@media(min-width:641px){.cards-showcase{padding-left:20px;padding-right:20px}}
-@media(min-width:1000px){.cards-showcase{padding-left:26px;padding-right:26px;max-width:840px}}
-
 
 /* ================================================================
    ORTAK SEKME ARKA PLANI — İPEK DALGALAR
@@ -2329,11 +2278,6 @@ body.auth-page{
 .phone .scroll-area > .app-scroll,
 .phone .scroll-area > .app-scroll > .screen {
   background:transparent;
-}
-/* Önceki sayfaya özel dekoratif zeminleri devreden çıkar. */
-.phone .app-scroll > .cards-showcase::before,
-.phone .app-scroll > .cards-showcase::after {
-  content:none;
 }
 
 
@@ -2489,49 +2433,6 @@ body.auth-page{
 /* Ortak üst panel yalnızca Yanlışlarım sekmesinde gizlenir. */
 
 
-
-/* Kartlarım — Porselen; ortak sayfa arka planı korunur. */
-.phone .scroll-area:has(> .app-scroll > .cards-porcelain) > .app-header{display:none}
-.phone .scroll-area > .app-scroll > .cards-porcelain{padding-top:max(16px,env(safe-area-inset-top,0px))}
-.cards-porcelain .cards-showcase-heading{margin:10px 0 22px;padding:8px 5px}
-.cards-porcelain .cards-showcase-heading>span{display:flex;align-items:center;gap:12px;font-size:9px;letter-spacing:2.6px;font-weight:750;margin-bottom:11px}
-.cards-porcelain .cards-showcase-heading>span::after{content:"";display:block;width:26px;height:1px;background:var(--red)}
-.cards-porcelain .cards-showcase-heading h2{font-size:28px;letter-spacing:-.9px;margin-bottom:10px;line-height:1.13;font-weight:800}
-.cards-porcelain .cards-showcase-heading h2::before{content:none}
-.cards-porcelain .cards-showcase-heading p{max-width:none;font-size:12px;line-height:1.45;font-weight:400;color:#526888}
-.cards-porcelain .cards-showcase-stage{gap:15px;width:100%;max-width:none}
-.cards-porcelain .cards-showcase-card{--card-accent:#ee2847;--card-tint:#fff0f2;--porcelain-edge:#f1dce0;border-radius:14px}
-.cards-porcelain .cards-showcase-meb{--card-accent:#147afa;--card-tint:#eaf4ff;--porcelain-edge:#d6e6f7}
-.cards-porcelain .cards-showcase-culture{--card-accent:#12365c;--card-tint:#eef1f6;--porcelain-edge:#d7dfe9}
-.cards-porcelain .cards-showcase-card::before{content:none}
-.cards-porcelain .cards-showcase-face{display:grid;grid-template-columns:62px minmax(0,1fr) 17px;grid-template-rows:1fr auto;align-items:center;gap:18px 13px;min-height:137px;padding:19px 14px 16px 23px;background:linear-gradient(120deg,#fff 8%,#fdfdfd 65%,#f6f7f9);border:1px solid #e6e9ed;border-radius:14px;box-shadow:0 7px 15px #142b4815,0 2px 2px #173c4910,inset 0 0 0 2px #ffffffcc}
-.cards-porcelain .cards-showcase-face::before{content:"";position:absolute;z-index:4;left:0;top:0;bottom:0;width:6px;border-radius:14px 0 0 14px;background:linear-gradient(90deg,var(--card-accent),var(--card-accent) 60%,#ffffff55);box-shadow:2px 0 4px #0b2b4510;pointer-events:none}
-.cards-porcelain .cards-showcase-icon{grid-column:1;grid-row:1;width:62px;height:64px;border-radius:13px;color:var(--card-accent);background:linear-gradient(130deg,#ffffff,var(--card-tint) 52%,var(--porcelain-edge));border:1px solid var(--porcelain-edge);box-shadow:0 7px 9px #28384b15,inset 0 2px 2px #fff,inset 0 -1px 2px #ffffff70}
-.cards-porcelain .cards-showcase-icon svg{width:35px;height:35px;stroke-width:1.8;filter:drop-shadow(0 1px 0 #fff)}
-.cards-porcelain .cards-showcase-copy{grid-column:2;grid-row:1;align-self:center}
-.cards-porcelain .cards-showcase-copy h3{font-size:16px;line-height:1.2;font-weight:750;letter-spacing:-.4px;margin:0 0 6px;color:#051c43}
-.cards-porcelain .cards-showcase-copy p{font-size:11px;line-height:1.35;font-weight:400;color:#526787;max-width:235px}
-.cards-porcelain .cards-showcase-bottom small{grid-column:1/3;grid-row:2;display:flex;align-items:center;gap:10px;margin:0;color:#4e6589;font-size:11px;font-weight:400;line-height:1.3}
-.cards-porcelain .porcelain-meta-icon{display:grid;place-items:center;color:#7385a2}
-.cards-porcelain .porcelain-meta-icon svg{width:17px;height:17px;stroke-width:1.4}
-.cards-porcelain .cards-showcase-arrow{grid-column:3;grid-row:1/3;width:17px;height:28px;color:#061d42;background:transparent;border-radius:0}
-.cards-porcelain .cards-showcase-arrow svg{width:19px;height:19px;stroke-width:2}
-.cards-porcelain .cards-showcase-photo{width:44%;height:100%;right:0;top:0;opacity:.82;background-repeat:no-repeat;background-size:315.077% 487.619%;background-position:85.837% 29.484%;mask-image:linear-gradient(90deg,transparent 0%,#000 60%);-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 60%)}
-.cards-porcelain .cards-showcase-meb .cards-showcase-photo{background-size:315.077% 487.619%;background-position:85.837% 58.149%}
-.cards-porcelain .cards-showcase-culture .cards-showcase-photo{background-size:315.077% 487.619%;background-position:85.837% 86.814%}
-.cards-porcelain .cards-showcase-shade{background:linear-gradient(90deg,#ffffff25 45%,transparent 80%)}
-@media(min-width:641px){
-.cards-porcelain .cards-showcase-heading{margin-bottom:28px}.cards-porcelain .cards-showcase-heading h2{font-size:36px}.cards-porcelain .cards-showcase-heading>span{font-size:10px}.cards-porcelain .cards-showcase-heading p{font-size:14px}
-.cards-porcelain .cards-showcase-stage{gap:22px}
-.cards-porcelain .cards-showcase-face{grid-template-columns:90px minmax(0,1fr) 23px;gap:25px;min-height:195px;padding:27px 23px 23px 34px;border-radius:20px}
-.cards-porcelain .cards-showcase-face::before{width:8px;border-radius:20px 0 0 20px}
-.cards-porcelain .cards-showcase-icon{width:90px;height:90px;border-radius:19px}.cards-porcelain .cards-showcase-icon svg{width:49px;height:49px}
-.cards-porcelain .cards-showcase-copy h3{font-size:24px;margin-bottom:10px}.cards-porcelain .cards-showcase-copy p{font-size:15px;max-width:350px}
-.cards-porcelain .cards-showcase-bottom small{font-size:14px;gap:13px}.cards-porcelain .porcelain-meta-icon svg{width:22px;height:22px}.cards-porcelain .cards-showcase-arrow svg{width:25px;height:25px}}
-@media(max-width:360px){.cards-porcelain .cards-showcase-face{grid-template-columns:49px minmax(0,1fr) 13px;gap:17px 10px;padding-left:17px;padding-right:10px}.cards-porcelain .cards-showcase-icon{width:49px;height:54px}.cards-porcelain .cards-showcase-icon svg{width:30px;height:30px}.cards-porcelain .cards-showcase-copy h3{font-size:14px}.cards-porcelain .cards-showcase-copy p{font-size:10px}.cards-porcelain .cards-showcase-bottom small{font-size:10px}}
-
-.cards-porcelain .cards-showcase-photo{background-image:url("images/cards-showcase-porcelain.webp")}
-.cards-porcelain .cards-showcase-general .cards-showcase-photo{background-size:315.077% 487.619%;background-position:85.837% 29.484%}
 
 /* ===== KARTLARIM — premium dashboard / Akıllı Tekrar ===== */
 .cards-dashboard{position:relative;min-height:100%;padding:18px 14px 30px;background:radial-gradient(circle at 88% 5%,rgba(45,126,247,.12),transparent 18%),linear-gradient(180deg,#f9fbff 0%,#f4f7fb 100%)}
