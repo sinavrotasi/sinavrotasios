@@ -5930,3 +5930,129 @@ body.auth-page{
     width:11px!important;
   }
 }
+
+
+/* ============================================================
+   İSTATİSTİKLER — SON RÖTUŞLAR
+   ============================================================ */
+
+/* Doğruluk halkasında yanlış kısmı artık kırmızı göster */
+.statistics-page .stats-donut{
+  --wrong-p: calc((100 - var(--accuracy)) * 1%);
+  background: conic-gradient(
+    #0a3768 0 calc(var(--accuracy) * 1%),
+    #ee4a51 calc(var(--accuracy) * 1%) 100%
+  ) !important;
+}
+
+/* Donut altında sade legend */
+.statistics-page .stats-donut-wrap{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.statistics-page .stats-donut-legend{
+  width:100%;
+  margin-top:10px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  align-items:center;
+}
+.statistics-page .stats-donut-legend span{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:10.5px;
+  line-height:1.2;
+  color:#6d7b91;
+  font-weight:620;
+}
+.statistics-page .stats-donut-legend i{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  display:inline-block;
+  flex:0 0 auto;
+}
+.statistics-page .stats-donut-legend .is-correct{background:#0a3768}
+.statistics-page .stats-donut-legend .is-wrong{background:#ee4a51}
+
+/* Açıklama metinleri biraz daha büyük */
+.statistics-page .stats-donut-inner span{
+  font-size:12px!important;
+}
+.statistics-page .stats-metric small{
+  font-size:10.5px!important;
+  line-height:1.25!important;
+}
+.statistics-page .stats-subject-copy small{
+  font-size:10px!important;
+  line-height:1.42!important;
+}
+.statistics-page .stats-bar-col>span,
+.statistics-page .stats-bar-col>strong{
+  font-size:9.5px!important;
+}
+.statistics-page .stats-empty small{
+  font-size:10px!important;
+}
+.statistics-page .stats-period-pill,
+.statistics-page .stats-dropdown-trigger{
+  font-size:10.5px!important;
+}
+
+/* Toplam çözüm yarım kalmasın */
+.statistics-page .stats-metric-grid{
+  gap:9px!important;
+}
+.statistics-page .stats-metric{
+  padding:10px 11px!important;
+}
+.statistics-page .stats-metric small{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:unset!important;
+}
+.statistics-page .metric-total small{
+  max-width:72px;
+}
+.statistics-page .metric-total strong{
+  font-size:15px!important;
+}
+.statistics-page .metric-mock small{
+  max-width:72px;
+}
+
+/* Deneme ikonunu görünür yap */
+.statistics-page .metric-mock .stats-metric-icon{
+  background:#f1f5fa!important;
+  color:#708096!important;
+}
+.statistics-page .metric-mock .stats-metric-icon svg{
+  width:18px!important;
+  height:18px!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:1.9!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+
+/* Mobil küçük ekranda da taşma olmasın */
+@media(max-width:390px){
+  .statistics-page .stats-overview-grid{
+    grid-template-columns:132px minmax(0,1fr)!important;
+  }
+  .statistics-page .stats-metric{
+    min-height:68px!important;
+    padding:9px 9px!important;
+  }
+  .statistics-page .stats-metric small{
+    font-size:10px!important;
+  }
+  .statistics-page .stats-donut-legend span{
+    font-size:10px!important;
+  }
+}

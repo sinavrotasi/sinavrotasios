@@ -2533,11 +2533,15 @@ function statisticsView() {
 
       <div class="stats-overview-grid">
         <div class="stats-donut-wrap">
-          <div class="stats-donut" style="--accuracy:${accuracy}">
+          <div class="stats-donut" style="--accuracy:${accuracy};--wrong:${Math.max(0, 100 - accuracy)}">
             <div class="stats-donut-inner">
               <strong>%${accuracy}</strong>
               <span>Doğru oranı</span>
             </div>
+          </div>
+          <div class="stats-donut-legend">
+            <span><i class="is-correct"></i> Doğru %${accuracy}</span>
+            <span><i class="is-wrong"></i> Yanlış %${Math.max(0, 100 - accuracy)}</span>
           </div>
         </div>
 
@@ -2555,7 +2559,14 @@ function statisticsView() {
             <div><small>Yanlış</small><strong>${formatNumber(wrong)}</strong></div>
           </article>
           <article class="stats-metric metric-mock">
-            <span class="stats-metric-icon">${svg('document')}</span>
+            <span class="stats-metric-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M8 3h6l4 4v14H6V3h2Z"></path>
+                <path d="M14 3v5h5"></path>
+                <path d="M9 12h6"></path>
+                <path d="M9 16h6"></path>
+              </svg>
+            </span>
             <div><small>Deneme</small><strong>${formatNumber(mocks)}</strong></div>
           </article>
         </div>
