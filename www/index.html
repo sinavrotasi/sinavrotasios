@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#061229">
   <title>SınavRotası</title>
-  <link rel="stylesheet" href="style.css?v=77">
+  <link rel="stylesheet" href="style.css?v=78">
 </head>
 <body>
   <!-- ================= KADRO SEÇİM KAPISI ================= -->
@@ -117,6 +117,24 @@
         <div class="choice-row" id="timeChoices">
           <button class="choice selected" data-time="Süreli" type="button"><svg class="choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Süreli</span></button>
           <button class="choice" data-time="Süresiz" type="button"><svg class="choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 8c-2.5 0-4.5 1.8-4.5 4s2 4 4.5 4c3.5 0 5.5-8 9-8 2.5 0 4.5 1.8 4.5 4s-2 4-4.5 4c-3.5 0-5.5-8-9-8Z"/></svg><span>Süresiz</span></button>
+        </div>
+      </div>
+
+      <div class="route-duration-filter" id="routeDurationFilter">
+        <button class="route-duration-button" id="routeDurationButton" type="button" aria-expanded="false">
+          <span class="route-duration-button-copy">
+            <span>SÜRE SEÇ</span>
+            <strong id="routeDurationValue">20 dakika</strong>
+          </span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="route-duration-menu" id="routeDurationMenu" hidden>
+          <button type="button" data-route-duration="10">10 dk</button>
+          <button type="button" data-route-duration="20" class="selected">20 dk</button>
+          <button type="button" data-route-duration="30">30 dk</button>
+          <button type="button" data-route-duration="45">45 dk</button>
+          <button type="button" data-route-duration="60">60 dk</button>
+          <button type="button" data-route-duration="90">90 dk</button>
         </div>
       </div>
 

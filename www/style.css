@@ -6773,3 +6773,77 @@ html[data-ui-density="compact"] .profile-v2 .sp-study-preferences-entry{
   color:#2f7b59!important;
 }
 \n\n/* ============================================================\n   ANA SAYFA KATEGORİ DİLİ — TÜM EKRANLARDA AYNI\n   Mevzuat = lacivert | Ortak Alan Bilgisi = mavi | MEB = kırmızı\n   ============================================================ */\n\n/* Kartlarım kategori ikonları */\n.cards-set-icon.tone-navy{background:linear-gradient(145deg,#123f77,#071f49)!important}\n.cards-set-icon.tone-blue{background:linear-gradient(145deg,#5da8ff,#1670e9)!important}\n.cards-set-icon.tone-red{background:linear-gradient(145deg,#ff676f,#e93238)!important}\n\n/* Kartlarım ilerleme yüzdesi + bar rengi kategoriyle eşleşir */\n.cards-set-card.tone-navy .cards-set-track i{background:linear-gradient(90deg,#174d86,#071f49)!important}\n.cards-set-card.tone-navy .cards-set-progress-row strong{color:#071f49!important}\n.cards-set-card.tone-blue .cards-set-track i{background:linear-gradient(90deg,#5ba7ff,#1670ef)!important}\n.cards-set-card.tone-blue .cards-set-progress-row strong{color:#1670e9!important}\n.cards-set-card.tone-red .cards-set-track i{background:linear-gradient(90deg,#ff626b,#e93238)!important}\n.cards-set-card.tone-red .cards-set-progress-row strong{color:#e93238!important}\n\n/* Yanlışlarım kategorileri de aynı renk sistemini kullanır */\n.mistakes-screen.mistakes-reference .mistakes-ref-topic.tone-navy{--mistake-accent:#174d86;--mistake-accent-2:#071f49}\n.mistakes-screen.mistakes-reference .mistakes-ref-topic.tone-blue{--mistake-accent:#5da8ff;--mistake-accent-2:#1670e9}\n.mistakes-screen.mistakes-reference .mistakes-ref-topic.tone-red{--mistake-accent:#ff676f;--mistake-accent-2:#e93238}\n\n/* Kategori panelindeki yüzde ve ilerleme çizgisi */\n.topic-sheet[data-category-tone="navy"] #topicProgressText{color:#071f49!important}\n.topic-sheet[data-category-tone="navy"] #topicProgressBar{background:linear-gradient(90deg,#174d86,#071f49)!important}\n.topic-sheet[data-category-tone="blue"] #topicProgressText{color:#1670e9!important}\n.topic-sheet[data-category-tone="blue"] #topicProgressBar{background:linear-gradient(90deg,#5ba7ff,#1670e9)!important}\n.topic-sheet[data-category-tone="red"] #topicProgressText{color:#e93238!important}\n.topic-sheet[data-category-tone="red"] #topicProgressBar{background:linear-gradient(90deg,#ff626b,#e93238)!important}\n
+
+/* ============================================================
+   BUGÜNKÜ ROTA — SÜRELİ MOD İÇİN SÜRE FİLTRESİ
+   Mevcut tasarım korunur; yalnız Süreli seçiliyken görünür.
+   ============================================================ */
+.route-duration-filter{
+  position:relative;
+  margin-top:-4px;
+  margin-bottom:14px;
+}
+.route-duration-filter[hidden]{display:none!important}
+.route-duration-button{
+  width:100%;
+  min-height:54px;
+  padding:10px 14px;
+  border:1px solid var(--border,#dce5ef);
+  border-radius:14px;
+  background:#f8fbff;
+  color:#08285a;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  text-align:left;
+  box-shadow:0 4px 12px rgba(22,51,85,.035);
+}
+.route-duration-button-copy>span{
+  display:block;
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:1px;
+  color:#8b98aa;
+}
+.route-duration-button-copy>strong{
+  display:block;
+  margin-top:3px;
+  font-size:13px;
+  color:#08285a;
+}
+.route-duration-button>svg{
+  width:20px;
+  height:20px;
+  flex:0 0 auto;
+  color:#687b93;
+  transition:transform .18s ease;
+}
+.route-duration-button[aria-expanded="true"]>svg{transform:rotate(180deg)}
+.route-duration-menu{
+  margin-top:7px;
+  padding:7px;
+  border:1px solid #e0e7f0;
+  border-radius:14px;
+  background:#fff;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  box-shadow:0 12px 25px rgba(14,43,78,.09);
+}
+.route-duration-menu[hidden]{display:none!important}
+.route-duration-menu button{
+  min-height:38px;
+  border:1px solid #e3e9f1;
+  border-radius:10px;
+  background:#f8fafc;
+  color:#53647b;
+  font-size:10px;
+  font-weight:680;
+}
+.route-duration-menu button.selected{
+  border-color:#0a4b86;
+  background:linear-gradient(145deg,#082f60,#0a4b86);
+  color:#fff;
+  box-shadow:0 5px 12px rgba(8,47,96,.14);
+}

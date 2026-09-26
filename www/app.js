@@ -249,7 +249,9 @@ const state = {
 const routeSettings = {
   mode: getRepeatPriorityMode(),
   questions: 20,
-  time: 'Süreli'
+  time: 'Süreli',
+  durationMinutes: 20,
+  durationCustomized: false
 };
 
 // Native (Capacitor) katmanı — ana uygulama koyu header'a sahip olduğu için
@@ -358,6 +360,10 @@ const closeRouteSheetButton = document.getElementById('closeRouteSheet');
 const startRouteButton = document.getElementById('startRouteButton');
 const summaryMode = document.getElementById('summaryMode');
 const summaryDuration = document.getElementById('summaryDuration');
+const routeDurationFilter = document.getElementById('routeDurationFilter');
+const routeDurationButton = document.getElementById('routeDurationButton');
+const routeDurationValue = document.getElementById('routeDurationValue');
+const routeDurationMenu = document.getElementById('routeDurationMenu');
 
 // Arama Paneli Elementleri
 const openSearchButton = document.getElementById('openSearchButton');
@@ -3915,6 +3921,7 @@ function openRouteSheet() {
     button.classList.toggle('selected', button.dataset.mode === routeSettings.mode);
   });
   if (summaryMode) summaryMode.textContent = routeSettings.mode;
+  updateRouteSummary();
   closeAllSheets(routeSheet);
   routeSheet.classList.add('open');
   topicBackdrop.classList.add('open');
@@ -3930,11 +3937,22 @@ function closeRouteSheet() {
 
 function updateRouteSummary() {
   startRouteButton.textContent = `${routeSettings.questions} Soruluk Rotayı Başlat`;
-  if (routeSettings.time === 'Süresiz') {
+  const timed = routeSettings.time === 'Süreli';
+
+  if (routeDurationFilter) routeDurationFilter.hidden = !timed;
+  if (routeDurationValue) routeDurationValue.textContent = `${routeSettings.durationMinutes} dakika`;
+
+  if (!timed) {
     summaryDuration.textContent = 'Süresiz';
+    if (routeDurationMenu) routeDurationMenu.hidden = true;
+    routeDurationButton?.setAttribute('aria-expanded', 'false');
   } else {
-    summaryDuration.textContent = `${routeSettings.questions} dakika`; // artık soru sayısı = dakika
+    summaryDuration.textContent = `${routeSettings.durationMinutes} dakika`;
   }
+
+  document.querySelectorAll('[data-route-duration]').forEach(button => {
+    button.classList.toggle('selected', Number(button.dataset.routeDuration) === routeSettings.durationMinutes);
+  });
 }
 
 function bindRouteSheetEvents() {
@@ -3952,6 +3970,9 @@ function bindRouteSheetEvents() {
       document.querySelectorAll('#questionChoices .choice').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       routeSettings.questions = Number(btn.dataset.questions);
+      if (!routeSettings.durationCustomized) {
+        routeSettings.durationMinutes = routeSettings.questions;
+      }
       updateRouteSummary();
     });
   });
@@ -3961,6 +3982,23 @@ function bindRouteSheetEvents() {
       document.querySelectorAll('#timeChoices .choice').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       routeSettings.time = btn.dataset.time;
+      updateRouteSummary();
+    });
+  });
+
+  routeDurationButton?.addEventListener('click', () => {
+    if (routeSettings.time !== 'Süreli' || !routeDurationMenu) return;
+    const willOpen = routeDurationMenu.hidden;
+    routeDurationMenu.hidden = !willOpen;
+    routeDurationButton.setAttribute('aria-expanded', String(willOpen));
+  });
+
+  document.querySelectorAll('[data-route-duration]').forEach(button => {
+    button.addEventListener('click', () => {
+      routeSettings.durationMinutes = Number(button.dataset.routeDuration) || routeSettings.questions;
+      routeSettings.durationCustomized = true;
+      routeDurationMenu.hidden = true;
+      routeDurationButton?.setAttribute('aria-expanded', 'false');
       updateRouteSummary();
     });
   });
@@ -4999,7 +5037,8 @@ async function startSmartPractice() {
     kind: 'route',
     title: 'Bugünkü Rota',
     subtitle: `${routeSettings.mode} • ${routeSettings.questions} Soru`,
-    returnView: closeTopicSheet
+    returnView: closeTopicSheet,
+    customTimeSeconds: routeSettings.time === 'Süreli' ? routeSettings.durationMinutes * 60 : null
   });
 }
 
