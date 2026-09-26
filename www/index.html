@@ -182,27 +182,33 @@
 
     <section class="topic-sheet" id="topicSheet" aria-hidden="true" aria-label="Konu başlıkları">
       <div class="topic-handle"></div>
+      <button class="topic-close" id="closeTopicSheet" type="button" aria-label="Konu panelini kapat">×</button>
       <div class="topic-sheet-head">
-        <div class="topic-heading-wrap">
-          <div class="topic-heading-icon" id="topicHeadingIcon"></div>
-          <div>
-            <span class="topic-eyebrow" id="topicEyebrow">KONU KATEGORİSİ</span>
-            <h3 id="topicSheetTitle">Genel Mevzuat</h3>
-            <p id="topicSheetSubtitle">Çalışmak istediğin başlığı seç.</p>
+        <div class="topic-header-card">
+          <span class="topic-header-decor-blob" aria-hidden="true"></span>
+          <span class="topic-header-decor-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg></span>
+          <div class="topic-heading-wrap">
+            <div class="topic-heading-icon" id="topicHeadingIcon"></div>
+            <div>
+              <span class="topic-eyebrow" id="topicEyebrow">KONU KATEGORİSİ</span>
+              <h3 id="topicSheetTitle">Genel Mevzuat</h3>
+              <p id="topicSheetSubtitle">Çalışmak istediğin başlığı seç.</p>
+            </div>
           </div>
         </div>
-        <button class="topic-close" id="closeTopicSheet" type="button" aria-label="Konu panelini kapat">×</button>
       </div>
       <div id="topicBreadcrumbWrap"></div>
       <div class="topic-progress-card">
-        <div class="topic-progress-headline">
+        <div class="topic-progress-top">
           <span>Kategori ilerlemesi</span>
-          <strong id="topicProgressText">%0</strong>
+          <strong id="topicProgressPercent">%0</strong>
         </div>
-        <div class="topic-progress-track">
-          <span id="topicProgressBar"></span>
+        <div class="topic-progress-bottom">
+          <div class="topic-progress-track">
+            <span id="topicProgressBar"></span>
+          </div>
+          <em id="topicProgressCount">tamamlandı</em>
         </div>
-        <span class="topic-progress-meta" id="topicProgressMeta">Henüz çalışılmadı</span>
       </div>
       <div class="topic-list" id="topicList"></div>
     </section>
