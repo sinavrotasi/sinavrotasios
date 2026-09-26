@@ -107,7 +107,8 @@
     "20260915100200_lock_profile_role_after_selection.sql",
     "20260915100300_flashcard_progress_policies_and_indexes.sql",
     "20260915100400_harden_api_surface.sql",
-    "20260915160000_allow_privileged_sessions_in_profile_guard.sql"
+    "20260915160000_allow_privileged_sessions_in_profile_guard.sql",
+    "20260926113751_allow_user_role_change_and_role_filtered_question_count.sql"
   ],
   "pendingFiles": [],
   "pendingNotes": "pendingFiles: kaynakta hazır ama production'a HENÜZ uygulanmamış migration'lar. Production'a uygulandıktan sonra (supabase migration list --linked ile doğrulayıp) buradan files dizisine taşıyın. 2026-09-15: 20260910123739_create_user_events_analytics production'da vardı ama kaynakta yoktu; statements alanından geri alındı (O-03)."
