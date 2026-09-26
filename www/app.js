@@ -117,7 +117,8 @@ const state = {
   weeklyFlowRange: 'week',
   weeklyFlowNote: '',
   totalQuestionCount: 0,
-  sharedExamDate: null
+  sharedExamDate: null,
+  showAllCompletedExams: false
 };
 
 // Rota Ayarları State'i
@@ -1130,12 +1131,48 @@ function homeView() {
 // merge_unique_manual_deneme_pool_questions_into_questions migration'ı), (3)
 // otomatik üretim resmi ağırlık dağılımını zaten uyguluyor ve tekrar
 // denemelerde aynı soruların ezberlenmesini önlüyor.
-function getCompletedKadroExams(limit = 15) {
-  return progress.completedTests
-    .filter(test => EXAM_KINDS.includes(test.kind))
-    .slice()
-    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
-    .slice(0, limit);
+function getCompletedKadroExamSummary() {
+  const tests = Array.isArray(progress.completedTests) ? progress.completedTests : [];
+  let count = 0;
+  let percentageSum = 0;
+
+  tests.forEach(test => {
+    if (!EXAM_KINDS.includes(test.kind)) return;
+    count += 1;
+    const answered = Math.max(0, Number(test.answered ?? test.total) || 0);
+    const score = Math.min(answered, Math.max(0, Number(test.score) || 0));
+    percentageSum += answered ? (score / answered) * 100 : 0;
+  });
+
+  return {
+    count,
+    average: count ? Math.round(percentageSum / count) : 0
+  };
+}
+
+function getRecentCompletedKadroExams(limit = 5) {
+  const safeLimit = Math.max(1, Math.min(50, Number(limit) || 5));
+  const recent = [];
+
+  (Array.isArray(progress.completedTests) ? progress.completedTests : []).forEach(test => {
+    if (!EXAM_KINDS.includes(test.kind)) return;
+    const time = new Date(test.completedAt || 0).getTime();
+    if (!Number.isFinite(time)) return;
+
+    const item = { ...test, __time: time };
+    let inserted = false;
+    for (let i = 0; i < recent.length; i += 1) {
+      if (time > recent[i].__time) {
+        recent.splice(i, 0, item);
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) recent.push(item);
+    if (recent.length > safeLimit) recent.pop();
+  });
+
+  return recent.map(({ __time, ...test }) => test);
 }
 
 function formatCompletedDate(iso) {
@@ -1146,27 +1183,30 @@ function formatCompletedDate(iso) {
 
 function bankView() {
   const stats = getStats();
-  const completedExams = getCompletedKadroExams(Infinity);
-  const examAverage = completedExams.length ? Math.round(completedExams.reduce((sum, test) => sum + (test.total ? (test.score / test.total) * 100 : 0), 0) / completedExams.length) : 0;
+  const examSummary = getCompletedKadroExamSummary();
+  const visibleLimit = state.showAllCompletedExams ? Math.min(50, examSummary.count) : 5;
+  const completedExams = getRecentCompletedKadroExams(Math.max(1, visibleLimit));
+  const examAverage = examSummary.average;
   const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || 'Kadro';
   const completedExamsHtml = completedExams.length ? `
     <div class="bank-v2-section-head"><h3>Son Çözülenler</h3></div>
     <div class="bank-v2-results" id="completedExamResults">
       ${completedExams.map((test, index) => {
-        const percentage = test.total ? Math.round((test.score / test.total) * 100) : 0;
+        const answered = Math.max(0, Number(test.answered ?? test.total) || 0);
+        const percentage = answered ? Math.round((Math.min(answered, Number(test.score) || 0) / answered) * 100) : 0;
         const tone = percentage >= 80 ? 'good' : percentage >= 60 ? 'mid' : 'low';
-        return `<article class="bank-v2-result" ${index >= 5 ? 'data-extra-exam hidden' : ''}>
+        return `<article class="bank-v2-result">
           <div class="bank-v2-result-icon" aria-hidden="true">${svg('statTrials')}</div>
           <div class="bank-v2-result-main">
             <strong>${escapeHtml(test.title)}</strong>
-            <span>${formatCompletedDate(test.completedAt)} • ${test.total} soru</span>
+            <span>${formatCompletedDate(test.completedAt)} • ${test.answered ?? test.total} cevap</span>
             <div class="bank-v2-result-track"><i class="${tone}" style="width:${Math.max(0, Math.min(100, percentage))}%"></i></div>
           </div>
-          <div class="bank-v2-result-score"><b>%${percentage}</b><small>${test.score}/${test.total}</small></div>
+          <div class="bank-v2-result-score"><b>%${percentage}</b><small>${test.score}/${test.answered ?? test.total}</small></div>
         </article>`;
       }).join('')}
     </div>
-    ${completedExams.length > 5 ? `<button type="button" class="bank-v2-show-all" id="showAllExamsButton" aria-expanded="false" aria-controls="completedExamResults" data-total="${completedExams.length}">Tümünü göster (${completedExams.length})</button>` : ''}` : '';
+    ${examSummary.count > 5 ? `<button type="button" class="bank-v2-show-all" id="showAllExamsButton" aria-expanded="${state.showAllCompletedExams ? 'true' : 'false'}" aria-controls="completedExamResults" data-total="${examSummary.count}">${state.showAllCompletedExams ? 'Daha az göster' : (examSummary.count > 50 ? `Son 50 denemeyi göster (${examSummary.count})` : `Tümünü göster (${examSummary.count})`)}</button>` : ''}` : '';
 
   return `<section class="screen content-screen bank-screen bank-v2">
     <header class="bank-v2-heading">
@@ -2475,36 +2515,49 @@ function getStatisticsDocumentRows(limit = 5) {
 
 
 function getStatisticsOverview(range = 'all') {
-  const globalTotal = Math.max(0, Number(progress.answers || 0));
-  const globalCorrect = Math.max(0, Number(progress.correctAnswers || 0));
-  const globalWrong = Math.max(0, globalTotal - globalCorrect);
-  const globalMocks = Math.max(0, Number(getStats().completedMocks || 0));
-
-  if (range === 'all') {
-    return { total: globalTotal, correct: globalCorrect, wrong: globalWrong, mocks: globalMocks };
-  }
-
   const now = new Date();
-  const start = new Date(now);
+  let start = null;
+
   if (range === 'today') {
+    start = new Date(now);
     start.setHours(0, 0, 0, 0);
   } else if (range === 'week') {
+    start = new Date(now);
     start.setDate(now.getDate() - 6);
     start.setHours(0, 0, 0, 0);
-  } else {
+  } else if (range === 'month') {
+    start = new Date(now);
     start.setDate(now.getDate() - 29);
     start.setHours(0, 0, 0, 0);
   }
 
   const tests = (Array.isArray(progress.completedTests) ? progress.completedTests : []).filter(test => {
+    if (!start) return true;
     const completedAt = new Date(test?.completedAt || 0);
     return Number.isFinite(completedAt.getTime()) && completedAt >= start && completedAt <= now;
   });
 
-  const total = tests.reduce((sum, test) => sum + Math.max(0, Number(test.total) || 0), 0);
-  const correct = tests.reduce((sum, test) => sum + Math.max(0, Number(test.score) || 0), 0);
-  const mocks = tests.filter(test => EXAM_KINDS.includes(test.kind)).length;
-  return { total, correct, wrong: Math.max(0, total - correct), mocks };
+  // Tek veri kaynağı: completedTests.
+  // Yeni kayıtlarda answered gerçek cevaplanan soru sayısıdır.
+  // Eski kayıtlarda answered yoksa geriye dönük uyumluluk için total kullanılır.
+  let total = 0;
+  let correct = 0;
+  let mocks = 0;
+
+  tests.forEach(test => {
+    const answered = Math.max(0, Number(test.answered ?? test.total) || 0);
+    const score = Math.min(answered, Math.max(0, Number(test.score) || 0));
+    total += answered;
+    correct += score;
+    if (EXAM_KINDS.includes(test.kind)) mocks += 1;
+  });
+
+  return {
+    total,
+    correct,
+    wrong: Math.max(0, total - correct),
+    mocks
+  };
 }
 
 function getStatisticsOverviewLabel(range) {
@@ -2732,10 +2785,10 @@ function render() {
 function bindViewEvents() {
   const showAllExamsButton = document.getElementById('showAllExamsButton');
   showAllExamsButton?.addEventListener('click', () => {
-    const expanded = showAllExamsButton.getAttribute('aria-expanded') !== 'true';
-    app.querySelectorAll('[data-extra-exam]').forEach(row => { row.hidden = !expanded; });
-    showAllExamsButton.setAttribute('aria-expanded', String(expanded));
-    showAllExamsButton.textContent = expanded ? 'Daha az göster' : `Tümünü göster (${showAllExamsButton.dataset.total})`;
+    state.showAllCompletedExams = !state.showAllCompletedExams;
+    const top = scrollArea.scrollTop;
+    render();
+    scrollArea.scrollTop = top;
   });
   if (state.catalogueError) document.getElementById('retryLoadButton')?.addEventListener('click', loadCatalogue);
   app.querySelectorAll('[data-open-category]').forEach(element => {
@@ -4883,6 +4936,7 @@ function recordQuizCompletion(quiz) {
     documentId: quiz.documentItem?.id || null,
     sectionId: quiz.section?.id || null,
     score,
+    answered: answeredCount,
     total: quiz.questions.length,
     completedAt: new Date().toISOString()
   });
