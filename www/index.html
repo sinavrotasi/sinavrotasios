@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#061229">
   <title>SınavRotası</title>
-  <link rel="stylesheet" href="style.css?v=64">
+  <link rel="stylesheet" href="style.css?v=65">
 </head>
 <body>
   <!-- ================= KADRO SEÇİM KAPISI ================= -->
@@ -205,24 +205,29 @@
     </section>
   </div>
 
-  <script src="vendor/supabase/supabase.js"></script>
-  <script src="vendor/capacitor/capacitor.js"></script>
-  <script src="vendor/capacitor/app.js"></script>
-  <script src="vendor/capacitor/haptics.js"></script>
-  <script src="vendor/capacitor/status-bar.js"></script>
-  <script src="vendor/capacitor/splash-screen.js"></script>
-  <script src="vendor/capacitor/keyboard.js"></script>
-  <script src="vendor/capacitor/local-notifications.js"></script>
-  <script src="native-ux.js"></script>
-  <script src="supabaseClient.js"></script>
-  <script src="content-repo.js?v=2"></script>
-  <script src="progress-sync.js?v=18"></script>
+  <!-- PERF: defer eklendi — sıra (document order) korunur, tek fark tarayıcının
+       bu script'leri sırayla indirip-çalıştırmak yerine paralel indirip
+       DOM ayrıştırması bittikten hemen sonra sırayla çalıştırması. Aralarındaki
+       bağımlılık zinciri (native-ux.js → app.js, auth-common.js → app-guard.js
+       vb.) document order ile korunduğu için davranış değişmez. -->
+  <script src="vendor/supabase/supabase.js" defer></script>
+  <script src="vendor/capacitor/capacitor.js" defer></script>
+  <script src="vendor/capacitor/app.js" defer></script>
+  <script src="vendor/capacitor/haptics.js" defer></script>
+  <script src="vendor/capacitor/status-bar.js" defer></script>
+  <script src="vendor/capacitor/splash-screen.js" defer></script>
+  <script src="vendor/capacitor/keyboard.js" defer></script>
+  <script src="vendor/capacitor/local-notifications.js" defer></script>
+  <script src="native-ux.js" defer></script>
+  <script src="supabaseClient.js" defer></script>
+  <script src="content-repo.js?v=2" defer></script>
+  <script src="progress-sync.js?v=18" defer></script>
   <!-- N-04 fix: auth-common.js tüm sayfalarda yüklenmeli.
        native-ux.js appUrlOpen'ı yakalayıp nativeux:url event'i fırlatır;
        dinleyici (auth-common.js) bu sayfada yoksa cold-start auth callback'i
        sessizce kaybolur. app-guard.js'ten önce yükleniyor. -->
-  <script src="auth-common.js"></script>
-  <script src="app-guard.js"></script>
-  <script src="app.js?v=163"></script>
+  <script src="auth-common.js" defer></script>
+  <script src="app-guard.js" defer></script>
+  <script src="app.js?v=164" defer></script>
 </body>
 </html>

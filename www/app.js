@@ -16,6 +16,7 @@ const PROGRESS_DEVICE_ID_STORAGE_KEY = 'sinavrotasi-progress-device-id-v1';
 const TOAST_DURATION_MS = 2400;          // Toast bildiriminin ekranda kalma süresi
 const CLOUD_SYNC_DEBOUNCE_MS = 1500;     // Progress değişikliğinden sonra Supabase'e yazana kadar bekleme (debounce)
 const SEARCH_FOCUS_DELAY_MS = 300;       // Arama input'una modal açıldıktan sonra odaklanma gecikmesi
+const LOCAL_SAVE_DEBOUNCE_MS = 400;      // PERF: localStorage yazımını art arda gelen cevaplarda tekilleştirir
 
 const ROLES = [
   { key: 'memur', label: 'Memur' },
@@ -490,8 +491,36 @@ function logEvent(eventType, eventData) {
   }
 }
 
-function saveProgress({ rerender = true } = {}) {
+// PERF: JSON.stringify + localStorage.setItem artık her çağrıda değil, kısa
+// bir debounce sonunda tek seferde çalışıyor (ör. bir sınavda art arda gelen
+// her cevapta senkron bir yazma/serileştirme maliyeti oluşmasın diye).
+// Sekme arka plana alınırken / kapanırken (visibilitychange, pagehide,
+// nativeux:pause) bekleyen yazma varsa hemen flush ediliyor — veri kaybı yok.
+let localSaveTimer = null;
+let localSavePending = false;
+
+function flushLocalProgressSave() {
+  if (!localSavePending) return;
+  clearTimeout(localSaveTimer);
+  localSaveTimer = null;
+  localSavePending = false;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+}
+
+function scheduleLocalProgressSave() {
+  localSavePending = true;
+  clearTimeout(localSaveTimer);
+  localSaveTimer = setTimeout(flushLocalProgressSave, LOCAL_SAVE_DEBOUNCE_MS);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushLocalProgressSave();
+});
+window.addEventListener('pagehide', flushLocalProgressSave);
+document.addEventListener('nativeux:pause', flushLocalProgressSave);
+
+function saveProgress({ rerender = true } = {}) {
+  scheduleLocalProgressSave();
   scheduleCloudSync();
   updateHeader();
   const pickerOpen = document.activeElement?.id === 'notifReminderTimeInput';
@@ -3334,7 +3363,15 @@ function closeSearchSheet() {
   closeAllSheets();
 }
 
+// PERF: index artık her tuş vuruşunda değil, katalog referansı değiştiğinde
+// (yani yeni veri geldiğinde) yeniden kuruluyor ve önbelleğe alınıyor.
+// Karşılaştırma anahtarı (searchKey) da burada bir kez hesaplanıp saklanıyor,
+// böylece runSearch() her seferinde toLocaleLowerCase() tekrarlamıyor.
+let searchIndexCache = null;
+let searchIndexCacheCatalogue = null;
+
 function collectSearchIndex() {
+  if (searchIndexCache && searchIndexCacheCatalogue === state.catalogue) return searchIndexCache;
   const index = [];
   getCategories().forEach(([categoryKey, category]) => {
     getCategoryItems(categoryKey).forEach(item => {
@@ -3348,6 +3385,9 @@ function collectSearchIndex() {
       });
     });
   });
+  index.forEach(entry => { entry.searchKey = entry.title.toLocaleLowerCase('tr-TR'); });
+  searchIndexCache = index;
+  searchIndexCacheCatalogue = state.catalogue;
   return index;
 }
 
@@ -3362,7 +3402,7 @@ function runSearch(query) {
     return;
   }
   const needle = trimmed.toLocaleLowerCase('tr-TR');
-  const results = collectSearchIndex().filter(entry => entry.title.toLocaleLowerCase('tr-TR').includes(needle)).slice(0, 30);
+  const results = collectSearchIndex().filter(entry => entry.searchKey.includes(needle)).slice(0, 30);
   searchResultsList.innerHTML = results.length ? results.map((result, index) => `
     <article class="topic-item" data-search-index="${index}" role="button" tabindex="0">
       <div class="topic-number">${svg(result.icon)}</div>
@@ -3389,7 +3429,14 @@ function openSearchResult(result) {
 
 openSearchButton?.addEventListener('click', openSearchSheet);
 closeSearchSheetButton?.addEventListener('click', closeSearchSheet);
-searchInput?.addEventListener('input', () => runSearch(searchInput.value));
+// PERF: her tuş vuruşunda değil, yazma durduktan ~200ms sonra arıyoruz.
+let searchDebounceTimer = null;
+const SEARCH_DEBOUNCE_MS = 200;
+searchInput?.addEventListener('input', () => {
+  clearTimeout(searchDebounceTimer);
+  const value = searchInput.value;
+  searchDebounceTimer = setTimeout(() => runSearch(value), SEARCH_DEBOUNCE_MS);
+});
 
 function resetSheetClasses() {
   topicSheet.classList.remove('document-flow', 'quiz-active', 'card-study-active');
