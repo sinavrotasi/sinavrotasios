@@ -352,6 +352,7 @@ const topicHeadingIcon = document.getElementById('topicHeadingIcon');
 const topicList = document.getElementById('topicList');
 const topicProgressText = document.getElementById('topicProgressText');
 const topicProgressBar = document.getElementById('topicProgressBar');
+const topicProgressMeta = document.getElementById('topicProgressMeta');
 const topicBreadcrumbWrap = document.getElementById('topicBreadcrumbWrap');
 
 // Rota Paneli (Route Sheet) Elementleri
@@ -424,8 +425,6 @@ const iconPaths = {
   calendar: '<path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>',
   zap: '<path d="M4 14a1 1 0 0 1-.78-1.63l9-11a.5.5 0 0 1 .87.45l-1.69 6.2A1 1 0 0 0 12.36 9H20a1 1 0 0 1 .78 1.63l-9 11a.5.5 0 0 1-.87-.45l1.69-6.2A1 1 0 0 0 11.64 14z"/>',
   shuffle: '<path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.5c2.5 0 4.5-2 6-5l1-2c1.5-3 3.5-5 6-5H22"/><path d="M2 6h1.5c2.5 0 4.5 2 6 5l1 2c1.5 3 3.5 5 6 5H22"/>',
-  sparkles: '<path d="m12 3-1.2 3.2L8 7.5l2.8 1.3L12 12l1.2-3.2L16 7.5l-2.8-1.3z"/><path d="m5.5 12-.8 2.1L2.5 15l2.2.9.8 2.1.8-2.1 2.2-.9-2.2-.9z"/><path d="m18.5 14-1 2.7-2.5 1.1 2.5 1.1 1 2.6 1-2.6 2.5-1.1-2.5-1.1z"/>',
-  sliders: '<path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h2"/><path d="M10 17h10"/><circle cx="8" cy="17" r="2"/><path d="M4 12h4"/><path d="M12 12h8"/><circle cx="10" cy="12" r="2"/>',
   briefcase: '<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/><path d="M2 12h20"/><path d="M10 12v2h4v-2"/>',
   flashcards: '<rect x="6" y="5" width="13" height="15" rx="2.5"/><path d="M9 5V3.5A1.5 1.5 0 0 1 10.5 2H19a3 3 0 0 1 3 3v11a2 2 0 0 1-2 2h-1"/><path d="M9.5 10h6"/><path d="M9.5 14h4"/>',
 };
@@ -1797,7 +1796,7 @@ function cardsView() {
   const presentation = {
     'general-legislation': { title: 'Genel Mevzuat', icon: 'scale', tone: 'navy' },
     'meb-legislation': { title: 'MEB Mevzuatı', icon: 'schoolbook', tone: 'red' },
-    'general-culture': { title: 'Ortak Alan Bilgisi', icon: 'landmark', tone: 'blue' }
+    'general-culture': { title: 'Ortak Alan Bilgisi', icon: 'landmark', tone: 'violet' }
   };
   const keys = ['general-legislation', 'meb-legislation', 'general-culture'];
   const rows = keys.map(key => {
@@ -2430,7 +2429,6 @@ function profileView() {
   const calendarIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3m10-3v3M4 9h16"/><rect x="4" y="5" width="16" height="16" rx="3"/></svg>`;
   const focusIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/><circle cx="12" cy="12" r="1.5"/></svg>`;
   const gearIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 10 3.01V3h4v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.8 7l-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.96 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>`;
-  const studyPreferencesIcon = svg('sliders');
   const cupIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"/><path d="M16 10h2a3 3 0 0 1 0 6h-2M7 3v2m4-2v2m4-2v2"/></svg>`;
   const userIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`;
   const aaIcon = `<span class="sp-aa">Aa</span>`;
@@ -2536,7 +2534,7 @@ function profileView() {
     </button>
 
     <button class="sp-study-preferences-entry" id="studyPreferencesButton" type="button">
-      <span class="sp-study-preferences-icon">${studyPreferencesIcon}</span>
+      <span class="sp-study-preferences-icon">${gearIcon}</span>
       <span class="sp-study-preferences-copy">
         <strong>Çalışma tercihlerim</strong>
         <small>Pratik türünü ve çalışma aralarını yönet</small>
@@ -2586,7 +2584,7 @@ function studyPreferencesView() {
     </header>
 
     <section class="study-pref-intro">
-      <span class="study-pref-intro-icon">${svg('compass')}</span>
+      <span class="study-pref-intro-icon">${svg('settings')}</span>
       <div><strong>Çalışma rotanı kişiselleştir</strong><small>Bugünkü Rota’daki pratik türünü ve çalışma planının durumunu belirle.</small></div>
     </section>
 
@@ -4106,7 +4104,7 @@ searchInput?.addEventListener('input', () => {
 });
 
 function resetSheetClasses() {
-  topicSheet.classList.remove('document-flow', 'quiz-active', 'card-study-active');
+  topicSheet.classList.remove('document-flow', 'quiz-active', 'card-study-active', 'topic-category-premium');
   delete topicSheet.dataset.categoryTone;
 }
 
@@ -4166,9 +4164,16 @@ function applyCategoryProgressTone(categoryKey) {
   topicSheet.dataset.categoryTone = tone;
 }
 
-function setSheetProgress(label, percentage, completedLabel = 'tamamlandı') {
-  topicProgressText.textContent = percentage ? `%${percentage} ${completedLabel}` : label;
-  topicProgressBar.style.width = `${percentage}%`;
+function setSheetProgress(label, percentage, completedLabel = 'tamamlandı', metaLabel = '') {
+  const pct = Math.max(0, Math.min(100, Number(percentage) || 0));
+  if (topicSheet.classList.contains('topic-category-premium')) {
+    topicProgressText.textContent = `%${pct}`;
+    if (topicProgressMeta) topicProgressMeta.textContent = metaLabel || (pct ? `%${pct} ${completedLabel}` : label);
+  } else {
+    topicProgressText.textContent = pct ? `%${pct} ${completedLabel}` : label;
+    if (topicProgressMeta) topicProgressMeta.textContent = '';
+  }
+  topicProgressBar.style.width = `${pct}%`;
 }
 
 function renderCategoryLevel(categoryKey) {
@@ -4176,17 +4181,29 @@ function renderCategoryLevel(categoryKey) {
   applyCategoryProgressTone(categoryKey);
   if (!category) return;
   resetSheetClasses();
+  topicSheet.classList.add('topic-category-premium');
   const meta = categoryCardMeta(categoryKey);
   applySheetHeader({ title: category.title, subtitle: category.subtitle, eyebrow: 'KONU KATEGORİSİ', icon: meta.icon, iconClass: meta.iconClass });
   topicBreadcrumbWrap.innerHTML = '';
-  const progressPercent = getCategoryProgress(categoryKey);
-  setSheetProgress('Henüz çalışılmadı', progressPercent);
   const items = getCategoryItems(categoryKey);
+  const progressPercent = getCategoryProgress(categoryKey);
+  const categoryTotalQuestions = items.reduce((sum, item) => sum + Math.max(0, Number(item.questionCount) || 0), 0);
+  const categoryCompletedQuestions = items.reduce((sum, item) => {
+    if (item.type !== 'document') return sum;
+    const total = Math.max(0, Number(item.questionCount) || 0);
+    const pct = Math.max(0, Math.min(100, Number(getDocumentProgress(item)) || 0));
+    return sum + Math.round(total * pct / 100);
+  }, 0);
+  const progressMeta = progressPercent > 0
+    ? `${categoryCompletedQuestions.toLocaleString('tr-TR')} / ${categoryTotalQuestions.toLocaleString('tr-TR')} soru tamamlandı`
+    : 'Henüz çalışılmadı';
+  setSheetProgress('Henüz çalışılmadı', progressPercent, 'tamamlandı', progressMeta);
   topicList.innerHTML = items.map((item, index) => {
     const isDocument = item.type === 'document';
     const isComplete = isDocument && getDocumentProgress(item) === 100;
     const info = statLine(item);
-    return `<article class="topic-item ${isComplete ? 'completed' : ''}" data-topic-index="${index}" role="button" tabindex="0"><div class="topic-number">${String(index + 1).padStart(2, '0')}</div><div class="topic-copy"><h4>${escapeHtml(item.title)}</h4><p>${info}</p></div>${isDocument && item.articleCount && item.contentStatus === 'sample' ? `<span class="article-range">ÖRNEK SET</span>` : ''}<div class="topic-arrow">${svg('arrow')}</div></article>`;
+    const tone = index % 2 === 0 ? 'tone-red' : 'tone-navy';
+    return `<article class="topic-item ${tone} ${isComplete ? 'completed' : ''}" data-topic-index="${index}" role="button" tabindex="0"><div class="topic-number">${String(index + 1).padStart(2, '0')}</div><div class="topic-copy"><h4>${escapeHtml(item.title)}</h4><p>${info}</p></div>${isDocument && item.articleCount && item.contentStatus === 'sample' ? `<span class="article-range">ÖRNEK SET</span>` : ''}<div class="topic-arrow">${svg('arrow')}</div></article>`;
   }).join('');
   topicList.querySelectorAll('[data-topic-index]').forEach(element => {
     const open = () => {
