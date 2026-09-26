@@ -2015,7 +2015,7 @@ function getProfileWeekDays() {
       date,
       count,
       isToday: dateKey(date) === dateKey(now),
-      isStudyDay: index < 5,
+      isStudyDay: true,
       completed: count > 0
     };
   });
@@ -2052,9 +2052,9 @@ function profileView() {
   const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || 'Hedef belirlenmedi';
   const prefs = progress.notificationPrefs || DEFAULT_NOTIFICATION_PREFS;
   const weekDays = getProfileWeekDays();
-  const completedStudyDays = weekDays.filter(day => day.isStudyDay && day.completed).length;
+  const completedStudyDays = weekDays.filter(day => day.completed).length;
   const goalPreset = getDailyGoalPreset(stats.dailyGoal);
-  const examLabel = getExamDate() ? formatExamDate(getExamDate()) : 'Sınav tarihi belirle';
+  const examLabel = 'Kadronu değiştir';
 
   const targetIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.8 9.2 21 3m0 0v5m0-5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>`;
   const pencilIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.3-1 10.8-10.8a2.1 2.1 0 0 0-3-3L5.3 16 4 20Z"/><path d="m14.8 6.5 2.7 2.7"/></svg>`;
@@ -2086,7 +2086,7 @@ function profileView() {
         <div class="sp-exam-label"><span class="sp-target-icon">${targetIcon}</span><span>Sınav hedefim</span></div>
         <strong>${escapeHtml(roleLabel)}</strong>
       </div>
-      <button class="sp-exam-date" id="profileExamDateButton" type="button">
+      <button class="sp-exam-date" id="profileChangeRoleButton" type="button">
         ${calendarIcon}<span>${escapeHtml(examLabel)}</span><b>›</b>
       </button>
     </section>
@@ -2094,24 +2094,29 @@ function profileView() {
     <section class="sp-study-card">
       <div class="sp-section-title">
         <div>${calendarIcon}<strong>Haftalık ritim</strong></div>
-        <span><b>${completedStudyDays}</b> / 5 gün</span>
+        <span><b>${completedStudyDays}</b> / 7 gün</span>
       </div>
       <div class="sp-week-grid">${weekDays.map(renderProfileDay).join('')}</div>
 
       <div class="sp-card-rule"></div>
 
-      <h2 class="sp-daily-title">Günlük hedef</h2>
-      <div class="sp-goal-segments" role="group" aria-label="Günlük hedef yoğunluğu">
-        <button type="button" data-goal-preset="20" class="${goalPreset === 'light' ? 'active' : ''}">Hafif</button>
-        <button type="button" data-goal-preset="40" class="${goalPreset === 'balanced' ? 'active' : ''}">Dengeli</button>
-        <button type="button" data-goal-preset="60" class="${goalPreset === 'intense' ? 'active' : ''}">Yoğun</button>
-      </div>
-      <div class="sp-goal-bottom">
-        <div class="sp-goal-number"><strong>${stats.dailyGoal}</strong><span>soru / gün</span></div>
-        <button class="sp-customize" id="profileCustomizeGoalButton" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10m4 0h2M4 17h3m4 0h9M14 4v6m-7 4v6"/></svg>
-          <span>Özelleştir</span>
-        </button>
+      <div class="sp-daily-premium">
+        <div class="sp-daily-head">
+          <div><span class="sp-daily-kicker">GÜNLÜK PLAN</span><h2 class="sp-daily-title">Günlük hedef</h2></div>
+          <span class="sp-daily-mini">${svg('target')}</span>
+        </div>
+        <div class="sp-goal-segments" role="group" aria-label="Günlük hedef yoğunluğu">
+          <button type="button" data-goal-preset="20" class="${goalPreset === 'light' ? 'active' : ''}">Hafif</button>
+          <button type="button" data-goal-preset="40" class="${goalPreset === 'balanced' ? 'active' : ''}">Dengeli</button>
+          <button type="button" data-goal-preset="60" class="${goalPreset === 'intense' ? 'active' : ''}">Yoğun</button>
+        </div>
+        <div class="sp-goal-bottom">
+          <div class="sp-goal-number"><strong>${stats.dailyGoal}</strong><span>soru / gün</span></div>
+          <button class="sp-customize" id="profileCustomizeGoalButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10m4 0h2M4 17h3m4 0h9M14 4v6m-7 4v6"/></svg>
+            <span>Özelleştir</span>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -2155,6 +2160,87 @@ function profileView() {
   </section>`;
 }
 
+
+function profileEditView() {
+  const user = window.currentUser;
+  const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  const firstName = parts.shift() || '';
+  const lastName = parts.join(' ');
+
+  return `<section class="screen content-screen sp-subscreen profile-edit-page">
+    <header class="sp-page-head sp-subpage-head">
+      <button class="sp-back" id="profileEditBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <h1>Profilimi düzenle</h1>
+      <div class="sp-wordmark">Sınav<span>Rotası</span></div>
+    </header>
+
+    <section class="sp-form-card">
+      <div class="sp-form-head">
+        <span>${svg('idcard')}</span>
+        <div><strong>Kişisel bilgiler</strong><small>Ad ve soyadın profilinde görüntülenir.</small></div>
+      </div>
+      <label class="sp-field-label">Ad
+        <input id="profileFirstNameInput" class="sp-text-input" type="text" autocomplete="given-name" value="${escapeHtml(firstName)}" maxlength="60">
+      </label>
+      <label class="sp-field-label">Soyad
+        <input id="profileLastNameInput" class="sp-text-input" type="text" autocomplete="family-name" value="${escapeHtml(lastName)}" maxlength="60">
+      </label>
+    </section>
+
+    <section class="sp-form-card">
+      <div class="sp-form-head">
+        <span>${svg('lock')}</span>
+        <div><strong>Şifre değiştir</strong><small>Şifreni değiştirmek istemiyorsan alanları boş bırak.</small></div>
+      </div>
+      <label class="sp-field-label">Yeni şifre
+        <input id="profileNewPasswordInput" class="sp-text-input" type="password" autocomplete="new-password" minlength="8" placeholder="En az 8 karakter">
+      </label>
+      <label class="sp-field-label">Yeni şifre tekrar
+        <input id="profileNewPasswordConfirmInput" class="sp-text-input" type="password" autocomplete="new-password" minlength="8" placeholder="Şifreni tekrar yaz">
+      </label>
+    </section>
+
+    <p class="sp-form-error" id="profileEditError" aria-live="polite"></p>
+    <button class="sp-primary-action" id="profileEditSaveButton" type="button">Değişiklikleri kaydet</button>
+  </section>`;
+}
+
+function goalSettingsView() {
+  const goal = Number(progress.dailyGoal || DEFAULT_DAILY_GOAL);
+  return `<section class="screen content-screen sp-subscreen goal-settings-page">
+    <header class="sp-page-head sp-subpage-head">
+      <button class="sp-back" id="goalSettingsBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <h1>Günlük hedef</h1>
+      <div class="sp-wordmark">Sınav<span>Rotası</span></div>
+    </header>
+
+    <section class="goal-custom-hero">
+      <span class="goal-custom-icon">${svg('target')}</span>
+      <div><small>GÜNLÜK ÇALIŞMA</small><strong>Temponu kendin belirle</strong><p>Hedefin ilerleme halkasını ve günlük çalışma planını belirler.</p></div>
+    </section>
+
+    <section class="sp-form-card goal-custom-card">
+      <strong class="goal-custom-title">Hazır tempolar</strong>
+      <div class="goal-custom-presets">
+        <button type="button" data-custom-goal="20"><b>20</b><span>Hafif</span></button>
+        <button type="button" data-custom-goal="40"><b>40</b><span>Dengeli</span></button>
+        <button type="button" data-custom-goal="60"><b>60</b><span>Yoğun</span></button>
+      </div>
+
+      <div class="goal-custom-value">
+        <button id="goalMinusButton" type="button" aria-label="Hedefi azalt">−</button>
+        <label><input id="customDailyGoalInput" type="number" inputmode="numeric" min="${DAILY_GOAL_MIN}" max="${DAILY_GOAL_MAX}" value="${goal}"><span>soru / gün</span></label>
+        <button id="goalPlusButton" type="button" aria-label="Hedefi artır">+</button>
+      </div>
+      <small class="goal-custom-note">1 ile 500 soru arasında bir hedef seçebilirsin.</small>
+    </section>
+
+    <p class="sp-form-error" id="goalSettingsError" aria-live="polite"></p>
+    <button class="sp-primary-action" id="goalSettingsSaveButton" type="button">Hedefi kaydet</button>
+  </section>`;
+}
+
 function achievementsView() {
   const stats = getStats();
   const badges = getBadges(stats);
@@ -2192,9 +2278,9 @@ function achievementsView() {
 }
 
 function render() {
-  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, achievements: achievementsView };
+  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView };
   const appHeader = document.querySelector('.app-header');
-  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'achievements'].includes(state.view));
+  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'achievements', 'profile-edit', 'goal-settings'].includes(state.view));
   app.innerHTML = (views[state.view] || homeView)();
   bindViewEvents();
   updateHeader();
@@ -2236,11 +2322,7 @@ function bindViewEvents() {
   document.getElementById('startMiniExamButton')?.addEventListener('click', startQuickMiniExam);
   document.getElementById('startMixedExamButton')?.addEventListener('click', startMixedGeneralExam);
   document.getElementById('resetProgressButton')?.addEventListener('click', resetProgress);
-  // O-02/O-08 (2026-09-15): Kadro bir kez seçilir ve sunucuda kilitlidir.
-  // Profilden değiştirme yerine bilgilendirme gösterilir.
-  document.getElementById('changeRoleButton')?.addEventListener('click', () => {
-    showToast('Kadro seçimi sabittir. Değişiklik için bilgi.sinavrotasi@gmail.com adresine yazabilirsin.');
-  });
+
   document.getElementById('signOutButton')?.addEventListener('click', async () => {
     await flushProgressSync();
     window.signOut();
@@ -2280,28 +2362,35 @@ function bindViewEvents() {
 
   // Profil v2 etkileşimleri
   document.getElementById('editProfileButton')?.addEventListener('click', () => {
-    showToast('Profil düzenleme ekranı sonraki adımda bağlanabilir.');
+    state.view = 'profile-edit';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
   });
-  document.getElementById('profileExamDateButton')?.addEventListener('click', () => {
-    showToast(getExamDate() ? `Sınav tarihi: ${formatExamDate(getExamDate())}` : 'Sınav tarihi henüz merkezi olarak belirlenmedi.');
+
+  document.getElementById('profileChangeRoleButton')?.addEventListener('click', () => {
+    openRoleGate(true, progress.selectedRole, 'change');
   });
+
   app.querySelectorAll('[data-goal-preset]').forEach(button => {
-    button.addEventListener('click', () => {
-      setDailyGoal(button.dataset.goalPreset);
-    });
+    button.addEventListener('click', () => setDailyGoal(button.dataset.goalPreset));
   });
+
   document.getElementById('profileCustomizeGoalButton')?.addEventListener('click', () => {
-    const current = getDailyGoal();
-    const value = window.prompt(`Günlük hedefini belirle (${DAILY_GOAL_MIN}-${DAILY_GOAL_MAX} soru):`, String(current));
-    if (value !== null) setDailyGoal(value);
+    state.view = 'goal-settings';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
   });
+
   document.getElementById('profileFocusModeButton')?.addEventListener('click', event => {
     const button = event.currentTarget;
     const next = button.getAttribute('aria-checked') !== 'true';
     button.setAttribute('aria-checked', String(next));
     button.classList.toggle('on', next);
-    showToast(next ? 'Odak modu açıldı.' : 'Odak modu kapatıldı.');
+    showToast(next ? 'Odak modu görünümü açıldı.' : 'Odak modu görünümü kapatıldı.');
   });
+
   document.getElementById('repeatPriorityButton')?.addEventListener('click', () => showToast('Tekrar önceliği: Yanlış yaptıklarım'));
   document.getElementById('pauseStudyButton')?.addEventListener('click', () => showToast('Çalışma planını duraklatma ayarı yakında.'));
   document.getElementById('appearanceSettingsButton')?.addEventListener('click', () => showToast('Görünüm ve yazı boyutu ayarı yakında.'));
@@ -2318,6 +2407,94 @@ function bindViewEvents() {
     setNav('profile');
     render();
     scrollArea.scrollTop = 0;
+  });
+
+  document.getElementById('profileEditBackButton')?.addEventListener('click', () => {
+    state.view = 'profile'; setNav('profile'); render(); scrollArea.scrollTop = 0;
+  });
+  document.getElementById('profileEditSaveButton')?.addEventListener('click', async () => {
+    const firstName = document.getElementById('profileFirstNameInput')?.value.trim() || '';
+    const lastName = document.getElementById('profileLastNameInput')?.value.trim() || '';
+    const password = document.getElementById('profileNewPasswordInput')?.value || '';
+    const passwordConfirm = document.getElementById('profileNewPasswordConfirmInput')?.value || '';
+    const errorEl = document.getElementById('profileEditError');
+    const saveButton = document.getElementById('profileEditSaveButton');
+    if (errorEl) errorEl.textContent = '';
+
+    if (firstName.length < 2 || lastName.length < 2) {
+      if (errorEl) errorEl.textContent = 'Ad ve soyad alanlarını doldur.';
+      return;
+    }
+    if (password && password.length < 8) {
+      if (errorEl) errorEl.textContent = 'Yeni şifre en az 8 karakter olmalı.';
+      return;
+    }
+    if (password !== passwordConfirm) {
+      if (errorEl) errorEl.textContent = 'Yeni şifreler eşleşmiyor.';
+      return;
+    }
+
+    const fullName = `${firstName} ${lastName}`.replace(/\s+/g, ' ').trim();
+    saveButton.disabled = true;
+    saveButton.textContent = 'Kaydediliyor…';
+    try {
+      const existingMetadata = window.currentUser?.user_metadata || {};
+      const { data: nameData, error: nameError } = await supabaseClient.auth.updateUser({
+        data: { ...existingMetadata, full_name: fullName }
+      });
+      if (nameError) throw nameError;
+      if (nameData?.user) window.currentUser = nameData.user;
+
+      if (password) {
+        const { data: passwordData, error: passwordError } = await supabaseClient.auth.updateUser({ password });
+        if (passwordError) throw passwordError;
+        if (passwordData?.user) window.currentUser = passwordData.user;
+      }
+
+      showToast(password ? 'Profilin ve şifren güncellendi.' : 'Profilin güncellendi.');
+      state.view = 'profile';
+      setNav('profile');
+      render();
+      scrollArea.scrollTop = 0;
+    } catch (error) {
+      console.error('Profil güncellenemedi:', error);
+      if (errorEl) errorEl.textContent = error?.message || 'Profil güncellenemedi.';
+      saveButton.disabled = false;
+      saveButton.textContent = 'Değişiklikleri kaydet';
+    }
+  });
+
+  document.getElementById('goalSettingsBackButton')?.addEventListener('click', () => {
+    state.view = 'profile'; setNav('profile'); render(); scrollArea.scrollTop = 0;
+  });
+  const customGoalInput = document.getElementById('customDailyGoalInput');
+  const clampCustomGoal = value => Math.max(DAILY_GOAL_MIN, Math.min(DAILY_GOAL_MAX, Math.round(Number(value) || DEFAULT_DAILY_GOAL)));
+  app.querySelectorAll('[data-custom-goal]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (customGoalInput) customGoalInput.value = button.dataset.customGoal;
+      app.querySelectorAll('[data-custom-goal]').forEach(item => item.classList.toggle('active', item === button));
+    });
+  });
+  document.getElementById('goalMinusButton')?.addEventListener('click', () => {
+    if (customGoalInput) customGoalInput.value = clampCustomGoal(Number(customGoalInput.value) - 5);
+  });
+  document.getElementById('goalPlusButton')?.addEventListener('click', () => {
+    if (customGoalInput) customGoalInput.value = clampCustomGoal(Number(customGoalInput.value) + 5);
+  });
+  document.getElementById('goalSettingsSaveButton')?.addEventListener('click', () => {
+    const input = document.getElementById('customDailyGoalInput');
+    const errorEl = document.getElementById('goalSettingsError');
+    const value = Number(input?.value);
+    if (!Number.isFinite(value) || value < DAILY_GOAL_MIN || value > DAILY_GOAL_MAX) {
+      if (errorEl) errorEl.textContent = `Hedef ${DAILY_GOAL_MIN}-${DAILY_GOAL_MAX} arasında olmalı.`;
+      return;
+    }
+    if (setDailyGoal(value)) {
+      state.view = 'profile';
+      setNav('profile');
+      render();
+      scrollArea.scrollTop = 0;
+    }
   });
 
 }
@@ -4296,6 +4473,13 @@ function handleHardwareBack() {
     return true;
   }
   if (routeSheet.classList.contains('open')) { closeRouteSheet(); return true; }
+  if (['achievements', 'profile-edit', 'goal-settings'].includes(state.view)) {
+    state.view = 'profile';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
+    return true;
+  }
   if (state.view !== 'home') { go('home'); return true; }
   return false;
 }
@@ -4402,13 +4586,14 @@ const roleGate = document.getElementById('roleGate');
 const roleGateList = document.getElementById('roleGateList');
 const roleGateContinue = document.getElementById('roleGateContinue');
 let pendingRoleSelection = null;
+let roleGateMode = 'initial';
 
-function renderRoleGate() {
+function renderRoleGate(selectedRole = null) {
   roleGateList.innerHTML = ROLES.map(role => `
-    <button class="role-gate-item" data-role-key="${role.key}" type="button">
+    <button class="role-gate-item${role.key === selectedRole ? ' selected' : ''}" data-role-key="${role.key}" type="button">
       <span class="role-gate-item-icon">${svg(ROLE_ICONS[role.key] || 'book')}</span>
       <strong>${escapeHtml(role.label)}</strong>
-      <span class="role-gate-item-arrow">${svg('arrow')}</span>
+      <span class="role-gate-item-arrow">${role.key === selectedRole ? svg('check') : svg('arrow')}</span>
     </button>`).join('');
   roleGateList.querySelectorAll('[data-role-key]').forEach(button => {
     button.addEventListener('click', () => {
@@ -4421,13 +4606,20 @@ function renderRoleGate() {
   });
 }
 
-function openRoleGate(allowClose = false) {
-  pendingRoleSelection = null;
-  renderRoleGate();
-  roleGateContinue.disabled = true;
-  roleGateContinue.classList.remove('enabled');
+function openRoleGate(allowClose = false, selectedRole = null, mode = 'initial') {
+  roleGateMode = mode;
+  pendingRoleSelection = selectedRole || null;
+  renderRoleGate(selectedRole);
+  roleGateContinue.disabled = !pendingRoleSelection;
+  roleGateContinue.classList.toggle('enabled', Boolean(pendingRoleSelection));
   const closeBtn = document.getElementById('roleGateClose');
   if (closeBtn) closeBtn.style.display = allowClose ? 'flex' : 'none';
+  const title = roleGate?.querySelector('h1');
+  const desc = roleGate?.querySelector('p');
+  if (title) title.textContent = mode === 'change' ? 'Kadronu Değiştir' : 'Hedefini Seç';
+  if (desc) desc.textContent = mode === 'change'
+    ? 'Yanlış seçtiğin hedef kadroyu buradan değiştirebilirsin.'
+    : 'Sana uygun çalışma planını hazırlayalım.';
   roleGate.setAttribute('aria-hidden', 'false');
 }
 
@@ -4457,7 +4649,7 @@ roleGateContinue?.addEventListener('click', async () => {
   const savedRole = updatedRows[0].role;
   if (savedRole !== requestedRole) {
     const label = ROLES.find(r => r.key === savedRole)?.label || savedRole;
-    showToast(`Kadron daha önce ${label} olarak kaydedilmiş.`);
+    showToast(`Sunucu kadroyu değiştirmedi. Mevcut kadro: ${label}.`);
   }
   window.currentUserRole = savedRole;
   window.currentUserRoleError = false;
@@ -4466,7 +4658,18 @@ roleGateContinue?.addEventListener('click', async () => {
   saveProgress();
 
   closeRoleGate();
-  initializeApp();
+
+  if (roleGateMode === 'change') {
+    state.catalogue = null;
+    state.flashcardDecks = null;
+    state.view = 'profile';
+    setNav('profile');
+    render();
+    loadCatalogue();
+    showToast('Hedef kadron güncellendi.');
+  } else {
+    initializeApp();
+  }
 });
 
 let profileLoadErrorShown = false;
