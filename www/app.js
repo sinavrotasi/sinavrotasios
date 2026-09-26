@@ -1497,9 +1497,9 @@ function mistakesView() {
   const order = ['general-legislation', 'meb-legislation', 'general-culture'];
 
   const presentation = {
-    'general-legislation': { title: 'Genel Mevzuat', icon: 'scale', tone: 'red' },
-    'meb-legislation': { title: 'MEB Mevzuatı', icon: 'schoolbook', tone: 'blue' },
-    'general-culture': { title: 'Ortak Alan Bilgisi', icon: 'landmark', tone: 'violet' },
+    'general-legislation': { title: 'Genel Mevzuat', icon: 'scale', tone: 'navy' },
+    'meb-legislation': { title: 'MEB Mevzuatı', icon: 'schoolbook', tone: 'red' },
+    'general-culture': { title: 'Ortak Alan Bilgisi', icon: 'landmark', tone: 'blue' },
     other: { title: 'Diğer Sorular', icon: 'book', tone: 'green' }
   };
 
@@ -1787,8 +1787,8 @@ function cardsView() {
     setTimeout(() => reconcileFlashcardDeckCompletions().catch(() => {}), 0);
   }
   const presentation = {
-    'general-legislation': { title: 'Genel Mevzuat', icon: 'scale', tone: 'red' },
-    'meb-legislation': { title: 'MEB Mevzuatı', icon: 'schoolbook', tone: 'blue' },
+    'general-legislation': { title: 'Genel Mevzuat', icon: 'scale', tone: 'navy' },
+    'meb-legislation': { title: 'MEB Mevzuatı', icon: 'schoolbook', tone: 'red' },
     'general-culture': { title: 'Ortak Alan Bilgisi', icon: 'landmark', tone: 'violet' }
   };
   const keys = ['general-legislation', 'meb-legislation', 'general-culture'];
@@ -1854,7 +1854,7 @@ function cardsView() {
     ${metricsHtml}
 
     <div class="cards-set-list">
-      ${rows.map(row => `<article class="cards-set-card" data-open-card-category="${row.key}" role="button" tabindex="0" aria-label="${escapeHtml(row.design.title)}">
+      ${rows.map(row => `<article class="cards-set-card tone-${row.design.tone}" data-open-card-category="${row.key}" role="button" tabindex="0" aria-label="${escapeHtml(row.design.title)}">
         <div class="cards-set-icon tone-${row.design.tone}">${svg(row.design.icon)}</div>
         <div class="cards-set-main">
           <div class="cards-set-title-row">
@@ -1883,6 +1883,7 @@ function openCardCategorySheet(categoryKey) {
 
 function renderCardCategoryLevel(categoryKey) {
   const category = getCardCatalogue()[categoryKey];
+  applyCategoryProgressTone(categoryKey);
   resetSheetClasses();
   applySheetHeader({ title: category.title, subtitle: 'Çalışmak istediğin kaynağı seç.', eyebrow: 'BİLGİ KARTLARI', icon: category.icon, iconClass: category.iconClass });
   topicBreadcrumbWrap.innerHTML = '';
@@ -4065,6 +4066,7 @@ searchInput?.addEventListener('input', () => {
 
 function resetSheetClasses() {
   topicSheet.classList.remove('document-flow', 'quiz-active', 'card-study-active');
+  delete topicSheet.dataset.categoryTone;
 }
 
 function openTopicSheet(categoryKey) {
@@ -4114,6 +4116,15 @@ function renderBreadcrumb(label, onClick) {
   document.getElementById('sheetBackButton').addEventListener('click', () => { haptic(14); onClick(); });
 }
 
+function applyCategoryProgressTone(categoryKey) {
+  const tone = ({
+    'general-legislation': 'navy',
+    'general-culture': 'blue',
+    'meb-legislation': 'red'
+  })[categoryKey] || 'navy';
+  topicSheet.dataset.categoryTone = tone;
+}
+
 function setSheetProgress(label, percentage, completedLabel = 'tamamlandı') {
   topicProgressText.textContent = percentage ? `%${percentage} ${completedLabel}` : label;
   topicProgressBar.style.width = `${percentage}%`;
@@ -4121,6 +4132,7 @@ function setSheetProgress(label, percentage, completedLabel = 'tamamlandı') {
 
 function renderCategoryLevel(categoryKey) {
   const category = getCategory(categoryKey);
+  applyCategoryProgressTone(categoryKey);
   if (!category) return;
   resetSheetClasses();
   const meta = categoryCardMeta(categoryKey);
