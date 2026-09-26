@@ -6847,3 +6847,42 @@ html[data-ui-density="compact"] .profile-v2 .sp-study-preferences-entry{
   color:#fff;
   box-shadow:0 5px 12px rgba(8,47,96,.14);
 }
+
+
+/* ============================================================
+   KATEGORİ İKONLARI — ANA SAYFA İLE BİREBİR AYNI DİL
+   Mevzuat=lacivert terazi | Ortak Alan=mavi kurum | MEB=kırmızı açık kitap
+   ============================================================ */
+.cards-set-icon.tone-navy{background:linear-gradient(145deg,#123f77,#071f49)!important;color:#fff!important}
+.cards-set-icon.tone-blue{background:linear-gradient(145deg,#4b9bff,#2f80ed)!important;color:#fff!important}
+.cards-set-icon.tone-red{background:linear-gradient(145deg,#ff5059,#ef3038)!important;color:#fff!important}
+.cards-set-icon.tone-navy svg,.cards-set-icon.tone-blue svg,.cards-set-icon.tone-red svg{display:block!important;opacity:1!important;stroke:currentColor!important}
+
+.mistakes-ref-topic.tone-navy .mistakes-ref-topic-icon{background:linear-gradient(145deg,#123f77,#071f49)!important;color:#fff!important}
+.mistakes-ref-topic.tone-blue .mistakes-ref-topic-icon{background:linear-gradient(145deg,#4b9bff,#2f80ed)!important;color:#fff!important}
+.mistakes-ref-topic.tone-red .mistakes-ref-topic-icon{background:linear-gradient(145deg,#ff5059,#ef3038)!important;color:#fff!important}
+.mistakes-ref-topic-icon svg{display:block!important;opacity:1!important;stroke:currentColor!important}
+
+/* Çalışma tercihleri ikonları */
+.profile-v2 .sp-study-preferences-icon{background:#eef4fa!important;color:#0a4b86!important}
+.profile-v2 .sp-study-preferences-icon svg,.study-pref-intro-icon svg,.study-priority-icon svg{display:block!important;opacity:1!important;stroke:currentColor!important}
+.study-pref-intro-icon{background:#eef4fa!important;color:#0a4b86!important}
+.study-priority-option[data-repeat-priority="personal"] .study-priority-icon{background:#fff0f1!important;color:#e93238!important}
+
+/* Profil avatarı: ad ve soyad baş harfleri birbirinden çok az ayrılır */
+.sp-avatar{gap:2px!important;letter-spacing:-1px!important}
+.sp-avatar b{display:inline-block!important;line-height:1!important}
+
+/* Ana sayfa avatarını profil avatarıyla aynı stile getir */
+.header-avatar{
+  width:48px!important;height:48px!important;border-radius:50%!important;background:#fff!important;
+  border:0!important;box-shadow:0 6px 18px rgba(18,49,84,.13)!important;
+}
+.header-avatar-mark{
+  width:48px!important;height:48px!important;border-radius:50%!important;background:#fff!important;
+  transform:none!important;box-shadow:none!important;gap:2px!important;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif!important;
+  font-size:21px!important;font-weight:800!important;letter-spacing:-1px!important;
+}
+.header-avatar-mark .avatar-letter-1{color:#06265a!important;line-height:1!important}
+.header-avatar-mark .avatar-letter-2{color:#f12d38!important;line-height:1!important}
