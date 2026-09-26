@@ -2130,7 +2130,7 @@ function profileView() {
 
       <div class="sp-daily-premium">
         <div class="sp-daily-head">
-          <div><span class="sp-daily-kicker">GÜNLÜK PLAN</span><h2 class="sp-daily-title">Günlük hedef</h2></div>
+          <div><h2 class="sp-daily-title">Günlük çalışma ilerlemesi</h2></div>
           <span class="sp-daily-mini">${svg('target')}</span>
         </div>
         <div class="sp-goal-segments" role="group" aria-label="Günlük hedef yoğunluğu">
@@ -2153,7 +2153,6 @@ function profileView() {
       <label class="sp-reminder-copy" for="notifReminderTimeInput">
         <strong>Hatırlatma saati</strong>
         <input type="time" id="notifReminderTimeInput" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati">
-        <small>Hafta içi</small>
       </label>
       <button class="sp-switch${prefs.dailyReminder ? ' on' : ''}" type="button" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Hatırlatma">${'<i></i>'}</button>
     </section>
@@ -2200,7 +2199,6 @@ function profileEditView() {
     <header class="sp-page-head sp-subpage-head">
       <button class="sp-back" id="profileEditBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
       <h1>Profilimi düzenle</h1>
-      <div class="sp-wordmark">Sınav<span>Rotası</span></div>
     </header>
 
     <section class="sp-form-card">
@@ -2240,7 +2238,6 @@ function goalSettingsView() {
     <header class="sp-page-head sp-subpage-head">
       <button class="sp-back" id="goalSettingsBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
       <h1>Günlük hedef</h1>
-      <div class="sp-wordmark">Sınav<span>Rotası</span></div>
     </header>
 
     <section class="goal-custom-hero">
@@ -2277,7 +2274,6 @@ function achievementsView() {
     <header class="sp-page-head sp-subpage-head">
       <button class="sp-back" id="achievementsBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
       <h1>Başarılarım</h1>
-      <div class="sp-wordmark">Sınav<span>Rotası</span></div>
     </header>
 
     <section class="ach-summary">

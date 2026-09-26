@@ -4792,3 +4792,85 @@ body.auth-page{
 .profile-edit-page .sp-text-input{
   overflow-anchor:none!important;
 }
+
+
+/* ============================================================
+   PROFİL V2 — METİN / HİZALAMA REVİZESİ
+   ============================================================ */
+
+/* Alt ekran başlıkları daha kompakt; sağ üst marka yazısı kaldırıldı. */
+.sp-subpage-head{
+  justify-content:flex-start!important;
+  padding-right:0!important;
+}
+.sp-subpage-head .sp-wordmark{
+  display:none!important;
+}
+.sp-subpage-head h1{
+  font-size:22px!important;
+  line-height:1.15!important;
+  letter-spacing:-.65px!important;
+  margin-left:38px!important;
+  white-space:nowrap;
+}
+
+/* Kadronu değiştir metni kesilmeden görünür. */
+.profile-v2 .sp-exam-date{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:142px!important;
+  max-width:none!important;
+  padding:0 12px!important;
+  font-size:11px!important;
+  gap:7px!important;
+}
+.profile-v2 .sp-exam-date span{
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+}
+.profile-v2 .sp-exam-date svg{
+  width:17px!important;
+  height:17px!important;
+}
+.profile-v2 .sp-exam-date b{
+  font-size:20px!important;
+}
+
+/* Günlük hedef alanı artık tek başlık kullanır. */
+.profile-v2 .sp-daily-head{
+  align-items:center!important;
+  margin-bottom:11px!important;
+}
+.profile-v2 .sp-daily-kicker{
+  display:none!important;
+}
+.profile-v2 .sp-daily-title{
+  font-size:16px!important;
+  line-height:1.25!important;
+  margin:0!important;
+  letter-spacing:-.2px;
+}
+
+/* Hatırlatma saatini başlığın altından biraz daha ayır. */
+.profile-v2 .sp-reminder-copy input[type=time]{
+  margin-top:5px!important;
+}
+.profile-v2 .sp-reminder-copy>small{
+  display:none!important;
+}
+
+@media(max-width:380px){
+  .sp-subpage-head h1{
+    font-size:20px!important;
+  }
+  .profile-v2 .sp-exam-date{
+    min-width:136px!important;
+    padding:0 9px!important;
+    font-size:10.5px!important;
+  }
+  .profile-v2 .sp-exam-copy>strong{
+    font-size:20px!important;
+    margin-left:34px!important;
+  }
+}
