@@ -1886,7 +1886,35 @@ function renderCardCategoryLevel(categoryKey) {
   resetSheetClasses();
   applySheetHeader({ title: category.title, subtitle: 'Çalışmak istediğin kaynağı seç.', eyebrow: 'BİLGİ KARTLARI', icon: category.icon, iconClass: category.iconClass });
   topicBreadcrumbWrap.innerHTML = '';
-  setSheetProgress('Bir kaynak seç', 0);
+
+  // Kategori ilerlemesi artık sabit %0 değil; gerçek tamamlanan kart
+  // setlerinden hesaplanır. Henüz aktif olmayan kaynaklar paydaya dahil edilmez.
+  const activeDocuments = (category.documents || []).filter(doc => doc.topicId || doc.cardFile);
+  const completedDocuments = activeDocuments.filter(isCardDeckCompleted);
+  const categoryProgress = activeDocuments.length
+    ? Math.round((completedDocuments.length / activeDocuments.length) * 100)
+    : 0;
+  const progressRatio = `${completedDocuments.length}/${activeDocuments.length} set tamamlandı`;
+  setSheetProgress(
+    progressRatio,
+    categoryProgress,
+    `· ${progressRatio}`
+  );
+
+  // Eski oturumlarda veya ana sayfadaki karışık kart tekrarlarında tamamlama
+  // işareti oluşmamış olabilir. Supabase flashcard_progress ile bir kez uzlaştır;
+  // değişiklik varsa açık kategori ekranını da anında yeniden çiz.
+  if (window.currentUser && (!state.cardCompletionReconciled || state.cardCompletionReconcilePromise)) {
+    const reconciliation = state.cardCompletionReconcilePromise || reconcileFlashcardDeckCompletions();
+    reconciliation
+      .then(changed => {
+        if (!changed) return;
+        if (!topicSheet.classList.contains('open') || topicSheet.classList.contains('card-study-active')) return;
+        renderCardCategoryLevel(categoryKey);
+      })
+      .catch(() => {});
+  }
+
   if (!category.documents.length) {
     topicList.innerHTML = `<section class="empty-state content-plan"><span class="empty-state-icon">${svg('book')}</span><h3>Bu kategori için kart seti hazırlanıyor</h3><p>Kaynaklar eklendiğinde burada otomatik olarak görünecek.</p></section>`;
     topicSheet.scrollTop = 0;
@@ -1894,8 +1922,9 @@ function renderCardCategoryLevel(categoryKey) {
   }
   topicList.innerHTML = category.documents.map((doc, index) => {
     const active = doc.topicId || doc.cardFile;
-    const info = active ? 'Aktif kart seti' : 'Yakında eklenecek';
-    return `<article class="topic-item ${active ? '' : 'is-disabled'}" data-card-doc-index="${index}" role="button" tabindex="0">
+    const completed = active && isCardDeckCompleted(doc);
+    const info = completed ? 'Tamamlandı' : (active ? 'Aktif kart seti' : 'Yakında eklenecek');
+    return `<article class="topic-item ${active ? '' : 'is-disabled'} ${completed ? 'is-completed' : ''}" data-card-doc-index="${index}" role="button" tabindex="0">
       <div class="topic-number">${String(index + 1).padStart(2, '0')}</div>
       <div class="topic-copy"><h4>${escapeHtml(doc.title)}</h4><p class="topic-due-info">${info}</p></div>
       <div class="topic-arrow">${svg('arrow')}</div>

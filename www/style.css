@@ -6761,3 +6761,14 @@ html[data-ui-density="compact"] .profile-v2 .sp-study-preferences-entry{
   from{opacity:0;transform:translateY(8px) scale(.975)}
   to{opacity:1;transform:translateY(0) scale(1)}
 }
+
+
+/* Kart kategori listesinde tamamlanan set durumu */
+.topic-item.is-completed .topic-due-info{
+  color:#2f7b59!important;
+  font-weight:650!important;
+}
+.topic-item.is-completed .topic-number{
+  background:#edf8f2!important;
+  color:#2f7b59!important;
+}
