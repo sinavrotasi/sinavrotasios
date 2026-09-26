@@ -5538,3 +5538,222 @@ body.auth-page{
     padding:0 6px!important;
   }
 }
+
+
+/* ============================================================
+   PROFİL — HAFTALIK RİTİM KALDIRILDI / İSTATİSTİKLER EKLENDİ
+   ============================================================ */
+
+.profile-v2 .sp-study-card.sp-study-card-daily-only{
+  padding:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.profile-v2 .sp-study-card-daily-only .sp-daily-premium{
+  margin:0!important;
+  padding:15px 15px 14px!important;
+  border-radius:18px!important;
+  box-shadow:0 8px 22px rgba(24,51,84,.055)!important;
+}
+
+.sp-statistics-entry{
+  width:100%;
+  min-height:76px;
+  margin-top:9px;
+  padding:12px 15px;
+  border:1px solid rgba(8,40,90,.06);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 92% 12%,rgba(32,102,169,.07),transparent 34%),
+    linear-gradient(145deg,#fff,#fbfdff);
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr) 20px;
+  align-items:center;
+  gap:12px;
+  text-align:left;
+  color:#08285a;
+  box-shadow:0 8px 22px rgba(24,51,84,.055);
+  cursor:pointer;
+}
+.sp-statistics-entry-icon{
+  width:46px;height:46px;border-radius:14px;
+  display:grid;place-items:center;
+  background:#eef5fc;color:#0a4b86;
+}
+.sp-statistics-entry-icon svg{
+  width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2.2;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.sp-statistics-entry-copy{min-width:0;display:flex;flex-direction:column}
+.sp-statistics-entry-copy strong{font-size:15px;font-weight:780;letter-spacing:-.2px}
+.sp-statistics-entry-copy small{margin-top:4px;font-size:10px;color:#78859a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-statistics-entry-arrow{font-size:27px;font-weight:300;color:#60708a;line-height:1}
+.sp-statistics-entry:active{transform:scale(.992)}
+
+/* ============================================================
+   İSTATİSTİKLER SAYFASI
+   ============================================================ */
+
+.phone .scroll-area:has(> .app-scroll > .statistics-page) > .app-header{display:none!important}
+.phone .app-scroll:has(> .statistics-page){padding:0 0 86px;background:transparent}
+.phone .scroll-area > .app-scroll > .statistics-page{
+  padding:max(25px,calc(env(safe-area-inset-top) + 15px)) 16px 24px;
+  min-height:100%;
+}
+.statistics-page{
+  --stats-navy:#08285a;
+  --stats-blue:#1769aa;
+  --stats-red:#e93238;
+  --stats-muted:#718099;
+  color:var(--stats-navy);
+}
+.statistics-page .statistics-head{margin-bottom:16px}
+.statistics-page .statistics-head h1{font-size:22px!important}
+
+.stats-overview-card,
+.stats-chart-card,
+.stats-subject-card{
+  background:linear-gradient(145deg,#fff,#fbfdff);
+  border:1px solid rgba(8,40,90,.065);
+  border-radius:20px;
+  box-shadow:0 10px 28px rgba(26,52,84,.065);
+}
+.stats-overview-card{padding:16px}
+.stats-chart-card,.stats-subject-card{margin-top:11px;padding:16px}
+
+.stats-card-heading{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  margin-bottom:15px;
+}
+.stats-card-heading.compact{align-items:center;margin-bottom:16px}
+.stats-card-heading>div{min-width:0}
+.stats-eyebrow{
+  display:block;font-size:7.5px;font-weight:800;letter-spacing:1.15px;color:#8a97aa;margin-bottom:4px;
+}
+.stats-card-heading strong{
+  display:block;font-size:17px;line-height:1.2;font-weight:790;color:var(--stats-navy);letter-spacing:-.35px;
+}
+.stats-period-pill{
+  min-height:29px;padding:0 10px;border:1px solid #dfe6ef;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  background:#fff;color:#60708a;font-size:9px;font-weight:650;white-space:nowrap;
+}
+
+.stats-overview-grid{
+  display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:15px;align-items:center;
+}
+.stats-donut-wrap{display:grid;place-items:center;padding:4px 0}
+.stats-donut{
+  --p:calc(var(--accuracy) * 1%);
+  position:relative;width:150px;height:150px;border-radius:50%;
+  background:conic-gradient(
+    #0a3768 0 var(--p),
+    #e5ebf2 var(--p) 100%
+  );
+  box-shadow:inset 0 0 0 1px rgba(8,40,90,.025);
+}
+.stats-donut:after{
+  content:"";position:absolute;inset:16px;border-radius:50%;background:#fff;
+  box-shadow:0 8px 18px rgba(16,47,80,.06),inset 0 1px 0 #fff;
+}
+.stats-donut-inner{
+  position:absolute;z-index:2;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.stats-donut-inner strong{font-size:31px;line-height:1;font-weight:820;letter-spacing:-1px;color:var(--stats-navy)}
+.stats-donut-inner span{margin-top:6px;font-size:10px;color:#6f7c91}
+
+.stats-metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.stats-metric{
+  min-height:72px;border:1px solid #e5eaf1;border-radius:14px;padding:10px;
+  display:flex;align-items:center;gap:9px;background:#fff;
+}
+.stats-metric-icon{
+  width:31px;height:31px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;
+  font-size:20px;font-weight:500;
+}
+.stats-metric-icon svg{width:18px;height:18px}
+.stats-metric div{min-width:0}
+.stats-metric small{display:block;font-size:8.5px;color:#738198;white-space:nowrap}
+.stats-metric strong{display:block;margin-top:3px;font-size:17px;line-height:1;font-weight:800;color:var(--stats-navy)}
+.metric-total .stats-metric-icon{background:#edf5fc;color:#1769aa}
+.metric-correct .stats-metric-icon{background:#eef5fb;color:#0a4b86}
+.metric-wrong .stats-metric-icon{background:#fff0f1;color:var(--stats-red)}
+.metric-mock .stats-metric-icon{background:#f2f5f8;color:#65758b}
+
+.stats-bars{
+  height:178px;
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:8px;
+  align-items:end;
+  padding:7px 2px 0;
+}
+.stats-bar-col{
+  height:100%;display:grid;grid-template-rows:20px 1fr 18px;align-items:end;justify-items:center;min-width:0;
+}
+.stats-bar-col>strong{font-size:8.5px;color:#66758b;font-weight:700}
+.stats-bar-track{
+  width:19px;height:118px;border-radius:10px;background:#eef2f6;display:flex;align-items:flex-end;overflow:hidden;
+}
+.stats-bar-track i{
+  width:100%;min-height:6px;border-radius:10px;
+  background:linear-gradient(180deg,#1b5d9a,#082f61);
+}
+.stats-bar-col.today .stats-bar-track i{background:linear-gradient(180deg,#ee4a51,#d82731)}
+.stats-bar-col>span{font-size:8.5px;color:#748298;margin-top:6px}
+.stats-bar-col.today>span,.stats-bar-col.today>strong{color:var(--stats-red);font-weight:750}
+
+.stats-subject-list{display:flex;flex-direction:column}
+.stats-subject-row{
+  min-height:66px;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:center;
+  padding:9px 0;border-top:1px solid #edf1f5;
+}
+.stats-subject-row:first-child{border-top:0;padding-top:2px}
+.stats-subject-rank{
+  width:28px;height:28px;border-radius:9px;background:#f0f4f8;color:#627189;
+  display:grid;place-items:center;font-size:8px;font-weight:800;
+}
+.stats-subject-copy{min-width:0}
+.stats-subject-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stats-subject-title strong{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:10.5px;font-weight:730;color:var(--stats-navy)
+}
+.stats-subject-title span{font-size:10px;font-weight:800;color:#315f91}
+.stats-subject-progress{height:5px;margin-top:6px;border-radius:5px;background:#e9eef4;overflow:hidden}
+.stats-subject-progress i{
+  display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#0a3768,#2d73b3);
+}
+.stats-subject-copy small{display:block;margin-top:5px;font-size:8px;color:#8190a4}
+
+.stats-empty{
+  min-height:135px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  color:#758399;padding:16px;
+}
+.stats-empty>span{
+  width:40px;height:40px;border-radius:13px;background:#eef4fa;color:#315f91;display:grid;place-items:center;margin-bottom:9px
+}
+.stats-empty>span svg{width:21px;height:21px}
+.stats-empty strong{font-size:11px;color:var(--stats-navy)}
+.stats-empty small{font-size:8.5px;line-height:1.45;margin-top:5px;max-width:230px}
+
+/* İstatistik alt ekranında Profil sekmesi görünür/aktif kalır */
+@media(max-width:999px){
+  .phone:has(.statistics-page)>.bottom-nav{
+    position:absolute;left:0;right:0;bottom:0;border-radius:18px 18px 0 0;
+    padding:6px 4px calc(8px + env(safe-area-inset-bottom));height:auto;min-height:66px;
+    background:rgba(255,255,255,.97);box-shadow:0 -4px 18px rgba(20,45,78,.06);
+  }
+}
+
+@media(max-width:390px){
+  .stats-overview-grid{grid-template-columns:136px minmax(0,1fr);gap:11px}
+  .stats-donut{width:132px;height:132px}
+  .stats-donut:after{inset:14px}
+  .stats-donut-inner strong{font-size:27px}
+  .stats-metric{min-height:66px;padding:8px;gap:7px}
+  .stats-metric-icon{width:28px;height:28px}
+  .stats-metric strong{font-size:15px}
+  .stats-bars{gap:5px}
+  .stats-bar-track{width:17px}
+}

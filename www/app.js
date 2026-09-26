@@ -2079,8 +2079,6 @@ function profileView() {
   const { first, second } = getAvatarInitials(fullName);
   const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || 'Hedef belirlenmedi';
   const prefs = progress.notificationPrefs || DEFAULT_NOTIFICATION_PREFS;
-  const weekDays = getProfileWeekDays();
-  const completedStudyDays = weekDays.filter(day => day.completed).length;
   const goalPreset = getDailyGoalPreset(stats.dailyGoal);
   const examLabel = 'Kadronu değiştir';
 
@@ -2140,15 +2138,7 @@ function profileView() {
       <span class="sp-exam-curve-v2" aria-hidden="true"></span>
     </section>
 
-    <section class="sp-study-card">
-      <div class="sp-section-title">
-        <div>${calendarIcon}<strong>Haftalık ritim</strong></div>
-        <span><b>${completedStudyDays}</b> / 7 gün</span>
-      </div>
-      <div class="sp-week-grid">${weekDays.map(renderProfileDay).join('')}</div>
-
-      <div class="sp-card-rule"></div>
-
+    <section class="sp-study-card sp-study-card-daily-only">
       <div class="sp-daily-premium">
         <div class="sp-daily-head">
           <div><h2 class="sp-daily-title">Günlük çalışma ilerlemesi</h2></div>
@@ -2183,6 +2173,21 @@ function profileView() {
       <div class="sp-focus-copy"><strong>Odak modu</strong><small>Dikkatini dağıtan bildirimleri sınırla.</small></div>
       <button class="sp-switch" id="profileFocusModeButton" type="button" role="switch" aria-checked="false" aria-label="Odak modu"><i></i></button>
     </section>
+
+    <button class="sp-statistics-entry" id="openStatisticsButton" type="button">
+      <span class="sp-statistics-entry-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M5 19V11"></path>
+          <path d="M12 19V5"></path>
+          <path d="M19 19V9"></path>
+        </svg>
+      </span>
+      <span class="sp-statistics-entry-copy">
+        <strong>İstatistiklerim</strong>
+        <small>Performansını ve çalışma eğilimlerini gör</small>
+      </span>
+      <span class="sp-statistics-entry-arrow">›</span>
+    </button>
 
     <section class="sp-pref-card">
       <div class="sp-list-heading">${gearIcon}<strong>Çalışma tercihlerim</strong></div>
@@ -2287,6 +2292,178 @@ function goalSettingsView() {
   </section>`;
 }
 
+
+function getStatisticsLast7Days() {
+  const labels = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const rows = [];
+  for (let offset = 6; offset >= 0; offset -= 1) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - offset);
+    rows.push({
+      key: dateKey(date),
+      label: labels[date.getDay()],
+      count: Number(progress.dailyAnswers?.[dateKey(date)] || 0),
+      isToday: offset === 0
+    });
+  }
+  return rows;
+}
+
+function getStatisticsDocumentRows(limit = 5) {
+  const tests = Array.isArray(progress.completedTests) ? progress.completedTests : [];
+  const docs = new Map();
+
+  getActiveDocuments().forEach(entry => {
+    docs.set(entry.item.id, {
+      id: entry.item.id,
+      title: entry.item.title,
+      categoryKey: entry.categoryKey
+    });
+  });
+
+  const grouped = new Map();
+  tests.forEach(test => {
+    if (!test?.documentId || !Number.isFinite(Number(test.total)) || Number(test.total) <= 0) return;
+    const doc = docs.get(test.documentId);
+    if (!doc) return;
+    const existing = grouped.get(test.documentId) || {
+      id: test.documentId,
+      title: doc.title,
+      categoryKey: doc.categoryKey,
+      correct: 0,
+      total: 0,
+      sessions: 0
+    };
+    existing.correct += Math.max(0, Number(test.score) || 0);
+    existing.total += Math.max(0, Number(test.total) || 0);
+    existing.sessions += 1;
+    grouped.set(test.documentId, existing);
+  });
+
+  return [...grouped.values()]
+    .map(row => ({
+      ...row,
+      accuracy: row.total ? Math.round((row.correct / row.total) * 100) : 0
+    }))
+    .sort((a, b) => b.total - a.total || b.accuracy - a.accuracy)
+    .slice(0, limit);
+}
+
+function statisticsView() {
+  const stats = getStats();
+  const total = Math.max(0, Number(progress.answers || 0));
+  const correct = Math.max(0, Number(progress.correctAnswers || 0));
+  const wrong = Math.max(0, total - correct);
+  const accuracy = total ? Math.round((correct / total) * 100) : 0;
+  const mocks = Math.max(0, Number(stats.completedMocks || 0));
+  const days = getStatisticsLast7Days();
+  const maxDay = Math.max(1, ...days.map(day => day.count));
+  const docRows = getStatisticsDocumentRows(5);
+
+  const formatNumber = value => Number(value || 0).toLocaleString('tr-TR');
+
+  return `<section class="screen content-screen statistics-page sp-subscreen">
+    <header class="sp-page-head sp-subpage-head statistics-head">
+      <button class="sp-back" id="statisticsBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <h1>İstatistiklerim</h1>
+    </header>
+
+    <section class="stats-overview-card">
+      <div class="stats-card-heading">
+        <div>
+          <span class="stats-eyebrow">GENEL PERFORMANS</span>
+          <strong>Çalışma özeti</strong>
+        </div>
+        <span class="stats-period-pill">Tüm zamanlar</span>
+      </div>
+
+      <div class="stats-overview-grid">
+        <div class="stats-donut-wrap">
+          <div class="stats-donut" style="--accuracy:${accuracy}">
+            <div class="stats-donut-inner">
+              <strong>%${accuracy}</strong>
+              <span>Doğru oranı</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-metric-grid">
+          <article class="stats-metric metric-total">
+            <span class="stats-metric-icon">${svg('book')}</span>
+            <div><small>Toplam çözüm</small><strong>${formatNumber(total)}</strong></div>
+          </article>
+          <article class="stats-metric metric-correct">
+            <span class="stats-metric-icon">${svg('check')}</span>
+            <div><small>Doğru</small><strong>${formatNumber(correct)}</strong></div>
+          </article>
+          <article class="stats-metric metric-wrong">
+            <span class="stats-metric-icon">×</span>
+            <div><small>Yanlış</small><strong>${formatNumber(wrong)}</strong></div>
+          </article>
+          <article class="stats-metric metric-mock">
+            <span class="stats-metric-icon">${svg('document')}</span>
+            <div><small>Deneme</small><strong>${formatNumber(mocks)}</strong></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-chart-card">
+      <div class="stats-card-heading compact">
+        <div>
+          <span class="stats-eyebrow">SON 7 GÜN</span>
+          <strong>Soru çözme performansı</strong>
+        </div>
+        <span class="stats-period-pill">${formatNumber(days.reduce((sum, day) => sum + day.count, 0))} soru</span>
+      </div>
+
+      <div class="stats-bars">
+        ${days.map(day => {
+          const height = day.count ? Math.max(14, Math.round((day.count / maxDay) * 100)) : 6;
+          return `<div class="stats-bar-col${day.isToday ? ' today' : ''}">
+            <strong>${formatNumber(day.count)}</strong>
+            <div class="stats-bar-track"><i style="height:${height}%"></i></div>
+            <span>${escapeHtml(day.label)}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </section>
+
+    <section class="stats-subject-card">
+      <div class="stats-card-heading compact">
+        <div>
+          <span class="stats-eyebrow">ÇÖZÜLEN TESTLER</span>
+          <strong>Ders bazlı performans</strong>
+        </div>
+        <span class="stats-period-pill">${formatNumber(stats.completedSections)} bölüm</span>
+      </div>
+
+      <div class="stats-subject-list">
+        ${docRows.length ? docRows.map((row, index) => {
+          const meta = categoryCardMeta(row.categoryKey);
+          return `<article class="stats-subject-row">
+            <span class="stats-subject-rank">${String(index + 1).padStart(2, '0')}</span>
+            <div class="stats-subject-copy">
+              <div class="stats-subject-title">
+                <strong>${escapeHtml(row.title)}</strong>
+                <span>%${row.accuracy}</span>
+              </div>
+              <div class="stats-subject-progress"><i style="width:${row.accuracy}%"></i></div>
+              <small>${formatNumber(row.correct)} doğru / ${formatNumber(row.total)} soru · ${formatNumber(row.sessions)} oturum</small>
+            </div>
+          </article>`;
+        }).join('') : `<div class="stats-empty">
+          <span>${svg('chart')}</span>
+          <strong>Henüz yeterli test verisi yok</strong>
+          <small>Konu testlerini tamamladıkça ders bazlı performansın burada oluşacak.</small>
+        </div>`}
+      </div>
+    </section>
+  </section>`;
+}
+
 function achievementsView() {
   const stats = getStats();
   const badges = getBadges(stats);
@@ -2323,9 +2500,9 @@ function achievementsView() {
 }
 
 function render() {
-  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView };
+  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, statistics: statisticsView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView };
   const appHeader = document.querySelector('.app-header');
-  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'achievements', 'profile-edit', 'goal-settings'].includes(state.view));
+  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'statistics', 'achievements', 'profile-edit', 'goal-settings'].includes(state.view));
   app.innerHTML = (views[state.view] || homeView)();
   bindViewEvents();
   updateHeader();
@@ -2434,6 +2611,19 @@ function bindViewEvents() {
     button.setAttribute('aria-checked', String(next));
     button.classList.toggle('on', next);
     showToast(next ? 'Odak modu görünümü açıldı.' : 'Odak modu görünümü kapatıldı.');
+  });
+
+  document.getElementById('openStatisticsButton')?.addEventListener('click', () => {
+    state.view = 'statistics';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
+  });
+  document.getElementById('statisticsBackButton')?.addEventListener('click', () => {
+    state.view = 'profile';
+    setNav('profile');
+    render();
+    scrollArea.scrollTop = 0;
   });
 
   document.getElementById('repeatPriorityButton')?.addEventListener('click', () => showToast('Tekrar önceliği: Yanlış yaptıklarım'));
@@ -4570,7 +4760,7 @@ function handleHardwareBack() {
     return true;
   }
   if (routeSheet.classList.contains('open')) { closeRouteSheet(); return true; }
-  if (['achievements', 'profile-edit', 'goal-settings'].includes(state.view)) {
+  if (['statistics', 'achievements', 'profile-edit', 'goal-settings'].includes(state.view)) {
     state.view = 'profile';
     setNav('profile');
     render();
