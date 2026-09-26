@@ -6056,3 +6056,44 @@ body.auth-page{
     font-size:10px!important;
   }
 }
+
+
+/* ============================================================
+   İSTATİSTİKLER — ÜST FİLTRE + METİN DÜZELTMELERİ
+   ============================================================ */
+.stats-overview-card .stats-dropdown{z-index:70}
+.stats-overview-card .stats-dropdown-trigger{
+  min-width:110px;
+  justify-content:space-between;
+}
+
+/* Deneme etiketi tek satır ve eksiksiz */
+.statistics-page .metric-mock>div{overflow:visible!important}
+.statistics-page .metric-mock small{
+  max-width:none!important;
+  white-space:nowrap!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  font-size:10.5px!important;
+  letter-spacing:-.05px!important;
+}
+
+/* Ders bazlı performans alt açıklamaları daha okunaklı */
+.statistics-page .stats-subject-copy small{
+  font-size:11.5px!important;
+  line-height:1.45!important;
+  color:#748398!important;
+  margin-top:7px!important;
+  letter-spacing:.01px!important;
+}
+
+@media(max-width:390px){
+  .stats-overview-card .stats-dropdown-trigger{
+    min-width:102px;
+    padding-left:8px;
+    padding-right:8px;
+    font-size:9.5px!important;
+  }
+  .statistics-page .metric-mock small{font-size:10px!important}
+  .statistics-page .stats-subject-copy small{font-size:11px!important}
+}

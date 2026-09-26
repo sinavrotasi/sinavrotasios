@@ -93,6 +93,7 @@ function getCardCatalogue() {
 const cardDecks = new Map();
 
 const statisticsUi = {
+  overviewRange: 'all',
   range: 'week',
   subjectMetric: 'correct',
   openMenu: null
@@ -2472,13 +2473,53 @@ function getStatisticsDocumentRows(limit = 5) {
     .slice(0, limit);
 }
 
+
+function getStatisticsOverview(range = 'all') {
+  const globalTotal = Math.max(0, Number(progress.answers || 0));
+  const globalCorrect = Math.max(0, Number(progress.correctAnswers || 0));
+  const globalWrong = Math.max(0, globalTotal - globalCorrect);
+  const globalMocks = Math.max(0, Number(getStats().completedMocks || 0));
+
+  if (range === 'all') {
+    return { total: globalTotal, correct: globalCorrect, wrong: globalWrong, mocks: globalMocks };
+  }
+
+  const now = new Date();
+  const start = new Date(now);
+  if (range === 'today') {
+    start.setHours(0, 0, 0, 0);
+  } else if (range === 'week') {
+    start.setDate(now.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+  } else {
+    start.setDate(now.getDate() - 29);
+    start.setHours(0, 0, 0, 0);
+  }
+
+  const tests = (Array.isArray(progress.completedTests) ? progress.completedTests : []).filter(test => {
+    const completedAt = new Date(test?.completedAt || 0);
+    return Number.isFinite(completedAt.getTime()) && completedAt >= start && completedAt <= now;
+  });
+
+  const total = tests.reduce((sum, test) => sum + Math.max(0, Number(test.total) || 0), 0);
+  const correct = tests.reduce((sum, test) => sum + Math.max(0, Number(test.score) || 0), 0);
+  const mocks = tests.filter(test => EXAM_KINDS.includes(test.kind)).length;
+  return { total, correct, wrong: Math.max(0, total - correct), mocks };
+}
+
+function getStatisticsOverviewLabel(range) {
+  return ({ today:'Bugün', week:'Haftalık', month:'Son 30 gün', all:'Bugüne kadar' })[range] || 'Bugüne kadar';
+}
+
 function statisticsView() {
   const stats = getStats();
-  const total = Math.max(0, Number(progress.answers || 0));
-  const correct = Math.max(0, Number(progress.correctAnswers || 0));
-  const wrong = Math.max(0, total - correct);
+  const overviewRange = statisticsUi.overviewRange || 'all';
+  const overviewStats = getStatisticsOverview(overviewRange);
+  const total = overviewStats.total;
+  const correct = overviewStats.correct;
+  const wrong = overviewStats.wrong;
   const accuracy = total ? Math.round((correct / total) * 100) : 0;
-  const mocks = Math.max(0, Number(stats.completedMocks || 0));
+  const mocks = overviewStats.mocks;
   const range = statisticsUi.range || 'week';
   const days = getStatisticsRangeRows(range);
   const maxDay = Math.max(1, ...days.map(day => day.count));
@@ -2493,6 +2534,18 @@ function statisticsView() {
     .slice(0, 5);
 
   const formatNumber = value => Number(value || 0).toLocaleString('tr-TR');
+
+  const overviewDropdown = renderStatisticsDropdown(
+    'statisticsOverviewRangeButton',
+    getStatisticsOverviewLabel(overviewRange),
+    [
+      { value:'today', label:'Bugün', active:overviewRange === 'today' },
+      { value:'week', label:'Haftalık', active:overviewRange === 'week' },
+      { value:'month', label:'Son 30 gün', active:overviewRange === 'month' },
+      { value:'all', label:'Bugüne kadar', active:overviewRange === 'all' }
+    ],
+    'overview'
+  );
 
   const rangeDropdown = renderStatisticsDropdown(
     'statisticsRangeButton',
@@ -2528,7 +2581,7 @@ function statisticsView() {
           <span class="stats-eyebrow">GENEL PERFORMANS</span>
           <strong>Çalışma özeti</strong>
         </div>
-        <span class="stats-period-pill">Bugüne kadar</span>
+        ${overviewDropdown}
       </div>
 
       <div class="stats-overview-grid">
@@ -2794,6 +2847,12 @@ function bindViewEvents() {
     scrollArea.scrollTop = 0;
   });
 
+  document.getElementById('statisticsOverviewRangeButton')?.addEventListener('click', event => {
+    event.stopPropagation();
+    statisticsUi.openMenu = statisticsUi.openMenu === 'overview' ? null : 'overview';
+    render();
+  });
+
   document.getElementById('statisticsRangeButton')?.addEventListener('click', event => {
     event.stopPropagation();
     statisticsUi.openMenu = statisticsUi.openMenu === 'range' ? null : 'range';
@@ -2804,6 +2863,16 @@ function bindViewEvents() {
     event.stopPropagation();
     statisticsUi.openMenu = statisticsUi.openMenu === 'subject' ? null : 'subject';
     render();
+  });
+
+  app.querySelectorAll('[data-stats-option="overview"]').forEach(button => {
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      const value = button.dataset.value || 'all';
+      statisticsUi.overviewRange = ['today', 'week', 'month', 'all'].includes(value) ? value : 'all';
+      statisticsUi.openMenu = null;
+      render();
+    });
   });
 
   app.querySelectorAll('[data-stats-option="range"]').forEach(button => {
