@@ -3312,12 +3312,40 @@ function achievementsView() {
   </section>`;
 }
 
+// A separate navigation surface keeps content out of the status-bar area.
+function updatePageNavigation() {
+  const phone=scrollArea.closest('.phone');
+  if(!phone)return;
+  let nav=document.getElementById('pageNavigation');
+  if(!nav){
+    nav=document.createElement('nav'); nav.id='pageNavigation'; nav.className='page-navigation'; nav.setAttribute('aria-label','Sayfa gezinmesi');
+    nav.innerHTML=`<div class="page-navigation-row"><button type="button" class="page-navigation-back" aria-label="Geri dön">${svg('back')}</button><span class="page-navigation-title"></span><span class="page-navigation-spacer" aria-hidden="true"></span></div>`;
+    phone.appendChild(nav);
+    nav.querySelector('button').addEventListener('click',()=>app.querySelector('.sp-subpage-head .sp-back')?.click());
+    scrollArea.addEventListener('scroll',()=>nav.classList.toggle('is-scrolled',scrollArea.scrollTop>28),{passive:true});
+  }
+  const subhead=app.querySelector('.sp-subpage-head');
+  const mainTitles={bank:'Deneme Sınavları',cards:'Kartlarım',mistakes:'Yanlışlarım',profile:'Profil'};
+  const title=subhead?.querySelector('h1')?.textContent || mainTitles[state.view];
+  const active=Boolean(title);
+  nav.hidden=!active; phone.classList.toggle('has-page-navigation',active);
+  phone.classList.toggle('native-ios-navigation',window.Capacitor?.getPlatform?.()==='ios');
+  if(!active)return;
+  nav.querySelector('.page-navigation-title').textContent=title;
+  nav.querySelector('button').hidden=!subhead?.querySelector('.sp-back');
+  nav.classList.toggle('has-back',Boolean(subhead?.querySelector('.sp-back')));
+  nav.classList.toggle('is-scrolled',scrollArea.scrollTop>28);
+  nav.classList.toggle('always-title',Boolean(subhead)||state.view==='profile');
+  subhead?.classList.add('page-navigation-source');
+}
+
 function render() {
   const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, statistics: statisticsView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView, 'data-account': dataAccountView, appearance: appearanceSettingsView, 'study-preferences': studyPreferencesView };
   const appHeader = document.querySelector('.app-header');
   if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance', 'study-preferences'].includes(state.view));
   app.innerHTML = (views[state.view] || homeView)();
   bindViewEvents();
+  updatePageNavigation();
   updateHeader();
   requestAnimationFrame(applyTextScaleToCurrentUi);
 }
