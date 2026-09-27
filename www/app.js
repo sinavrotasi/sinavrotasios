@@ -3313,6 +3313,13 @@ function achievementsView() {
 }
 
 // A separate navigation surface keeps content out of the status-bar area.
+function syncPageNavigation() {
+  const nav=document.getElementById('pageNavigation');
+  if(!nav || nav.hidden)return;
+  const heading=app.querySelector('.sp-subpage-head h1, .bank-v2-heading, .cards-dashboard-heading, .mistakes-ref-heading, .sp-profile-card');
+  const collapsed=heading ? heading.getBoundingClientRect().bottom <= nav.getBoundingClientRect().bottom + 4 : scrollArea.scrollTop>28;
+  nav.classList.toggle('is-scrolled',collapsed);
+}
 function updatePageNavigation() {
   const phone=scrollArea.closest('.phone');
   if(!phone)return;
@@ -3322,7 +3329,8 @@ function updatePageNavigation() {
     nav.innerHTML=`<div class="page-navigation-row"><button type="button" class="page-navigation-back" aria-label="Geri dön">${svg('back')}</button><span class="page-navigation-title"></span><span class="page-navigation-spacer" aria-hidden="true"></span></div>`;
     phone.appendChild(nav);
     nav.querySelector('button').addEventListener('click',()=>app.querySelector('.sp-subpage-head .sp-back')?.click());
-    scrollArea.addEventListener('scroll',()=>nav.classList.toggle('is-scrolled',scrollArea.scrollTop>28),{passive:true});
+    scrollArea.addEventListener('scroll',syncPageNavigation,{passive:true});
+    window.addEventListener('resize',syncPageNavigation);
   }
   const subhead=app.querySelector('.sp-subpage-head');
   const mainTitles={bank:'Deneme Sınavları',cards:'Kartlarım',mistakes:'Yanlışlarım',profile:'Profil'};
@@ -3334,9 +3342,10 @@ function updatePageNavigation() {
   nav.querySelector('.page-navigation-title').textContent=title;
   nav.querySelector('button').hidden=!subhead?.querySelector('.sp-back');
   nav.classList.toggle('has-back',Boolean(subhead?.querySelector('.sp-back')));
-  nav.classList.toggle('is-scrolled',scrollArea.scrollTop>28);
-  nav.classList.toggle('always-title',Boolean(subhead)||state.view==='profile');
+  nav.classList.remove('always-title');
   subhead?.classList.add('page-navigation-source');
+  syncPageNavigation();
+  requestAnimationFrame(syncPageNavigation);
 }
 
 function render() {
@@ -4492,7 +4501,7 @@ function renderStudyModeHub(item, categoryKey, initialFilter = 'all') {
       <button type="button" data-hub-filter="started" aria-pressed="false">Devam Eden (${started})</button>
       <button type="button" data-hub-filter="completed" aria-pressed="false">Tamamlanan (${completed})</button>
     </div>
-    <label class="study-hub-search"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.8"/><path d="m16 16 5 5"/></svg></span><input type="search" placeholder="Konu içinde ara..." aria-label="Konu, bölüm veya çalışma ara" autocomplete="off"></label>
+    <label class="study-hub-search"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.8"/><path d="m16 16 5 5"/></svg></span><input type="search" placeholder="Bölüm veya çalışma ara..." aria-label="Bölüm veya çalışma ara" autocomplete="off"></label>
     <div class="study-hub-grid">${modes.map(mode => `<button type="button" class="study-hub-card${mode.enabled ? '' : ' is-unavailable'}" data-document-mode="${mode.id}" ${mode.enabled ? '' : 'disabled'}>
       <img class="study-hub-art" src="${STUDY_HUB_ART[mode.id]}" alt="" width="334" height="252" decoding="async" draggable="false">
       <span class="study-hub-card-title">${mode.title}</span><span class="study-hub-card-description">${mode.description}</span>
