@@ -307,6 +307,11 @@ document.addEventListener('pointerdown', dismissProfileEditInputOnOutsidePress, 
 // Profil düzenle ekranında input odaklanınca ekran otomatik kaydırılmaz.
 let profileEditFocusScrollTop = null;
 let profileReturnScrollTop = 0;
+function restoreProfilePosition() {
+  const top = profileReturnScrollTop;
+  scrollArea.scrollTop = top;
+  requestAnimationFrame(() => { if(state.view === 'profile') scrollArea.scrollTop = top; });
+}
 
 function restoreProfileEditScrollPosition(expectedTop) {
   if (state.view !== 'profile-edit' || !Number.isFinite(expectedTop)) return;
@@ -2581,7 +2586,7 @@ function profileView() {
       <span class="sp-study-preferences-icon">${studyPreferencesIcon}</span>
       <span class="sp-study-preferences-copy">
         <strong>Çalışma tercihlerim</strong>
-        <small>Pratik türünü ve çalışma aralarını yönet</small>
+        <small>Çalışma rotanı ve aralarını yönet</small>
       </span>
       <span class="sp-study-preferences-arrow">›</span>
     </button>
@@ -2629,11 +2634,11 @@ function studyPreferencesView() {
 
     <section class="study-pref-intro">
       <span class="study-pref-intro-icon">${svg('compass')}</span>
-      <div><strong>Çalışma rotanı kişiselleştir</strong><small>Bugünkü Rota’daki pratik türünü ve çalışma planının durumunu belirle.</small></div>
+      <div><strong>Çalışma rotanı kişiselleştir</strong><small>Bugünkü rotanı ve çalışma planının durumunu belirle.</small></div>
     </section>
 
     <section class="study-pref-card">
-      <div class="study-pref-card-head"><div><span>PRATİK TÜRÜ</span><strong>Bugünkü Rota nasıl hazırlansın?</strong></div><span class="study-pref-current">${escapeHtml(getRepeatPriorityLabel(priority))}</span></div>
+      <div class="study-pref-card-head"><div><strong>Bugünkü Rota nasıl hazırlansın?</strong></div><span class="study-pref-current">${escapeHtml(getRepeatPriorityLabel(priority))}</span></div>
       <div class="study-priority-list">
         ${options.map(o => `<button type="button" class="study-priority-option${priority===o.value?' active':''}" data-repeat-priority="${o.value}">
           <span class="study-priority-icon">${svg(o.icon)}</span>
@@ -3393,6 +3398,7 @@ function bindViewEvents() {
 
   // Profil v2 etkileşimleri
   document.getElementById('editProfileButton')?.addEventListener('click', () => {
+    profileReturnScrollTop = scrollArea.scrollTop;
     state.view = 'profile-edit';
     setNav('profile');
     render();
@@ -3408,6 +3414,7 @@ function bindViewEvents() {
   });
 
   document.getElementById('profileCustomizeGoalButton')?.addEventListener('click', () => {
+    profileReturnScrollTop = scrollArea.scrollTop;
     state.view = 'goal-settings';
     setNav('profile');
     render();
@@ -3423,6 +3430,7 @@ function bindViewEvents() {
   });
 
   document.getElementById('openStatisticsButton')?.addEventListener('click', () => {
+    profileReturnScrollTop = scrollArea.scrollTop;
     state.view = 'statistics';
     setNav('profile');
     render();
@@ -3432,7 +3440,7 @@ function bindViewEvents() {
     state.view = 'profile';
     setNav('profile');
     render();
-    scrollArea.scrollTop = 0;
+    restoreProfilePosition();
   });
 
   document.getElementById('statisticsOverviewRangeButton')?.addEventListener('click', event => {
@@ -3490,6 +3498,7 @@ function bindViewEvents() {
     scrollArea.scrollTop = 0;
   });
   document.getElementById('appearanceSettingsButton')?.addEventListener('click', () => {
+    profileReturnScrollTop = scrollArea.scrollTop;
     state.view = 'appearance';
     setNav('profile');
     render();
@@ -3497,6 +3506,7 @@ function bindViewEvents() {
   });
 
   document.getElementById('dataAccountButton')?.addEventListener('click', () => {
+    profileReturnScrollTop = scrollArea.scrollTop;
     accountConfirmAction = null;
     state.view = 'data-account';
     setNav('profile');
@@ -3528,8 +3538,10 @@ function bindViewEvents() {
   });
   app.querySelectorAll('[data-repeat-priority]').forEach(button => button.addEventListener('click', () => {
     setStudyRepeatPriority(button.dataset.repeatPriority);
-    showToast(`Pratik türü: ${getRepeatPriorityLabel()}`);
+    showToast(`Çalışma tercihin: ${getRepeatPriorityLabel()}`);
+    const top = scrollArea.scrollTop;
     render();
+    scrollArea.scrollTop = top;
   }));
   app.querySelectorAll('[data-pause-days]').forEach(button => button.addEventListener('click', () => {
     if (!setStudyPauseDays(button.dataset.pauseDays)) return;
@@ -3550,7 +3562,7 @@ function bindViewEvents() {
     state.view = 'profile';
     setNav('profile');
     render();
-    scrollArea.scrollTop = 0;
+    restoreProfilePosition();
   });
 
   app.querySelectorAll('[data-text-size]').forEach(button => {
@@ -3574,7 +3586,7 @@ function bindViewEvents() {
     state.view = 'profile';
     setNav('profile');
     render();
-    scrollArea.scrollTop = 0;
+    restoreProfilePosition();
   });
 
   document.getElementById('accountResetProgressButton')?.addEventListener('click', () => {
@@ -3649,6 +3661,7 @@ function bindViewEvents() {
   });
 
   document.getElementById('openAchievementsButton')?.addEventListener('click', () => {
+    profileReturnScrollTop = scrollArea.scrollTop;
     state.view = 'achievements';
     setNav('profile');
     render();
@@ -3658,13 +3671,13 @@ function bindViewEvents() {
     state.view = 'profile';
     setNav('profile');
     render();
-    scrollArea.scrollTop = 0;
+    restoreProfilePosition();
   });
 
   document.getElementById('profileEditBackButton')?.addEventListener('click', () => {
     window.NativeUX?.setKeyboardScrollDisabled?.(false);
     window.NativeUX?.hideKeyboard?.();
-    state.view = 'profile'; setNav('profile'); render(); scrollArea.scrollTop = 0;
+    state.view = 'profile'; setNav('profile'); render(); restoreProfilePosition();
   });
   const profileEditInputs = [...app.querySelectorAll('.profile-edit-page .sp-text-input')];
   profileEditInputs.forEach(input => {
@@ -3769,7 +3782,7 @@ function bindViewEvents() {
   });
 
   document.getElementById('goalSettingsBackButton')?.addEventListener('click', () => {
-    state.view = 'profile'; setNav('profile'); render(); scrollArea.scrollTop = 0;
+    state.view = 'profile'; setNav('profile'); render(); restoreProfilePosition();
   });
   const customGoalInput = document.getElementById('customDailyGoalInput');
   const clampCustomGoal = value => Math.max(DAILY_GOAL_MIN, Math.min(DAILY_GOAL_MAX, Math.round(Number(value) || DEFAULT_DAILY_GOAL)));
@@ -4136,6 +4149,13 @@ function openSearchResult(result) {
   }
 }
 
+document.addEventListener('pointerdown', event => {
+  const focused = document.activeElement;
+  if (!focused?.matches('input, textarea, [contenteditable="true"]')) return;
+  if (event.target.closest('input, textarea, select, [contenteditable="true"], label, button, a, [role="button"]')) return;
+  focused.blur();
+  window.NativeUX?.hideKeyboard?.();
+}, {passive:true});
 openSearchButton?.addEventListener('click', openSearchSheet);
 closeSearchSheetButton?.addEventListener('click', closeSearchSheet);
 // PERF: her tuş vuruşunda değil, yazma durduktan ~200ms sonra arıyoruz.
@@ -4334,7 +4354,7 @@ function saveQuizAttempt(quiz=state.quiz, completed=false) {
   entry.answered=quiz.questions.filter(q=>q.userSelected!==null&&q.userSelected!==undefined).length;
   entry.status=completed?'completed':'started';entry.index=quiz.index;
   if(completed){entry.completedAt=entry.updatedAt;entry.correct=quizScore(quiz);entry.wrong=entry.answered-entry.correct;entry.blank=entry.total-entry.answered;}
-  else entry.snapshot={questions:quiz.questions,section:quiz.section?{id:quiz.section.id,title:quiz.section.title,articleRange:quiz.section.articleRange}:null,
+  else entry.snapshot={questions:quiz.questions,section:quiz.section?{id:quiz.section.id,title:quiz.section.title,articleRange:quiz.section.articleRange,generated:quiz.section.generated}:null,
     kind:quiz.kind,sessionId:quiz.sessionId,title:quiz.title,subtitle:quiz.subtitle,isTimed:quiz.isTimed,timeLeft:quiz.timeLeft,index:quiz.index,revealed:quiz.revealed,completionRecorded:false};
   return writeStudySession(entry,quiz.studyScope);
 }
@@ -4377,7 +4397,7 @@ function resumeStudyAttempt(id,item,categoryKey) {
   if(['section','truefalse'].includes(entry.type)&&!requirePremiumOrWarn())return;
   if(entry.type==='section'){
     const allowed=(items)=>items.some(section=>(!section.kadrolar||!progress.selectedRole||section.kadrolar.includes(progress.selectedRole))&&(section.id===entry.sectionId||allowed(section.children||[])));
-    if(!allowed(item.children||[])){showToast('Bu bölüm seçili kadron için kullanılamıyor.');return;}
+    if(!(entry.snapshot.section?.generated && !(item.children||[]).length && entry.sectionId?.startsWith(item.id+':practice:')) && !allowed(item.children||[])){showToast('Bu bölüm seçili kadron için kullanılamıyor.');return;}
   }
   if(!pauseStudyAttempts(true))return;
   const snapshot=entry.snapshot;
@@ -4421,21 +4441,21 @@ function renderStudyModeHub(item, categoryKey, initialFilter = 'all') {
   setSheetProgress('Henüz çalışılmadı', percentage);
   const count = Number.isFinite(Number(item.questionCount)) && item.questionCount !== null ? Math.max(0, Number(item.questionCount)) : null;
   const countText = count === null ? '—' : String(count);
-  const hasQuestions = Boolean(item.questionFile);
+  const hasQuestions = Boolean(item.questionFile || Number(item.questionCount) > 0);
   const role = progress.selectedRole;
   const hasSections = Boolean((item.children || []).some(section => !role || !section.kadrolar || section.kadrolar.includes(role)));
   const modes = [
-    { id:'sections', title:'Madde Madde Çalış', description:'Bölüm ve madde listesinden istediğin yere git.', enabled:hasSections, count:countText },
-    { id:'random', title:'Rastgele 20 Soru', description:'Kanunun tamamından rastgele sorular çöz.', enabled:hasQuestions, count:count === null ? '20' : String(Math.min(20,count)) },
-    { id:'truefalse', title:'Doğru / Yanlış', description:'Soruları doğru/yanlış olarak değerlendir.', enabled:hasQuestions, count:countText },
-    { id:'summary', title:'Özet ve Kritik Noktalar', description:'Sınavda öne çıkan maddeleri hızlı tekrar et.', enabled:hasSections, count:countText }
+    { id:'sections', title:'Madde Madde Çalış', description:'Bölüm seç, çalışmaya başla.', enabled:hasSections || (!(item.children || []).length && hasQuestions), count:countText },
+    { id:'random', title:'Rastgele 20 Soru', description:'Konunun tamamından 20 soru.', enabled:hasQuestions, count:count === null ? '20' : String(Math.min(20,count)) },
+    { id:'truefalse', title:'Doğru / Yanlış', description:'20 kartla bilgini pekiştir.', enabled:hasQuestions, count:'20’ye kadar' },
+    { id:'summary', title:'Özet ve Kritik Noktalar', description:'Konu notlarını hızlı tekrar et.', enabled:hasSections || (!(item.children || []).length && hasQuestions), count:countText }
   ];
   const attempts = studySessionsFor(item);
   const started = attempts.filter(entry => entry.status === 'started').length;
   const completed = attempts.filter(entry => entry.status === 'completed').length;
   topicList.innerHTML = `<div class="study-mode-hub">
     <header class="study-hub-header">
-      <button type="button" class="study-hub-book" aria-label="Kategori listesine dön" title="Kategori listesine dön">${svg('book')}</button>
+      <button type="button" class="study-hub-book" aria-label="Ana konuya geri dön" title="Ana konuya geri dön">${svg('back')}<span>Geri</span></button>
       <div class="study-hub-heading"><h3>${escapeHtml(item.title)}</h3><p>${countText} soru <span>•</span> %${percentage} ilerleme</p>
       <div class="study-hub-progress"><div class="study-hub-track" role="progressbar" aria-label="Konu ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percentage}"><span style="width:${percentage}%"></span></div><strong>%${percentage}</strong></div></div>
     </header>
@@ -4444,28 +4464,44 @@ function renderStudyModeHub(item, categoryKey, initialFilter = 'all') {
       <button type="button" data-hub-filter="started" aria-pressed="false">Devam Eden (${started})</button>
       <button type="button" data-hub-filter="completed" aria-pressed="false">Tamamlanan (${completed})</button>
     </div>
-    <label class="study-hub-search"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.8"/><path d="m16 16 5 5"/></svg></span><input type="search" placeholder="Konu içinde ara..." aria-label="Çalışma modlarında ara" autocomplete="off"></label>
+    <label class="study-hub-search"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.8"/><path d="m16 16 5 5"/></svg></span><input type="search" placeholder="Konu içinde ara..." aria-label="Konu, bölüm veya çalışma ara" autocomplete="off"></label>
     <div class="study-hub-grid">${modes.map(mode => `<button type="button" class="study-hub-card${mode.enabled ? '' : ' is-unavailable'}" data-document-mode="${mode.id}" ${mode.enabled ? '' : 'disabled'}>
       <img class="study-hub-art" src="${STUDY_HUB_ART[mode.id]}" alt="" width="334" height="252" decoding="async" draggable="false">
       <span class="study-hub-card-title">${mode.title}</span><span class="study-hub-card-description">${mode.description}</span>
       <span class="study-hub-card-footer"><span><b>${mode.count}</b> soru</span><span class="study-hub-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span></span>
       ${mode.enabled ? '' : '<span class="study-hub-unavailable">İçerik hazırlanıyor</span>'}
     </button>`).join('')}</div>
+    <div class="study-hub-search-results" hidden></div>
     <div class="study-attempt-list" hidden></div>
     <p class="study-hub-empty" role="status" hidden>Bu filtreye uygun çalışma modu bulunamadı.</p>
   </div>`;
   const hub = topicList.querySelector('.study-mode-hub');
   let selectedFilter = initialFilter;
-  const normalize = value => value.toLocaleLowerCase('tr-TR').trim();
+  const normalize = value => String(value || '').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').trim();
+  const searchableSections = [];
+  const collectSections = items => (items || []).forEach(section => {
+    if(role && section.kadrolar && !section.kadrolar.includes(role)) return;
+    searchableSections.push(section); collectSections(section.children);
+  });
+  collectSections(item.children);
   const filterCards = () => {
     const query = normalize(hub.querySelector('input').value);
     const all=selectedFilter==='all';
     hub.querySelector('.study-hub-grid').hidden=!all;
     const list=hub.querySelector('.study-attempt-list');list.hidden=all;
     hub.querySelectorAll('[data-hub-filter]').forEach(tab=>tab.setAttribute('aria-pressed',String(tab.dataset.hubFilter===selectedFilter)));
+    const sectionResults=hub.querySelector('.study-hub-search-results');
+    sectionResults.hidden=true; sectionResults.innerHTML='';
     let visible=0;
     if(all){
-      hub.querySelectorAll('[data-document-mode]').forEach(card=>{const mode=modes.find(entry=>entry.id===card.dataset.documentMode);const match=normalize(mode.title+' '+mode.description).includes(query);card.hidden=!match;if(match)visible++;});
+      hub.querySelectorAll('[data-document-mode]').forEach(card=>{const mode=modes.find(entry=>entry.id===card.dataset.documentMode);const match=normalize(item.title+' '+mode.title+' '+mode.description).includes(query);card.hidden=!match;if(match)visible++;});
+      if(query){
+        const matches=searchableSections.filter(section=>normalize(section.title+' '+(section.summary||'')+' '+(section.articleRange||'')+' '+(section.keyPoints||[]).join(' ')).includes(query));
+        sectionResults.hidden=!matches.length;
+        sectionResults.innerHTML=matches.map((section,index)=>`<button type="button" class="study-search-result" data-section-match="${index}"><span>${escapeHtml(section.title)}</span><span aria-hidden="true">›</span></button>`).join('');
+        sectionResults.querySelectorAll('[data-section-match]').forEach(button=>button.addEventListener('click',()=>openSectionQuiz(item,matches[Number(button.dataset.sectionMatch)],categoryKey)));
+        visible+=matches.length;
+      }
     }else{
       const entries=attempts.filter(entry=>entry.status===selectedFilter&&normalize(entry.title+' '+studyAttemptLabel(entry)).includes(query));
       visible=entries.length;list.innerHTML=studyAttemptCards(entries);
@@ -4506,7 +4542,12 @@ function renderStudyModeHub(item, categoryKey, initialFilter = 'all') {
   });
 }
 
-function renderSections(documentItem, categoryKey) {
+function availableStudySections(item) {
+  const role=progress.selectedRole;
+  return (item.children || []).filter(section=>!role || !section.kadrolar || section.kadrolar.includes(role));
+}
+async function renderSections(documentItem, categoryKey) {
+  if (!(documentItem.children || []).length && !requirePremiumOrWarn()) return;
   topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
   applySheetHeader({ title: 'Bölüm Seçimi', subtitle: 'Bir bölüme dokunarak karma sorularla başla.', eyebrow: 'MADDE MADDE ÇALIŞ', icon: 'gavel', iconClass: categoryCardMeta(categoryKey).iconClass });
@@ -4519,7 +4560,16 @@ function renderSections(documentItem, categoryKey) {
   // sadece Şef'e ait olması gereken bölümleri (Disiplin Amirleri, İmza
   // Yetkileri) de görüyordu.
   const role = progress.selectedRole;
-  const sections = (documentItem.children || []).filter(section => !role || !section.kadrolar || section.kadrolar.includes(role));
+  let sections = availableStudySections(documentItem);
+  if (!(documentItem.children || []).length) {
+    const loading = document.createElement('div'); loading.className='empty-inline'; loading.textContent='Bölümler yükleniyor…';
+    topicList.replaceChildren(loading);
+    try {
+      const bank=await loadQuestionBank(documentItem);
+      if(!topicList.contains(loading)) return;
+      sections=Array.from({length:Math.ceil(bank.length/20)},(_,index)=>({id:`${documentItem.id}:practice:${index+1}`,title:`Bölüm ${index+1}`,questionCount:Math.min(20,bank.length-index*20),questionIds:bank.slice(index*20,index*20+20).map(q=>q.id),generated:true}));
+    } catch(error) { if(topicList.contains(loading)) loading.textContent=error.message||'Sorular yüklenemedi. Geri dönüp yeniden dene.'; return; }
+  }
   topicList.innerHTML = `<div class="document-section-head"><span>BÖLÜM TESTLERİ</span><strong>Bölüme tıkla, test başlasın</strong></div><div class="document-section-list">${sections.map((section, index) => {
     const completed = progress.completedSections[section.id];
     const childCount = (section.children || []).length;
@@ -4537,7 +4587,8 @@ function renderSections(documentItem, categoryKey) {
     element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
   });
   topicSheet.scrollTop = 0;
-  refreshSectionQuestionCounts(sections);
+  if(!sections.length) topicList.innerHTML='<p class="empty-inline">Bu kadro için erişilebilir bölüm sorusu bulunamadı.</p>';
+  refreshSectionQuestionCounts(sections.filter(section=>!section.generated));
 }
 
 // Madde Madde Çalış bölüm listesindeki maddesi olmayan alt konularda
@@ -4568,7 +4619,7 @@ async function refreshSectionQuestionCounts(sections) {
   });
 }
 
-function renderSummary(documentItem, categoryKey) {
+async function renderSummary(documentItem, categoryKey) {
   topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
   applySheetHeader({ title: 'Özet ve Kritik Noktalar', subtitle: documentItem.title, eyebrow: 'HIZLI TEKRAR', icon: 'trophy', iconClass: categoryCardMeta(categoryKey).iconClass });
@@ -4583,6 +4634,16 @@ function renderSummary(documentItem, categoryKey) {
     if (!ownBlock && !articleBlocks) return '';
     return `<section class="summary-section"><h4>${escapeHtml(section.title)}</h4>${ownBlock || articleBlocks}</section>`;
   }).join('')}</div>`;
+  if (!topicList.querySelector('.summary-section')) {
+    if (!requirePremiumOrWarn()) { renderDocumentHub(documentItem,categoryKey); return; }
+    const loading=document.createElement('div'); loading.className='empty-inline'; loading.textContent='Tekrar notları yükleniyor…'; topicList.replaceChildren(loading);
+    try {
+      const bank=await loadQuestionBank(documentItem);
+      if(!topicList.contains(loading))return;
+      const notes=bank.filter(q=>q.explanation || (Number.isInteger(q.answerIndex)&&q.options?.[q.answerIndex]!=null));
+      topicList.innerHTML=`<div class="summary-list"><p class="empty-inline">Soru bankasından hızlı tekrar</p>${notes.map(q=>`<section class="summary-section"><h4>${escapeHtml(q.prompt||'')}</h4><p class="summary-text">${escapeHtml(q.explanation || q.options[q.answerIndex])}</p></section>`).join('') || '<p class="empty-inline">Bu konunun soruları mevcut; ayrı özet notu bulunmuyor.</p>'}</div>`;
+    } catch(error) { if(topicList.contains(loading))loading.textContent=error.message||'Tekrar notları yüklenemedi.'; }
+  }
   topicSheet.scrollTop = 0;
 }
 
@@ -4659,8 +4720,6 @@ async function loadQuestionBank(documentItem) {
     state.questionBanks.set(documentItem.id, questions);
     return questions;
   } catch (error) {
-    documentItem.questionFile = null;
-    documentItem.contentStatus = 'planned';
     throw error;
   }
 }
@@ -4769,7 +4828,10 @@ async function openSectionQuiz(documentItem, section, categoryKey) {
   try {
     showToast('Sorular hazırlanıyor…');
     const bank = tagQuestions(await loadQuestionBank(documentItem), documentItem, categoryKey);
-    const questions = bank.filter(question => question.topicId === section.id);
+    const sectionIds=new Set();
+    const collect=entry=>{ if(progress.selectedRole && entry.kadrolar && !entry.kadrolar.includes(progress.selectedRole)) return; sectionIds.add(entry.id); (entry.children||[]).forEach(collect); }; collect(section);
+    const questionIds=section.generated ? new Set(section.questionIds) : null;
+    const questions = bank.filter(question => questionIds ? questionIds.has(question.id) : sectionIds.has(question.topicId));
     if (!questions.length) return showToast('Bu bölüm için henüz soru bulunmuyor.');
     startQuiz({
       questions,
@@ -6093,7 +6155,7 @@ function handleHardwareBack() {
     state.view = 'profile';
     setNav('profile');
     render();
-    scrollArea.scrollTop = 0;
+    restoreProfilePosition();
     return true;
   }
   if (state.view !== 'home') { go('home'); return true; }
