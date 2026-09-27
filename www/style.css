@@ -7095,3 +7095,24 @@ html[data-ui-density="compact"] .profile-v2 .sp-study-preferences-entry{
 @media(min-width:450px){.study-hub-card-title{font-size:17px;}.study-hub-card-description{font-size:14px;}.study-hub-card{padding:14px 15px 15px;}}
 @media(max-width:360px){#topicSheet:has(.study-mode-hub){padding-left:12px;padding-right:12px;}.study-hub-header{gap:11px;padding:17px 12px;}.study-hub-book{flex-basis:49px;width:49px;height:49px;border-radius:16px;}.study-hub-heading h3{font-size:18px;}.study-hub-tabs button{font-size:11px;}.study-hub-grid{gap:8px;}.study-hub-card{padding:9px 10px 11px;border-radius:19px;}.study-hub-card-title{font-size:13px;}.study-hub-card-description{font-size:12px;}}
 @media(prefers-reduced-motion:reduce){.study-hub-card{transition:none;}}
+
+/* Per-attempt continuation and completed history. */
+.study-hub-tabs{grid-template-columns:.85fr 1.25fr 1.35fr;}
+.study-hub-tabs button{font-size:11px;}
+.study-attempt-list{display:flex;flex-direction:column;gap:12px;}
+.study-attempt-card{border:1px solid #e0eaf5;border-radius:20px;padding:17px;background:#fff;box-shadow:0 5px 16px #3975ab08;}
+.study-attempt-heading{display:flex;justify-content:space-between;gap:10px;align-items:center;color:#8490a5;font-size:10px;line-height:1.4;}
+.study-attempt-heading>span{color:#e93238;font-weight:700;}
+.study-attempt-card h4{font-size:15px;line-height:1.4;margin:10px 0 6px;color:#071f49;}
+.study-attempt-card p{font-size:12px;color:#7f8ba2;margin:6px 0;line-height:1.5;}
+.study-attempt-track{height:5px;background:#e7eef8;border-radius:5px;overflow:hidden;margin:13px 0;}
+.study-attempt-track>span{display:block;height:100%;background:linear-gradient(90deg,#ff6976,#e93238);border-radius:inherit;}
+.study-attempt-card button{display:flex;justify-content:space-between;align-items:center;width:100%;padding:11px 13px;border:0;border-radius:12px;font:600 12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff;background:linear-gradient(120deg,#ff5061,#e93238);cursor:pointer;}
+.study-attempt-card button>span{font-size:22px;line-height:1;}
+.study-attempt-card.is-complete .study-attempt-heading>span{color:#23855c;}
+.study-attempt-results{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:13px 0;}
+.study-attempt-results>span{display:flex;flex-direction:column;gap:4px;border-radius:10px;padding:10px;background:#f5f8fc;color:#7f8ba2;font-size:11px;}
+.study-attempt-results b{font-size:18px;color:#071f49;}
+.study-attempt-results>span:first-child b{color:#23855c;}
+.study-attempt-results>span:nth-child(2) b{color:#e93238;}
+@media(max-width:360px){.study-hub-tabs button{font-size:10px;}.study-attempt-card{padding:14px;}}
