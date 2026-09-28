@@ -1121,6 +1121,7 @@ function closeAllSheets(exceptSheet = null) {
     if(state.quiz?.studyFinishing){showToast('Sonuç hazırlanıyor, lütfen bekle.');return false;}
     if(!pauseStudyAttempts(true))return false;
   }
+  if(exceptSheet!==topicSheet)resetTopicViewCache();
   allSheets.forEach(sheet => setSheetOpen(sheet, sheet === exceptSheet));
   if (exceptSheet !== searchSheet) clearSearchState();
   topicBackdrop.classList.toggle('open', Boolean(exceptSheet));
@@ -4204,6 +4205,80 @@ searchInput?.addEventListener('input', () => {
   searchDebounceTimer = setTimeout(() => runSearch(value), SEARCH_DEBOUNCE_MS);
 });
 
+// Keep the actual DOM (including handlers and input state) for back navigation.
+const topicViewCache = new Map();
+let currentTopicView = null;
+let topicViewScope = '';
+let topicViewDepth = 0;
+const topicHeaderIds = ['topicSheetTitle','topicSheetSubtitle','topicEyebrow','topicHeadingIcon','topicProgressPercent','topicProgressBar','topicProgressCount'];
+function resetTopicViewCache() {
+  topicViewCache.clear(); currentTopicView=null; topicViewDepth=0;
+  topicViewScope=studySessionScope();
+}
+function captureTopicView() {
+  const view=currentTopicView;
+  if(!view?.ready || !view.nodes?.every(node=>node.parentNode===topicList))return;
+  view.nodes=Array.from(topicList.childNodes);
+  view.breadcrumb=Array.from(topicBreadcrumbWrap.childNodes);
+  view.classes=topicSheet.className; view.tone=topicSheet.dataset.categoryTone;
+  view.header=topicHeaderIds.map(id=>{const el=document.getElementById(id);return {id,html:el.innerHTML,style:el.style.cssText,classes:el.className};});
+  view.scroll=[topicList,...topicList.querySelectorAll('*')].filter(el=>el===topicList||el.scrollTop||el.scrollLeft).map(el=>({el,top:el.scrollTop,left:el.scrollLeft}));
+  topicViewCache.set(view.key,view);
+  // Retain only a bounded set of recent screens in memory.
+  while(topicViewCache.size>12)topicViewCache.delete(topicViewCache.keys().next().value);
+}
+function suspendTopicView() { captureTopicView();currentTopicView=null;topicViewDepth=3; }
+function animateTopicContent(back) {
+  if(!topicSheet.classList.contains('open') || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+  topicList.getAnimations?.().forEach(animation=>animation.cancel());
+  topicList.animate?.([{transform:`translateX(${back?-20:20}px)`,opacity:.85},{transform:'translateX(0)',opacity:1}],{duration:180,easing:'cubic-bezier(.2,.7,.2,1)'});
+}
+function navigateTopicView(kind,item,categoryKey,renderFresh,filter=null) {
+  if(topicViewScope!==studySessionScope())resetTopicViewCache();
+  const key=JSON.stringify([kind,categoryKey,item?.id||'']);
+  const depth=kind==='category'?0:kind==='hub'?1:2;
+  const back=depth<topicViewDepth;
+  captureTopicView();
+  state.activeCategoryKey=categoryKey;state.activeDocument=item||null;
+  const cached=topicViewCache.get(key);
+  topicViewDepth=depth;
+  if(cached){
+    currentTopicView=cached;
+    topicSheet.className=cached.classes;
+    if(cached.tone)topicSheet.dataset.categoryTone=cached.tone;else delete topicSheet.dataset.categoryTone;
+    cached.header.forEach(saved=>{const el=document.getElementById(saved.id);el.innerHTML=saved.html;el.style.cssText=saved.style;el.className=saved.classes;});
+    topicBreadcrumbWrap.replaceChildren(...cached.breadcrumb);
+    topicList.replaceChildren(...cached.nodes);
+    topicList.firstElementChild?.refreshTopicView?.(filter);
+    cached.scroll.forEach(({el,top,left})=>{el.scrollTop=top;el.scrollLeft=left;});
+    animateTopicContent(back);
+    return;
+  }
+  const view={key,ready:false};currentTopicView=view;
+  const finish=()=>{
+    if(currentTopicView!==view)return;
+    view.ready=true;view.nodes=Array.from(topicList.childNodes);
+    topicList.scrollTop=0;captureTopicView();animateTopicContent(back);
+  };
+  const result=renderFresh();
+  if(result?.then)return result.then(finish);
+  finish();
+}
+function renderCategoryLevel(categoryKey) {
+  return navigateTopicView('category',null,categoryKey,()=>renderCategoryLevelFresh(categoryKey));
+}
+function renderStudyModeHub(item,categoryKey,initialFilter=null) {
+  if(!pauseStudyAttempts(true))return;
+  return navigateTopicView('hub',item,categoryKey,()=>renderStudyModeHubFresh(item,categoryKey,initialFilter||'all'),initialFilter);
+}
+function renderSections(item,categoryKey) {
+  if(!(item.children||[]).length&&!requirePremiumOrWarn())return;
+  return navigateTopicView('sections',item,categoryKey,()=>renderSectionsFresh(item,categoryKey));
+}
+function renderSummary(item,categoryKey) {
+  return navigateTopicView('summary',item,categoryKey,()=>renderSummaryFresh(item,categoryKey));
+}
+
 function resetSheetClasses() {
   topicSheet.classList.remove('document-flow', 'quiz-active', 'card-study-active', 'category-glass');
   delete topicSheet.dataset.categoryTone;
@@ -4217,6 +4292,7 @@ function openTopicSheet(categoryKey) {
   closeAllSheets(topicSheet);
   state.activeCategoryKey = categoryKey;
   state.activeDocument = null;
+  resetTopicViewCache();
   state.navStack = [{ kind: 'category', categoryKey }];
   topicSheet.classList.add('open');
   topicSheet.setAttribute('aria-hidden', 'false');
@@ -4227,6 +4303,7 @@ function openTopicSheet(categoryKey) {
 function closeTopicSheet() {
   if(state.quiz?.studyFinishing){showToast('Sonuç hazırlanıyor, lütfen bekle.');return;}
   if(!pauseStudyAttempts(true))return;
+  suspendTopicView();
   clearInterval(timerInterval);
   timerInterval = null;
   state.quiz = null;
@@ -4277,7 +4354,7 @@ function setSheetProgress(label, percentage, completedLabel = 'tamamlandı', com
   }
 }
 
-function renderCategoryLevel(categoryKey) {
+function renderCategoryLevelFresh(categoryKey) {
   const category = getCategory(categoryKey);
   if (!category) return;
   resetSheetClasses();
@@ -4308,7 +4385,13 @@ function renderCategoryLevel(categoryKey) {
     element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
   });
   topicSheet.scrollTop = 0;
-  refreshVisibleQuestionCounts(items, () => { if (state.activeCategoryKey === categoryKey && !state.activeDocument) renderCategoryLevel(categoryKey); });
+  const categoryRows=Array.from(topicList.querySelectorAll('[data-topic-index]'));
+  const refreshCategory=()=>{
+    categoryRows.forEach((row,index)=>{row.querySelector('.topic-copy p').textContent=statLine(items[index]);row.classList.toggle('completed',items[index].type==='document'&&getDocumentProgress(items[index])===100);});
+    if(categoryRows[0]?.parentNode===topicList){const value=getCategoryCompletion(categoryKey);setSheetProgress('Henüz çalışılmadı',value.percentage,'tamamlandı',value.total?value.completed:null,value.total?value.total:null);}
+  };
+  if(topicList.firstElementChild)topicList.firstElementChild.refreshTopicView=refreshCategory;
+  refreshVisibleQuestionCounts(items,refreshCategory);
 }
 
 function statValue(value) {
@@ -4437,6 +4520,7 @@ function resumeStudyAttempt(id,item,categoryKey) {
     if(!(entry.snapshot.section?.generated && !(item.children||[]).length && entry.sectionId?.startsWith(item.id+':practice:')) && !allowed(item.children||[])){showToast('Bu bölüm seçili kadron için kullanılamıyor.');return;}
   }
   if(!pauseStudyAttempts(true))return;
+  suspendTopicView();
   const snapshot=entry.snapshot;
   const session={...snapshot,documentItem:item,categoryKey,studySessionId:entry.id,studyScope:studySessionScope(),studyStartedAt:entry.startedAt,
     returnView:()=>renderStudyModeHub(item,categoryKey,'started')};
@@ -4466,7 +4550,7 @@ function renderDocumentHub(documentItem, categoryKey) {
 function renderTopicPlan(item, categoryKey) {
   renderStudyModeHub(item, categoryKey);
 }
-function renderStudyModeHub(item, categoryKey, initialFilter = 'all') {
+function renderStudyModeHubFresh(item, categoryKey, initialFilter = 'all') {
   if(!pauseStudyAttempts(true))return;
   state.activeDocument = item;
   state.activeCategoryKey = categoryKey;
@@ -4487,7 +4571,7 @@ function renderStudyModeHub(item, categoryKey, initialFilter = 'all') {
     { id:'truefalse', title:'Doğru / Yanlış', description:'20 kartla bilgini pekiştir.', enabled:hasQuestions, count:'20’ye kadar' },
     { id:'summary', title:'Özet ve Kritik Noktalar', description:'Konu notlarını hızlı tekrar et.', enabled:hasSections || (!(item.children || []).length && hasQuestions), count:countText }
   ];
-  const attempts = studySessionsFor(item);
+  let attempts = studySessionsFor(item);
   const started = attempts.filter(entry => entry.status === 'started').length;
   const completed = attempts.filter(entry => entry.status === 'completed').length;
   topicList.innerHTML = `<div class="study-mode-hub">
@@ -4566,24 +4650,28 @@ function renderStudyModeHub(item, categoryKey, initialFilter = 'all') {
   filterCards();
   topicSheet.scrollTop = 0;
   topicList.scrollTop = 0;
-  refreshVisibleQuestionCounts([item], () => {
-    if (state.activeDocument !== item || !topicList.contains(hub)) return;
-    const filter = selectedFilter;
-    const query = hub.querySelector('input').value;
-    const scroll = topicList.scrollTop;
-    renderStudyModeHub(item, categoryKey);
-    const updated = topicList.querySelector('.study-mode-hub');
-    updated.querySelector('input').value = query;
-    updated.querySelector(`[data-hub-filter="${filter}"]`).click();
-    topicList.scrollTop = scroll;
-  });
+  hub.refreshTopicView = (filter=null) => {
+    if(filter)selectedFilter=filter;
+    attempts=studySessionsFor(item);
+    hub.querySelector('[data-hub-filter="started"]').textContent=`Devam Eden (${attempts.filter(e=>e.status==='started').length})`;
+    hub.querySelector('[data-hub-filter="completed"]').textContent=`Tamamlanan (${attempts.filter(e=>e.status==='completed').length})`;
+    const count=Number(item.questionCount);
+    const pct=Math.min(100,Math.max(0,Number(getDocumentProgress(item))||0));
+    hub.querySelector('.study-hub-heading p').textContent=`${Number.isFinite(count)?count:'—'} soru • %${pct} ilerleme`;
+    hub.querySelector('.study-hub-track').setAttribute('aria-valuenow',pct);
+    hub.querySelector('.study-hub-track>span').style.width=pct+'%';
+    hub.querySelector('.study-hub-progress>strong').textContent='%'+pct;
+    if(Number.isFinite(count))hub.querySelectorAll('[data-document-mode]').forEach(card=>{if(card.dataset.documentMode!=='truefalse')card.querySelector('.study-hub-card-footer b').textContent=card.dataset.documentMode==='random'?Math.min(20,count):count;});
+    filterCards();
+  };
+  refreshVisibleQuestionCounts([item],()=>hub.refreshTopicView());
 }
 
 function availableStudySections(item) {
   const role=progress.selectedRole;
   return (item.children || []).filter(section=>!role || !section.kadrolar || section.kadrolar.includes(role));
 }
-async function renderSections(documentItem, categoryKey) {
+async function renderSectionsFresh(documentItem, categoryKey) {
   if (!(documentItem.children || []).length && !requirePremiumOrWarn()) return;
   topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
@@ -4625,6 +4713,12 @@ async function renderSections(documentItem, categoryKey) {
   });
   topicSheet.scrollTop = 0;
   if(!sections.length) topicList.innerHTML='<p class="empty-inline">Bu kadro için erişilebilir bölüm sorusu bulunamadı.</p>';
+  const sectionRows=Array.from(topicList.querySelectorAll('[data-section-index]'));
+  const refreshSections=()=>{
+    sectionRows.forEach((row,index)=>{const done=Boolean(progress.completedSections[sections[index].id]);row.classList.toggle('completed',done);row.querySelector('.document-section-number').innerHTML=done?svg('check'):String(index+1).padStart(2,'0');});
+    setSheetProgress('Henüz çalışılmadı',getDocumentProgress(documentItem));
+  };
+  if(topicList.firstElementChild)topicList.firstElementChild.refreshTopicView=refreshSections;
   refreshSectionQuestionCounts(sections.filter(section=>!section.generated));
 }
 
@@ -4642,6 +4736,7 @@ async function refreshSectionQuestionCounts(sections) {
   const hasArticleRange = section => Boolean(section.articleRange) && String(section.articleRange).trim() !== '0';
   const targets = (sections || []).filter(section => !hasArticleRange(section) && !(section.children || []).length);
   if (!targets.length) return;
+  const rows=Array.from(topicList.querySelectorAll('[data-section-index]'));
   const results = await Promise.allSettled(targets.map(async section => {
     const count = await ContentRepo.fetchQuestionCountByTopicId(section.id);
     return { section, count };
@@ -4651,12 +4746,12 @@ async function refreshSectionQuestionCounts(sections) {
     const { section, count } = result.value;
     section.questionCount = count;
     const index = sections.indexOf(section);
-    const row = topicList.querySelector(`[data-section-index="${index}"] p`);
+    const row = rows[index]?.querySelector('p');
     if (row) row.textContent = `${count} soru`;
   });
 }
 
-async function renderSummary(documentItem, categoryKey) {
+async function renderSummaryFresh(documentItem, categoryKey) {
   topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
   applySheetHeader({ title: 'Özet ve Kritik Noktalar', subtitle: documentItem.title, eyebrow: 'HIZLI TEKRAR', icon: 'trophy', iconClass: categoryCardMeta(categoryKey).iconClass });
@@ -4993,6 +5088,7 @@ async function openTrueFalseMode(documentItem, categoryKey) {
 }
 
 function renderTrueFalse() {
+  suspendTopicView();
   const tf = state.tfQuiz;
   if (!tf) return;
   saveTfAttempt(tf);
@@ -5352,6 +5448,7 @@ async function startSmartPractice() {
 
 function startQuiz({ questions, documentItem = null, section = null, kind, sessionId = null, title, subtitle, returnView, customTimeSeconds = null }) {
   if(!pauseStudyAttempts(true))return;
+  suspendTopicView();
   clearInterval(timerInterval);
   timerInterval = null;
 
@@ -6201,6 +6298,50 @@ function handleHardwareBack() {
 document.addEventListener('nativeux:backbutton', event => {
   if (handleHardwareBack()) event.preventDefault();
 });
+
+// Native Android delivers its system back gesture through nativeux:backbutton.
+// iOS uses the left-edge gesture below, routed to the same back handler.
+let edgeBackGesture=null;
+let edgeBackSuppressClickUntil=0;
+function clearEdgeBackGesture() {
+  edgeBackGesture=null;
+  document.querySelector('.phone')?.classList.remove('edge-back-ready');
+}
+function edgeBackStart(event) {
+  if(window.Capacitor?.getPlatform?.()==='android' || event.touches.length!==1)return;
+  if(roleGate?.getAttribute('aria-hidden')==='false' || state.quiz?.studyFinishing)return;
+  if(document.querySelector('.quiz-finish-modal-overlay.open'))return;
+  const phone=document.querySelector('.phone');if(!phone)return;
+  const touch=event.touches[0],rect=phone.getBoundingClientRect();
+  if(touch.clientX<rect.left || touch.clientX>rect.left+24)return;
+  if(event.target.closest('input,textarea,select,[contenteditable="true"],[data-no-swipe-back]'))return;
+  const openSheet=allSheets.some(sheet=>sheet.classList.contains('open'));
+  if(!openSheet&&state.view==='home')return;
+  edgeBackGesture={x:touch.clientX,y:touch.clientY,dx:0,dy:0,started:performance.now(),phone,
+    origin:openSheet?topicList.firstElementChild:app.firstElementChild,openSheet,view:state.view,locked:false};
+}
+function edgeBackMove(event) {
+  const g=edgeBackGesture;if(!g)return;
+  if(event.touches.length!==1){clearEdgeBackGesture();return;}
+  g.dx=event.touches[0].clientX-g.x;g.dy=event.touches[0].clientY-g.y;
+  if(!g.locked){
+    if(Math.abs(g.dy)>12&&Math.abs(g.dy)>Math.abs(g.dx)){clearEdgeBackGesture();return;}
+    if(g.dx < -10){clearEdgeBackGesture();return;}
+    if(g.dx>14&&g.dx>Math.abs(g.dy)*1.5)g.locked=true;
+  }
+  if(g.locked){if(event.cancelable)event.preventDefault();g.phone.classList.toggle('edge-back-ready',g.dx>=64);}
+}
+function edgeBackEnd() {
+  const g=edgeBackGesture;clearEdgeBackGesture();if(!g?.locked)return;
+  const same=g.view===state.view && g.origin===(g.openSheet?topicList.firstElementChild:app.firstElementChild);
+  if(same&&g.dx>=64&&g.dx>Math.abs(g.dy)*1.5&&performance.now()-g.started<1800)handleHardwareBack();
+  edgeBackSuppressClickUntil=Date.now()+400;
+}
+document.addEventListener('touchstart',edgeBackStart,{passive:true});
+document.addEventListener('touchmove',edgeBackMove,{passive:false});
+document.addEventListener('touchend',edgeBackEnd,{passive:true});
+document.addEventListener('touchcancel',clearEdgeBackGesture,{passive:true});
+document.addEventListener('click',event=>{if(Date.now()<edgeBackSuppressClickUntil){event.preventDefault();event.stopImmediatePropagation();}},true);
 
 async function loadCatalogue() {
   state.catalogueError = '';
