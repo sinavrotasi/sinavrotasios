@@ -858,6 +858,11 @@ workflows:
   # NOT: integrations.app_store_connect altındaki isim, Codemagic'te
   # Team settings > Integrations > Developer Portal ekranında key'e
   # verdiğin isimle (örn. "SınavRotası - MEB GYS") BİREBİR aynı olmalı.
+  #
+  # NOT: TestFlight'a SADECE bu workflow yükleme yapar. Diğer workflow'lar
+  # (ios-simulator, ios-device-altstore, ios-device-dev) App Store Connect'e
+  # hiçbir şey göndermez; bu yüzden onlarca build alsan da TestFlight'ta
+  # görünmezler. Yeni bir TestFlight build'i için bu workflow'u çalıştır.
   ios-app-store-release:
     name: SınavRotası App Store Release
     instance_type: mac_mini_m2
@@ -983,6 +988,28 @@ workflows:
             -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string sinavrotasi" \
             "$PLIST_PATH"
 
+      - name: Set export compliance flag
+        script: |
+          set -euo pipefail
+
+          # Uygulama yalnızca standart HTTPS/iOS sistem şifrelemesi kullanıyorsa
+          # bu değer false olur ve App Store Connect'te her build için
+          # "Missing Compliance" sorusu çıkmaz.
+          PLIST_PATH="$CM_BUILD_DIR/ios/App/App/Info.plist"
+
+          /usr/libexec/PlistBuddy \
+            -c "Delete :ITSAppUsesNonExemptEncryption" \
+            "$PLIST_PATH" 2>/dev/null || true
+
+          /usr/libexec/PlistBuddy \
+            -c "Add :ITSAppUsesNonExemptEncryption bool false" \
+            "$PLIST_PATH"
+
+          echo "ITSAppUsesNonExemptEncryption ayarlandı:"
+          /usr/libexec/PlistBuddy \
+            -c "Print :ITSAppUsesNonExemptEncryption" \
+            "$PLIST_PATH"
+
       - name: Sync Capacitor
         script: |
           set -euo pipefail
@@ -1047,5 +1074,6 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-
-   
+        # Grup adı App Store Connect'teki ile BİREBİR aynı olmalı.
+        beta_groups:
+          - SınavRotası Beta
