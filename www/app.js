@@ -4571,7 +4571,7 @@ function renderStudyModeHubFresh(item, categoryKey, initialFilter = 'all') {
     { id:'sections', title:'Madde Madde Çalış', description:'Bölüm seç, çalışmaya başla.', enabled:hasSections || (!(item.children || []).length && hasQuestions), count:countText },
     { id:'random', title:'Rastgele 20 Soru', description:'Konunun tamamından 20 soru.', enabled:hasQuestions, count:count === null ? '20' : String(Math.min(20,count)) },
     { id:'truefalse', title:'Doğru / Yanlış', description:'20 kartla bilgini pekiştir.', enabled:hasQuestions, count:'20’ye kadar' },
-    { id:'summary', title:'Özet ve Kritik Noktalar', description:'Konu notlarını hızlı tekrar et.', enabled:hasSections || (!(item.children || []).length && hasQuestions), count:countText }
+    { id:'summary', title:'Özet ve Kritik Noktalar', description:'Hazırlanıyor', enabled:true, count:countText }
   ];
   let attempts = studySessionsFor(item);
   const started = attempts.filter(entry => entry.status === 'started').length;
@@ -4688,18 +4688,23 @@ function practiceSectionsFromBank(item, bank) {
     });
     return Array.from(groups.values(), section => ({...section, questionCount: section.questionIds.length}));
   }
-  return Array.from({length: Math.ceil(bank.length / 20)}, (_, index) => ({
+  const sections = Array.from({length: Math.ceil(bank.length / 20)}, (_, index) => ({
     id: `${item.id}:practice:${index + 1}`, title: item.title,
-    practiceLabel: `Test ${index + 1} · Sorular ${index * 20 + 1}–${Math.min(bank.length, index * 20 + 20)}`,
     questionCount: Math.min(20, bank.length - index * 20),
     questionIds: bank.slice(index * 20, index * 20 + 20).map(q => q.id), generated: true
   }));
+  const titleKey = String(item.title || '').toLocaleLowerCase('tr-TR');
+  if (titleKey.includes('liderlik') && titleKey.includes('organizasyon') && bank.length === 201 && sections.length === 11) {
+    sections[9].questionIds.push(...sections[10].questionIds);
+    sections[9].questionCount = sections[9].questionIds.length;
+    sections.pop();
+  }
+  return sections;
 }
 function sectionMetadata(section) {
   const range = String(section.articleRange || '').trim();
   const parts = [];
   if (range && range !== '0') parts.push(/^\d/.test(range) ? `Madde ${range}` : range);
-  else if (section.practiceLabel) parts.push(section.practiceLabel);
   else if ((section.children || []).length) parts.push(`${section.children.length} madde`);
   const count = section.questionCount;
   parts.push(`${count != null && Number.isFinite(Number(count)) ? Number(count) : '—'} soru`);
@@ -4819,29 +4824,12 @@ async function refreshSectionQuestionCounts(sections) {
 async function renderSummaryFresh(documentItem, categoryKey) {
   topicSheet.classList.remove('category-glass');
   topicSheet.classList.add('document-flow');
-  applySheetHeader({ title: 'Özet ve Kritik Noktalar', subtitle: documentItem.title, eyebrow: 'HIZLI TEKRAR', icon: 'trophy', iconClass: categoryCardMeta(categoryKey).iconClass });
+  applySheetHeader({ title: 'Özet ve Kritik Noktalar', subtitle: documentItem.title, eyebrow: '', icon: categoryCardMeta(categoryKey).icon, iconClass: categoryCardMeta(categoryKey).iconClass });
   renderBreadcrumb(documentItem.title, () => renderDocumentHub(documentItem, categoryKey));
   setSheetProgress('Henüz çalışılmadı', getDocumentProgress(documentItem));
-  const role = progress.selectedRole;
-  const sections = (documentItem.children || []).filter(section => !role || !section.kadrolar || section.kadrolar.includes(role));
-  topicList.innerHTML = `<div class="summary-list">${sections.map(section => {
-    const hasOwnSummary = Boolean(section.summary || (section.keyPoints || []).length);
-    const ownBlock = hasOwnSummary ? `${section.summary ? `<p class="summary-text">${escapeHtml(section.summary)}</p>` : ''}${(section.keyPoints || []).length ? `<ul>${section.keyPoints.map(point => `<li>${escapeHtml(point)}</li>`).join('')}</ul>` : ''}` : '';
-    const articleBlocks = (section.children || []).map(article => `<article class="summary-item"><span>${escapeHtml(article.articleLabel || 'Madde')}</span><h5>${escapeHtml(article.summary || article.title || '')}</h5>${(article.keyPoints || []).length ? `<ul>${article.keyPoints.slice(0, 3).map(point => `<li>${escapeHtml(point)}</li>`).join('')}</ul>` : ''}</article>`).join('');
-    if (!ownBlock && !articleBlocks) return '';
-    return `<section class="summary-section"><h4>${escapeHtml(section.title)}</h4>${ownBlock || articleBlocks}</section>`;
-  }).join('')}</div>`;
-  if (!topicList.querySelector('.summary-section')) {
-    if (!requirePremiumOrWarn()) { renderDocumentHub(documentItem,categoryKey); return; }
-    const loading=document.createElement('div'); loading.className='empty-inline'; loading.textContent='Tekrar notları yükleniyor…'; topicList.replaceChildren(loading);
-    try {
-      const bank=await loadQuestionBank(documentItem);
-      if(!topicList.contains(loading))return;
-      const notes=bank.filter(q=>q.explanation || (Number.isInteger(q.answerIndex)&&q.options?.[q.answerIndex]!=null));
-      topicList.innerHTML=`<div class="summary-list"><p class="empty-inline">Soru bankasından hızlı tekrar</p>${notes.map(q=>`<section class="summary-section"><h4>${escapeHtml(q.prompt||'')}</h4><p class="summary-text">${escapeHtml(q.explanation || q.options[q.answerIndex])}</p></section>`).join('') || '<p class="empty-inline">Bu konunun soruları mevcut; ayrı özet notu bulunmuyor.</p>'}</div>`;
-    } catch(error) { if(topicList.contains(loading))loading.textContent=error.message||'Tekrar notları yüklenemedi.'; }
-  }
+  topicList.innerHTML = '<div class="empty-inline" role="status">Hazırlanıyor</div>';
   topicSheet.scrollTop = 0;
+  topicList.scrollTop = 0;
 }
 
 async function loadTfPool(documentItem) {
