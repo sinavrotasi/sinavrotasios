@@ -1010,6 +1010,13 @@ workflows:
             -c "Print :ITSAppUsesNonExemptEncryption" \
             "$PLIST_PATH"
 
+      - name: Generate splash/icon assets
+        script: |
+          set -euo pipefail
+          # Bu adım olmadan Capacitor'ın varsayılan (mavi X) ikonu kalır.
+          npm install @capacitor/assets --save-dev
+          npx @capacitor/assets generate --iosProject ios/App --assetPath resources
+
       - name: Sync Capacitor
         script: |
           set -euo pipefail
