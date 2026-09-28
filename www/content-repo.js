@@ -52,9 +52,9 @@ const ContentRepo = (() => {
   // erişebilir, yani deneme sınavı akışı bu filtreden etkilenmez.
   async function fetchCatalogue() {
     const [{ data: categories, error: catErr }, { data: topics, error: topicErr }, { data: liveCounts, error: countErr }] = await Promise.all([
-      client.from('categories').select('*').order('sort_order'),
-      client.from('topics').select('*').eq('show_in_catalog', true).order('sort_order'),
-      client.from('topic_question_counts').select('topic_id, toplam_soru')
+      fetchAllRows(() => client.from('categories').select('*').order('sort_order').order('id')).then(data => ({data})),
+      fetchAllRows(() => client.from('topics').select('*').eq('show_in_catalog', true).order('sort_order').order('id')).then(data => ({data})),
+      fetchAllRows(() => client.from('topic_question_counts').select('topic_id, toplam_soru').order('topic_id')).then(data => ({data})).catch(error => ({error}))
     ]);
     if (catErr) throw new Error(`Kategoriler yüklenemedi: ${catErr.message}`);
     if (topicErr) throw new Error(`Konular yüklenemedi: ${topicErr.message}`);
@@ -148,6 +148,30 @@ const ContentRepo = (() => {
       };
     });
     return result;
+  }
+
+  // Resolve current named sections using the same visibility and metadata contract.
+  async function fetchStudyDocument(topicId) {
+    const catalogue = await fetchCatalogue();
+    const find = nodes => {
+      for (const node of nodes || []) {
+        if (node.id === topicId) return node;
+        const child = find(node.children);
+        if (child) return child;
+      }
+      return null;
+    };
+    for (const category of Object.values(catalogue)) {
+      const node = find(category.topics);
+      if (node) return node;
+    }
+    throw new Error('Konu artık erişilebilir katalogda bulunmuyor.');
+  }
+
+  async function fetchQuestionsByTopicId(topicId) {
+    const topicIds = await collectDescendantTopicIds(topicId);
+    const rows = await fetchAllRows(() => client.from('questions').select('*').in('topic_id', topicIds).order('sort_order').order('id'));
+    return rows.map(mapQuestionRow);
   }
 
   // ---- sorular/*.json ve taxonomy'nin 'sorular'/'cards' (quiz) kaynakları --
@@ -564,5 +588,5 @@ const ContentRepo = (() => {
     return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
   }
 
-  return { fetchAllRows, fetchCatalogue, fetchQuestionsByPath, fetchQuestionsByPathExact, fetchFlashcardsByPath, fetchFlashcardDecks, fetchCardsByTopicId, fetchExamTaxonomy, fetchExamBlueprint, fetchRandomTestQuestions, revealQuizSession, fetchQuestionCount, fetchQuestionCountByTopicId, fetchFlashcardProgress, rateFlashcard, fetchDueFlashcardCounts, fetchDueFlashcards, fetchTotalQuestionCount, fetchExamDate };
+  return { fetchAllRows, fetchCatalogue, fetchStudyDocument, fetchQuestionsByTopicId, fetchQuestionsByPath, fetchQuestionsByPathExact, fetchFlashcardsByPath, fetchFlashcardDecks, fetchCardsByTopicId, fetchExamTaxonomy, fetchExamBlueprint, fetchRandomTestQuestions, revealQuizSession, fetchQuestionCount, fetchQuestionCountByTopicId, fetchFlashcardProgress, rateFlashcard, fetchDueFlashcardCounts, fetchDueFlashcards, fetchTotalQuestionCount, fetchExamDate };
 })();

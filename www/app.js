@@ -4260,6 +4260,7 @@ function navigateTopicView(kind,item,categoryKey,renderFresh,filter=null) {
     view.ready=true;view.nodes=Array.from(topicList.childNodes);
     topicList.scrollTop=0;captureTopicView();animateTopicContent(back);
   };
+  if(kind!=='sections')topicSheet.classList.remove('section-selection');
   const result=renderFresh();
   if(result?.then)return result.then(finish);
   finish();
@@ -4272,7 +4273,6 @@ function renderStudyModeHub(item,categoryKey,initialFilter=null) {
   return navigateTopicView('hub',item,categoryKey,()=>renderStudyModeHubFresh(item,categoryKey,initialFilter||'all'),initialFilter);
 }
 function renderSections(item,categoryKey) {
-  if(!(item.children||[]).length&&!requirePremiumOrWarn())return;
   return navigateTopicView('sections',item,categoryKey,()=>renderSectionsFresh(item,categoryKey));
 }
 function renderSummary(item,categoryKey) {
@@ -4280,7 +4280,7 @@ function renderSummary(item,categoryKey) {
 }
 
 function resetSheetClasses() {
-  topicSheet.classList.remove('document-flow', 'quiz-active', 'card-study-active', 'category-glass');
+  topicSheet.classList.remove('document-flow', 'quiz-active', 'card-study-active', 'category-glass', 'section-selection');
   delete topicSheet.dataset.categoryTone;
 }
 
@@ -4511,7 +4511,7 @@ function studyAttemptCards(entries) {
       `<p>${answered} / ${total} soru cevaplandı · ${Math.min((Number(entry.index)||0)+1,total)}. sorudasın</p><div class="study-attempt-track"><span style="width:${ratio}%"></span></div><button type="button" data-resume-study="${escapeHtml(entry.id)}">Kaldığın yerden devam et <span aria-hidden="true">›</span></button>`}</article>`;
   }).join('');
 }
-function resumeStudyAttempt(id,item,categoryKey) {
+function resumeStudyAttempt(id,item,categoryKey,returnView=null) {
   const entry=readStudySession(id);
   if(!entry || entry.documentId!==item.id || entry.categoryKey!==categoryKey || entry.status!=='started' || !entry.snapshot?.questions?.length){showToast('Bu çalışma artık devam edilebilir durumda değil.');return;}
   if(['section','truefalse'].includes(entry.type)&&!requirePremiumOrWarn())return;
@@ -4523,7 +4523,7 @@ function resumeStudyAttempt(id,item,categoryKey) {
   suspendTopicView();
   const snapshot=entry.snapshot;
   const session={...snapshot,documentItem:item,categoryKey,studySessionId:entry.id,studyScope:studySessionScope(),studyStartedAt:entry.startedAt,
-    returnView:()=>renderStudyModeHub(item,categoryKey,'started')};
+    returnView:returnView || (()=>renderStudyModeHub(item,categoryKey,'started'))};
   session.index=Math.max(0,Math.min(Number(session.index)||0,session.questions.length-1));
   topicSheet.classList.add('open','quiz-active');topicSheet.classList.remove('document-flow','category-glass','card-study-active');
   topicSheet.setAttribute('aria-hidden','false');topicBackdrop.classList.add('open');
@@ -4671,11 +4671,45 @@ function availableStudySections(item) {
   const role=progress.selectedRole;
   return (item.children || []).filter(section=>!role || !section.kadrolar || section.kadrolar.includes(role));
 }
+// Preserve named sections when a flat question file carries section metadata.
+// Unlabelled banks keep stable 20-question IDs; never invent law article ranges.
+function practiceSectionsFromBank(item, bank) {
+  const named = bank.length && bank.every(q => String(q.sectionTitle || q.section?.title || '').trim());
+  if (named) {
+    const groups = new Map();
+    bank.forEach(q => {
+      const title = String(q.sectionTitle || q.section.title).trim();
+      const range = String(q.articleRange || q.section?.articleRange || '').trim();
+      const key = JSON.stringify([q.sectionId || q.section?.id || title, range]);
+      if (!groups.has(key)) groups.set(key, {id: `${item.id}:practice:named:${encodeURIComponent(key)}`, title, articleRange: range === '0' ? '' : range, questionIds: [], generated: true});
+      groups.get(key).questionIds.push(q.id);
+    });
+    return Array.from(groups.values(), section => ({...section, questionCount: section.questionIds.length}));
+  }
+  return Array.from({length: Math.ceil(bank.length / 20)}, (_, index) => ({
+    id: `${item.id}:practice:${index + 1}`, title: item.title,
+    practiceLabel: `Test ${index + 1} · Sorular ${index * 20 + 1}–${Math.min(bank.length, index * 20 + 20)}`,
+    questionCount: Math.min(20, bank.length - index * 20),
+    questionIds: bank.slice(index * 20, index * 20 + 20).map(q => q.id), generated: true
+  }));
+}
+function sectionAttemptState(item, section) {
+  const entries = studySessionsFor(item).filter(entry => entry.type === 'section' && entry.sectionId === section.id);
+  const pending = entries.filter(entry => entry.status === 'started').sort((a,b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
+  return {pending, completed: Boolean(progress.completedSections[section.id] || entries.some(entry => entry.status === 'completed'))};
+}
+function sectionStateMarkup(value) {
+  if (value.pending) {
+    const total = Math.max(1, Number(value.pending.total) || 1);
+    const answered = Math.min(total, Math.max(0, Number(value.pending.answered) || 0));
+    return `<span class="section-resume-count">${answered}/${total}</span><span class="section-mini-track"><i style="width:${answered / total * 100}%"></i></span>`;
+  }
+  return value.completed ? `<span class="section-done" aria-label="Tamamlandı">${svg('check')}</span>` : '<span class="section-unstarted" aria-label="Başlanmadı"></span>';
+}
 async function renderSectionsFresh(documentItem, categoryKey) {
-  if (!(documentItem.children || []).length && !requirePremiumOrWarn()) return;
   topicSheet.classList.remove('category-glass');
-  topicSheet.classList.add('document-flow');
-  applySheetHeader({ title: 'Bölüm Seçimi', subtitle: 'Bir bölüme dokunarak karma sorularla başla.', eyebrow: 'MADDE MADDE ÇALIŞ', icon: 'gavel', iconClass: categoryCardMeta(categoryKey).iconClass });
+  topicSheet.classList.add('document-flow', 'section-selection');
+  applySheetHeader({ title: '', subtitle: '', eyebrow: '', icon: 'gavel', iconClass: categoryCardMeta(categoryKey).iconClass });
   renderBreadcrumb(documentItem.title, () => renderDocumentHub(documentItem, categoryKey));
   setSheetProgress('Henüz çalışılmadı', getDocumentProgress(documentItem));
   // NOT (2026-09-06 düzeltme): bölümler (documentItem.children) daha önce
@@ -4685,29 +4719,54 @@ async function renderSectionsFresh(documentItem, categoryKey) {
   // sadece Şef'e ait olması gereken bölümleri (Disiplin Amirleri, İmza
   // Yetkileri) de görüyordu.
   const role = progress.selectedRole;
+  const pendingView = document.createElement('div');
+  pendingView.className = 'empty-inline';
+  pendingView.textContent = 'Bölümler yükleniyor…';
+  topicList.replaceChildren(pendingView);
+  try {
+    const current = await ContentRepo.fetchStudyDocument(documentItem.id);
+    if (!topicList.contains(pendingView)) return;
+    if (role && current.kadrolar && !current.kadrolar.includes(role)) {
+      pendingView.textContent = 'Bu konu seçili kadron için kullanılamıyor.';
+      return;
+    }
+    Object.assign(documentItem, current, {children: current.children || []});
+    state.questionBanks.delete(documentItem.id);
+    renderBreadcrumb(documentItem.title, () => renderDocumentHub(documentItem, categoryKey));
+  } catch (error) {
+    if (topicList.contains(pendingView)) pendingView.textContent = error.message || 'Bölümler yüklenemedi. Geri dönüp yeniden dene.';
+    return;
+  }
   let sections = availableStudySections(documentItem);
   if (!(documentItem.children || []).length) {
+    if (!requirePremiumOrWarn()) { renderDocumentHub(documentItem, categoryKey); return; }
     const loading = document.createElement('div'); loading.className='empty-inline'; loading.textContent='Bölümler yükleniyor…';
     topicList.replaceChildren(loading);
     try {
       const bank=await loadQuestionBank(documentItem);
       if(!topicList.contains(loading)) return;
-      sections=Array.from({length:Math.ceil(bank.length/20)},(_,index)=>({id:`${documentItem.id}:practice:${index+1}`,title:`Bölüm ${index+1}`,questionCount:Math.min(20,bank.length-index*20),questionIds:bank.slice(index*20,index*20+20).map(q=>q.id),generated:true}));
+      sections=practiceSectionsFromBank(documentItem, bank);
     } catch(error) { if(topicList.contains(loading)) loading.textContent=error.message||'Sorular yüklenemedi. Geri dönüp yeniden dene.'; return; }
   }
   topicList.innerHTML = `<div class="document-section-head"><span>BÖLÜM TESTLERİ</span><strong>Bölüme tıkla, test başlasın</strong></div><div class="document-section-list">${sections.map((section, index) => {
-    const completed = progress.completedSections[section.id];
+    const value = sectionAttemptState(documentItem, section);
+    const completed = value.completed;
     const childCount = (section.children || []).length;
     // "0" (madde aralığı literal string'i olarak) de boş değer sayılır — aksi
     // halde maddesi olmayan bölümlerde satırda kalıcı olarak "0" görünür.
     const hasArticleRange = Boolean(section.articleRange) && String(section.articleRange).trim() !== '0';
     const sectionMeta = hasArticleRange
-      ? section.articleRange
-      : (childCount > 0 ? `${childCount} madde` : `${statValue(section.questionCount)} soru`);
-    return `<article class="document-section-item ${completed ? 'completed' : ''}" data-section-index="${index}" role="button" tabindex="0"><span class="document-section-number">${completed ? svg('check') : String(index + 1).padStart(2, '0')}</span><div><h4>${escapeHtml(section.title)}</h4><p>${escapeHtml(sectionMeta)}</p></div><span class="document-section-arrow">›</span></article>`;
+      ? (/^\d/.test(String(section.articleRange).trim()) ? `Madde ${section.articleRange}` : section.articleRange)
+      : (section.practiceLabel || (childCount > 0 ? `${childCount} madde` : `${statValue(section.questionCount)} soru`));
+    return `<article class="document-section-item ${completed ? 'completed' : ''}" data-section-index="${index}" role="button" tabindex="0"><span class="document-section-number">${String(index + 1).padStart(2, '0')}</span><div class="document-section-copy"><h4>${escapeHtml(section.title)}</h4><p>${escapeHtml(sectionMeta)}</p></div><span class="document-section-state">${sectionStateMarkup(value)}</span><span class="document-section-arrow">›</span></article>`;
   }).join('')}</div>`;
   topicList.querySelectorAll('[data-section-index]').forEach(element => {
-    const open = () => openSectionQuiz(documentItem, sections[Number(element.dataset.sectionIndex)], categoryKey);
+    const open = () => {
+      const section = sections[Number(element.dataset.sectionIndex)];
+      const {pending} = sectionAttemptState(documentItem, section);
+      if (pending) resumeStudyAttempt(pending.id, documentItem, categoryKey, () => renderSections(documentItem, categoryKey));
+      else openSectionQuiz(documentItem, section, categoryKey);
+    };
     element.addEventListener('click', open);
     element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
   });
@@ -4715,10 +4774,11 @@ async function renderSectionsFresh(documentItem, categoryKey) {
   if(!sections.length) topicList.innerHTML='<p class="empty-inline">Bu kadro için erişilebilir bölüm sorusu bulunamadı.</p>';
   const sectionRows=Array.from(topicList.querySelectorAll('[data-section-index]'));
   const refreshSections=()=>{
-    sectionRows.forEach((row,index)=>{const done=Boolean(progress.completedSections[sections[index].id]);row.classList.toggle('completed',done);row.querySelector('.document-section-number').innerHTML=done?svg('check'):String(index+1).padStart(2,'0');});
+    sectionRows.forEach((row,index)=>{const value=sectionAttemptState(documentItem,sections[index]);row.classList.toggle('completed',value.completed);row.classList.toggle('in-progress',Boolean(value.pending));row.querySelector('.document-section-state').innerHTML=sectionStateMarkup(value);});
     setSheetProgress('Henüz çalışılmadı',getDocumentProgress(documentItem));
   };
   if(topicList.firstElementChild)topicList.firstElementChild.refreshTopicView=refreshSections;
+  refreshSections();
   refreshSectionQuestionCounts(sections.filter(section=>!section.generated));
 }
 
@@ -4825,29 +4885,8 @@ async function loadQuestionBank(documentItem) {
       }
     }
 
-    // Veritabanından yükle. NOT: `questions` tablosu RLS ile korunuyor
-    // (questions_premium_read → is_premium()), bu yüzden doğrudan seçim
-    // güvenli — free/anon kullanıcı answer_index'e erişemez, boş sonuç alır.
-    // (M-01 düzeltmesi): şemada `section_id` diye bir sütun yok; sorular
-    // doğrudan `topic_id` ile bölüme/alt-konuya bağlanıyor. Bölüm testi filtresi
-    // zaten `question.topicId === section.id` kullandığından sectionId'yi
-    // topic_id'den türetiyoruz.
-    // O-07: 1.000 satır sınırına karşı sayfalı okuma.
-    const data = await ContentRepo.fetchAllRows(() => supabaseClient
-      .from('questions')
-      .select('id,prompt,options,answer_index,topic_id')
-      .eq('topic_id', documentItem.id)
-      .order('sort_order', { ascending: true })
-      .order('id', { ascending: true }));
-    
-    const questions = (data || []).map(q => ({
-      id: q.id,
-      prompt: q.prompt,
-      options: q.options,
-      answerIndex: q.answer_index,
-      topicId: q.topic_id,
-      sectionId: q.topic_id
-    }));
+    // ID-based fallback includes descendant sections even without source_file.
+    const questions = await ContentRepo.fetchQuestionsByTopicId(documentItem.id);
     
     state.questionBanks.set(documentItem.id, questions);
     return questions;
