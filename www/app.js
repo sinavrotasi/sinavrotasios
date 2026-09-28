@@ -4245,6 +4245,8 @@ function navigateTopicView(kind,item,categoryKey,renderFresh,filter=null) {
   if(cached){
     currentTopicView=cached;
     topicSheet.className=cached.classes;
+    // Cached content views must not inherit the full-bleed quiz shell.
+    topicSheet.classList.remove('quiz-active','card-study-active');
     if(cached.tone)topicSheet.dataset.categoryTone=cached.tone;else delete topicSheet.dataset.categoryTone;
     cached.header.forEach(saved=>{const el=document.getElementById(saved.id);el.innerHTML=saved.html;el.style.cssText=saved.style;el.className=saved.classes;});
     topicBreadcrumbWrap.replaceChildren(...cached.breadcrumb);
@@ -4693,6 +4695,16 @@ function practiceSectionsFromBank(item, bank) {
     questionIds: bank.slice(index * 20, index * 20 + 20).map(q => q.id), generated: true
   }));
 }
+function sectionMetadata(section) {
+  const range = String(section.articleRange || '').trim();
+  const parts = [];
+  if (range && range !== '0') parts.push(/^\d/.test(range) ? `Madde ${range}` : range);
+  else if (section.practiceLabel) parts.push(section.practiceLabel);
+  else if ((section.children || []).length) parts.push(`${section.children.length} madde`);
+  const count = section.questionCount;
+  parts.push(`${count != null && Number.isFinite(Number(count)) ? Number(count) : '—'} soru`);
+  return parts.join(' · ');
+}
 function sectionAttemptState(item, section) {
   const entries = studySessionsFor(item).filter(entry => entry.type === 'section' && entry.sectionId === section.id);
   const pending = entries.filter(entry => entry.status === 'started').sort((a,b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
@@ -4748,16 +4760,10 @@ async function renderSectionsFresh(documentItem, categoryKey) {
       sections=practiceSectionsFromBank(documentItem, bank);
     } catch(error) { if(topicList.contains(loading)) loading.textContent=error.message||'Sorular yüklenemedi. Geri dönüp yeniden dene.'; return; }
   }
-  topicList.innerHTML = `<div class="document-section-head"><span>BÖLÜM TESTLERİ</span><strong>Bölüme tıkla, test başlasın</strong></div><div class="document-section-list">${sections.map((section, index) => {
+  topicList.innerHTML = `<div class="document-section-list">${sections.map((section, index) => {
     const value = sectionAttemptState(documentItem, section);
     const completed = value.completed;
-    const childCount = (section.children || []).length;
-    // "0" (madde aralığı literal string'i olarak) de boş değer sayılır — aksi
-    // halde maddesi olmayan bölümlerde satırda kalıcı olarak "0" görünür.
-    const hasArticleRange = Boolean(section.articleRange) && String(section.articleRange).trim() !== '0';
-    const sectionMeta = hasArticleRange
-      ? (/^\d/.test(String(section.articleRange).trim()) ? `Madde ${section.articleRange}` : section.articleRange)
-      : (section.practiceLabel || (childCount > 0 ? `${childCount} madde` : `${statValue(section.questionCount)} soru`));
+    const sectionMeta = sectionMetadata(section);
     return `<article class="document-section-item ${completed ? 'completed' : ''}" data-section-index="${index}" role="button" tabindex="0"><span class="document-section-number">${String(index + 1).padStart(2, '0')}</span><div class="document-section-copy"><h4>${escapeHtml(section.title)}</h4><p>${escapeHtml(sectionMeta)}</p></div><span class="document-section-state">${sectionStateMarkup(value)}</span><span class="document-section-arrow">›</span></article>`;
   }).join('')}</div>`;
   topicList.querySelectorAll('[data-section-index]').forEach(element => {
@@ -4779,7 +4785,7 @@ async function renderSectionsFresh(documentItem, categoryKey) {
   };
   if(topicList.firstElementChild)topicList.firstElementChild.refreshTopicView=refreshSections;
   refreshSections();
-  refreshSectionQuestionCounts(sections.filter(section=>!section.generated));
+  refreshSectionQuestionCounts(sections);
 }
 
 // Madde Madde Çalış bölüm listesindeki maddesi olmayan alt konularda
@@ -4793,8 +4799,7 @@ async function renderSectionsFresh(documentItem, categoryKey) {
 // yenileme hedeflerinin dışında bırakıyor, satır sonsuza kadar "0" göstermeye
 // devam ediyordu. "0"ı da boş değer gibi ele alıyoruz.
 async function refreshSectionQuestionCounts(sections) {
-  const hasArticleRange = section => Boolean(section.articleRange) && String(section.articleRange).trim() !== '0';
-  const targets = (sections || []).filter(section => !hasArticleRange(section) && !(section.children || []).length);
+  const targets = (sections || []).filter(section => !section.generated);
   if (!targets.length) return;
   const rows=Array.from(topicList.querySelectorAll('[data-section-index]'));
   const results = await Promise.allSettled(targets.map(async section => {
@@ -4807,7 +4812,7 @@ async function refreshSectionQuestionCounts(sections) {
     section.questionCount = count;
     const index = sections.indexOf(section);
     const row = rows[index]?.querySelector('p');
-    if (row) row.textContent = `${count} soru`;
+    if (row) row.textContent = sectionMetadata(section);
   });
 }
 

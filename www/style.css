@@ -7313,3 +7313,21 @@ html[data-ui-density="compact"] .profile-v2 .sp-study-preferences-entry{
 #topicSheet.section-selection .in-progress .document-section-number{background:#fff0f2;color:#bd3045}
 #topicSheet.section-selection .document-section-item:active{background:#f7f9fc}
 @media(max-width:350px){#topicSheet.section-selection .document-section-item{grid-template-columns:28px minmax(0,1fr) 36px 8px;gap:7px}#topicSheet.section-selection .document-section-number{width:28px;height:30px}#topicSheet.section-selection .document-section-item h4{font-size:13px}#topicSheet.section-selection .section-mini-track{width:34px}}
+
+/* Every study hub uses the same inset shell, including cached topic screens. */
+#topicSheet.topic-sheet:has(.study-mode-hub){padding:52px 14px max(10px,env(safe-area-inset-bottom))!important}
+#topicSheet.topic-sheet:has(.study-mode-hub)>.topic-close{display:grid!important;place-items:center}
+#topicSheet.topic-sheet:has(.study-mode-hub)>.topic-handle{display:block!important}
+/* Compact section navigation and progress, in the application's navy/red palette. */
+#topicSheet.section-selection:not(.quiz-active) .topic-breadcrumb-wrap{gap:11px;margin:0 0 4px;align-items:center}
+#topicSheet.section-selection:not(.quiz-active) .topic-breadcrumb-back{flex:0 0 40px;border:1px solid #e4e9f1;background:#fff;color:#e93238;border-radius:14px;box-shadow:0 3px 10px #071f4908}
+#topicSheet.section-selection:not(.quiz-active) .topic-breadcrumb-pill{padding:8px 0;background:transparent;border:0;box-shadow:none;border-radius:0;color:#071f49;font-size:16px;font-weight:700;letter-spacing:-.3px}
+#topicSheet.section-selection:not(.quiz-active) .topic-progress-card{position:relative;margin:12px 0 18px;padding:17px 18px;border:1px solid #e0e7f0;border-radius:20px;background:radial-gradient(ellipse at 100% 0%,#eef3fc 0%,transparent 65%),#fff;box-shadow:0 7px 20px #071f4907}
+#topicSheet.section-selection:not(.quiz-active) .topic-progress-top{align-items:center;margin-bottom:12px}
+#topicSheet.section-selection:not(.quiz-active) .topic-progress-top>span{font-size:10px;font-weight:750;letter-spacing:1.2px;color:#53667f}
+#topicSheet.section-selection:not(.quiz-active) .topic-progress-top strong{font-size:30px;line-height:1;letter-spacing:-1px;color:#071f49}
+#topicSheet.section-selection:not(.quiz-active) .topic-progress-bottom{gap:12px;align-items:center}
+#topicSheet.section-selection:not(.quiz-active) .topic-progress-track{height:5px;background:#e8edf4;border-radius:10px;overflow:hidden}
+#topicSheet.section-selection:not(.quiz-active) #topicProgressBar{background:linear-gradient(90deg,#e93238,#ff6269)!important;border-radius:inherit}
+#topicSheet.section-selection:not(.quiz-active) #topicProgressCount{font-size:10px;font-style:normal;font-weight:500;letter-spacing:0;color:#8490a1}
+#topicSheet.section-selection .document-section-item p{white-space:normal;overflow-wrap:anywhere}
