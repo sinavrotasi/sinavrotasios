@@ -6,6 +6,20 @@
   <meta name="theme-color" content="#061229">
   <title>SınavRotası</title>
   <link rel="stylesheet" href="style.css?v=90">
+  <style>
+    /* Bildirim zili + bildirim paneli (style.css'e dokunmadan) */
+    #openNotifButton{position:relative}
+    .notif-badge{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#d90429;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;box-sizing:border-box;border:2px solid #fff}
+    .notif-badge[hidden]{display:none}
+    .notif-head-actions{display:flex;align-items:center;gap:8px}
+    .notif-readall{border:0;background:transparent;color:inherit;font:inherit;font-size:13px;font-weight:600;opacity:.75;padding:6px 8px;cursor:pointer}
+    .notif-readall[hidden]{display:none}
+    .notif-item.unread .topic-copy h4{font-weight:800}
+    .notif-item.unread .topic-number{position:relative}
+    .notif-item.unread .topic-number::after{content:"";position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#d90429;border:2px solid #fff}
+    .notif-item .topic-copy p{white-space:pre-line;overflow:visible;text-overflow:clip;display:block;-webkit-line-clamp:unset;max-height:none}
+    .notif-item .notif-date{display:block;margin-top:4px;font-size:12px;opacity:.6}
+  </style>
 </head>
 <body>
   <!-- ================= KADRO SEÇİM KAPISI ================= -->
@@ -32,6 +46,7 @@
           </div>
           </div>
           <div class="topbar-actions">
+              <button class="round-btn" id="openNotifButton" aria-label="Bildirimler" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="notif-badge" id="notifBadge" hidden></span></button>
               <button class="round-btn" id="openSearchButton" aria-label="Ara" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
           </div>
         </div>
@@ -213,6 +228,21 @@
       <div class="topic-list" id="topicList"></div>
     </section>
 
+    <section class="bottom-sheet" id="notifSheet" aria-hidden="true" aria-label="Bildirimler">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <div>
+          <h3 class="sheet-title">Bildirimler</h3>
+          <p>Bildirdiğin sorularla ilgili gelişmeler.</p>
+        </div>
+        <div class="notif-head-actions">
+          <button class="notif-readall" id="notifReadAllButton" type="button" hidden>Tümünü okundu say</button>
+          <button class="sheet-close" id="closeNotifSheet" type="button" aria-label="Bildirimleri kapat">×</button>
+        </div>
+      </div>
+      <div class="topic-list" id="notifList"></div>
+    </section>
+
     <section class="bottom-sheet" id="searchSheet" aria-hidden="true" aria-label="Arama">
       <div class="sheet-handle"></div>
       <div class="sheet-head">
@@ -253,6 +283,6 @@
        sessizce kaybolur. app-guard.js'ten önce yükleniyor. -->
   <script src="auth-common.js" defer></script>
   <script src="app-guard.js" defer></script>
-  <script src="app.js?v=189" defer></script>
+  <script src="app.js?v=190" defer></script>
 </body>
 </html>

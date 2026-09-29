@@ -378,6 +378,14 @@ const closeSearchSheetButton = document.getElementById('closeSearchSheet');
 const searchInput = document.getElementById('searchInput');
 const searchResultsList = document.getElementById('searchResultsList');
 
+// Bildirim Paneli Elementleri
+const openNotifButton = document.getElementById('openNotifButton');
+const notifSheet = document.getElementById('notifSheet');
+const closeNotifSheetButton = document.getElementById('closeNotifSheet');
+const notifList = document.getElementById('notifList');
+const notifBadge = document.getElementById('notifBadge');
+const notifReadAllButton = document.getElementById('notifReadAllButton');
+
 let timerInterval = null;
 let searchFocusTimer = null;
 let searchScrollTop = null;
@@ -1079,7 +1087,7 @@ function setNav(name) {
 // Aynı anda yalnızca bir sheet açık kalabilir. Böylece arama açıldığında arkada
 // eski bir kategori paneli görünmez ve hem X hem Android geri tuşu aynı temiz
 // kapanış yolunu kullanır.
-const allSheets = [routeSheet, topicSheet, searchSheet];
+const allSheets = [routeSheet, topicSheet, searchSheet, notifSheet];
 
 function setSheetOpen(sheet, isOpen) {
   if (!sheet) return;
@@ -6291,6 +6299,7 @@ function handleHardwareBack() {
     return true;
   }
   if (searchSheet.classList.contains('open')) { closeSearchSheet(); return true; }
+  if (notifSheet?.classList.contains('open')) { closeAllSheets(); return true; }
   if (topicSheet.classList.contains('open')) {
     // Gerçek (zamanlı/notlu) bir sınav hâlâ sürüyorsa yanlışlıkla çıkışı
     // engellemek için onay iste. Pratik testlerde (route/section/random) ve
@@ -6597,6 +6606,128 @@ function initializeApp() {
   loadMotivationalPhrases();
 }
 
+// ================= UYGULAMA İÇİ BİLDİRİMLER =================
+// Bildirdiğin bir soru admin tarafından "Çözüldü" yapılınca veritabanı
+// (resolve_question_feedback RPC'si) kullanıcı için notifications tablosuna
+// bir satır ekler. RLS: kullanıcı yalnızca kendi bildirimlerini okuyabilir ve
+// yalnızca read_at alanını güncelleyebilir.
+let notifications = [];
+let notifRefreshPromise = null;
+
+function formatNotifDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function updateNotifBadge() {
+  const unread = notifications.filter(item => !item.read_at).length;
+  if (notifBadge) {
+    notifBadge.hidden = unread === 0;
+    notifBadge.textContent = unread > 9 ? '9+' : String(unread);
+  }
+  if (openNotifButton) {
+    openNotifButton.setAttribute('aria-label', unread ? `Bildirimler, ${unread} okunmamış` : 'Bildirimler');
+  }
+  if (notifReadAllButton) notifReadAllButton.hidden = unread === 0;
+}
+
+function renderNotifList() {
+  if (!notifList) return;
+  updateNotifBadge();
+  if (!notifications.length) {
+    notifList.innerHTML = '<div class="empty-inline">Henüz bildirimin yok. Bildirdiğin bir soru düzeltilince burada görünür.</div>';
+    return;
+  }
+  notifList.innerHTML = notifications.map(item => `
+    <article class="topic-item notif-item${item.read_at ? '' : ' unread'}" data-notif-id="${escapeHtml(item.id)}" role="button" tabindex="0">
+      <div class="topic-number">${svg('check')}</div>
+      <div class="topic-copy">
+        <h4>${escapeHtml(item.title)}</h4>
+        <p>${escapeHtml(item.body || '')}</p>
+        <span class="notif-date">${escapeHtml(formatNotifDate(item.created_at))}</span>
+      </div>
+    </article>`).join('');
+  notifList.querySelectorAll('[data-notif-id]').forEach(element => {
+    const open = () => markNotificationRead(element.dataset.notifId);
+    element.addEventListener('click', open);
+    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
+  });
+}
+
+function refreshNotifications() {
+  if (!window.currentUser?.id || typeof supabaseClient === 'undefined') return Promise.resolve();
+  if (notifRefreshPromise) return notifRefreshPromise;
+  notifRefreshPromise = (async () => {
+    try {
+      const { data, error } = await supabaseClient
+        .from('notifications')
+        .select('id, title, body, created_at, read_at')
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      notifications = data || [];
+      renderNotifList();
+    } catch (err) {
+      // Bildirimler ikincil bir özellik: hata uygulamayı bölmesin.
+      console.error('Bildirimler alınamadı:', err);
+    } finally {
+      notifRefreshPromise = null;
+    }
+  })();
+  return notifRefreshPromise;
+}
+
+async function markNotificationRead(id) {
+  const item = notifications.find(entry => String(entry.id) === String(id));
+  if (!item || item.read_at) return;
+  const previous = item.read_at;
+  item.read_at = new Date().toISOString();
+  renderNotifList();
+  const { error } = await supabaseClient
+    .from('notifications')
+    .update({ read_at: item.read_at })
+    .eq('id', item.id)
+    .is('read_at', null);
+  if (error) {
+    console.error('Bildirim okundu işaretlenemedi:', error);
+    item.read_at = previous;
+    renderNotifList();
+  }
+}
+
+async function markAllNotificationsRead() {
+  const unread = notifications.filter(item => !item.read_at);
+  if (!unread.length || !window.currentUser?.id) return;
+  const now = new Date().toISOString();
+  unread.forEach(item => { item.read_at = now; });
+  renderNotifList();
+  const { error } = await supabaseClient
+    .from('notifications')
+    .update({ read_at: now })
+    .eq('user_id', window.currentUser.id)
+    .is('read_at', null);
+  if (error) {
+    console.error('Bildirimler okundu işaretlenemedi:', error);
+    showToast('Bildirimler güncellenemedi.');
+    refreshNotifications();
+  }
+}
+
+function openNotifSheet() {
+  if (!closeAllSheets(notifSheet)) return;
+  renderNotifList();
+  refreshNotifications();
+}
+
+openNotifButton?.addEventListener('click', openNotifSheet);
+closeNotifSheetButton?.addEventListener('click', () => closeAllSheets());
+notifReadAllButton?.addEventListener('click', markAllNotificationsRead);
+// Uygulama arka plandan öne gelince yeni bildirim var mı diye bak.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') refreshNotifications();
+});
+
 let authHandledOnce = false;
 async function handleAuthenticated() {
   if (authHandledOnce) return;
@@ -6651,6 +6782,7 @@ async function handleAuthenticated() {
     // (sınav geri sayımı, tekrar hatırlatıcısı) kendi verileri gelince yukarıdaki
     // fetchExamDate/fetchDueFlashcardCounts noktalarında ayrıca senkronize edilir.
     syncLocalNotificationSchedule();
+    refreshNotifications();
 
     if (progress.selectedRole) {
       initializeApp();
