@@ -19,6 +19,7 @@
   const Capacitor = window.Capacitor;
   const isNative = !!(Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform());
   const platform = isNative && typeof Capacitor.getPlatform === 'function' ? Capacitor.getPlatform() : 'web';
+  if (platform === 'ios') document.documentElement.classList.add('native-ios-scroll');
   const Plugins = (Capacitor && Capacitor.Plugins) || {};
 
   // Bir plugin metodunu güvenle çağırır: plugin ya da metod yoksa (henüz kurulmamış
@@ -95,6 +96,8 @@
       Plugins.Keyboard.addListener('keyboardWillShow', info => {
         document.body.classList.add('keyboard-open');
         document.documentElement.style.setProperty('--keyboard-height', `${(info && info.keyboardHeight) || 0}px`);
+        document.documentElement.style.setProperty('--native-keyboard-height', `${(info && info.keyboardHeight) || 0}px`);
+        document.dispatchEvent(new Event('nativeux:keyboardchange'));
         const active = document.activeElement;
         const isSheetInput = active?.closest?.('.bottom-sheet, .topic-sheet, .quiz-nav-overlay');
         const isAuthPage = document.body.classList.contains('auth-page');
@@ -109,6 +112,8 @@
       Plugins.Keyboard.addListener('keyboardWillHide', () => {
         document.body.classList.remove('keyboard-open');
         document.documentElement.style.setProperty('--keyboard-height', '0px');
+        document.documentElement.style.setProperty('--native-keyboard-height', '0px');
+        document.dispatchEvent(new Event('nativeux:keyboardchange'));
         if (keyboardScrollUnlockTimer) {
           clearTimeout(keyboardScrollUnlockTimer);
           keyboardScrollUnlockTimer = null;

@@ -27,55 +27,15 @@ workflows:
           set -euo pipefail
           npx cap add ios
 
-      - name: Disable UIScrollView bounce natively
+      - name: Restore native scroll bounce
         script: |
           set -euo pipefail
-
           APPDELEGATE_PATH="$CM_BUILD_DIR/ios/App/App/AppDelegate.swift"
-
-          if [ ! -f "$APPDELEGATE_PATH" ]; then
-            echo "ERROR: AppDelegate.swift not found."
-            exit 1
+          # Remove legacy invocations if an earlier patched AppDelegate was committed.
+          # Uncalled extension methods are harmless; do not edit other native code.
+          if [ -f "$APPDELEGATE_PATH" ]; then
+            sed -i '' '/^[[:space:]]*disableAllBounces()[[:space:]]*$/d' "$APPDELEGATE_PATH"
           fi
-
-          # O-13 (2026-09-20): Eski script bir YORUM satırını arıyordu
-          # ("Called when the application becomes active again after inactive
-          # state"). Capacitor bu yorumu değiştirince script kırıldı. Onun
-          # yerine gerçek bir UIApplicationDelegate metod imzasını
-          # hedefliyoruz — Apple'ın kendi UIKit API'si, Capacitor'ın şablon
-          # güncellemesiyle değişmesi beklenmez.
-          MARKER='func applicationDidBecomeActive(_ application: UIApplication) {'
-
-          if ! grep -qF "$MARKER" "$APPDELEGATE_PATH"; then
-            echo "ERROR: applicationDidBecomeActive(_:) AppDelegate.swift içinde bulunamadı."
-            echo "Capacitor şablonu bu fonksiyonun imzasını da değiştirmiş olabilir — AppDelegate.swift'i elle kontrol edin."
-            exit 1
-          fi
-
-          perl -i -pe "s/(\Q$MARKER\E)/\$1\n        disableAllBounces()/" "$APPDELEGATE_PATH"
-
-          cat >> "$APPDELEGATE_PATH" << 'EOF'
-
-          extension AppDelegate {
-              func disableAllBounces() {
-                  guard let window = self.window else { return }
-                  disableBounces(in: window)
-              }
-
-              private func disableBounces(in view: UIView) {
-                  if let scrollView = view as? UIScrollView {
-                      scrollView.bounces = false
-                  }
-                  for subview in view.subviews {
-                      disableBounces(in: subview)
-                  }
-              }
-          }
-          EOF
-
-          echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
-          echo "---"
-          tail -20 "$APPDELEGATE_PATH"
 
       - name: Configure iOS deep link
         script: |
@@ -337,55 +297,15 @@ workflows:
           set -euo pipefail
           npx cap add ios
 
-      - name: Disable UIScrollView bounce natively
+      - name: Restore native scroll bounce
         script: |
           set -euo pipefail
-
           APPDELEGATE_PATH="$CM_BUILD_DIR/ios/App/App/AppDelegate.swift"
-
-          if [ ! -f "$APPDELEGATE_PATH" ]; then
-            echo "ERROR: AppDelegate.swift not found."
-            exit 1
+          # Remove legacy invocations if an earlier patched AppDelegate was committed.
+          # Uncalled extension methods are harmless; do not edit other native code.
+          if [ -f "$APPDELEGATE_PATH" ]; then
+            sed -i '' '/^[[:space:]]*disableAllBounces()[[:space:]]*$/d' "$APPDELEGATE_PATH"
           fi
-
-          # O-13 (2026-09-20): Eski script bir YORUM satırını arıyordu
-          # ("Called when the application becomes active again after inactive
-          # state"). Capacitor bu yorumu değiştirince script kırıldı. Onun
-          # yerine gerçek bir UIApplicationDelegate metod imzasını
-          # hedefliyoruz — Apple'ın kendi UIKit API'si, Capacitor'ın şablon
-          # güncellemesiyle değişmesi beklenmez.
-          MARKER='func applicationDidBecomeActive(_ application: UIApplication) {'
-
-          if ! grep -qF "$MARKER" "$APPDELEGATE_PATH"; then
-            echo "ERROR: applicationDidBecomeActive(_:) AppDelegate.swift içinde bulunamadı."
-            echo "Capacitor şablonu bu fonksiyonun imzasını da değiştirmiş olabilir — AppDelegate.swift'i elle kontrol edin."
-            exit 1
-          fi
-
-          perl -i -pe "s/(\Q$MARKER\E)/\$1\n        disableAllBounces()/" "$APPDELEGATE_PATH"
-
-          cat >> "$APPDELEGATE_PATH" << 'EOF'
-
-          extension AppDelegate {
-              func disableAllBounces() {
-                  guard let window = self.window else { return }
-                  disableBounces(in: window)
-              }
-
-              private func disableBounces(in view: UIView) {
-                  if let scrollView = view as? UIScrollView {
-                      scrollView.bounces = false
-                  }
-                  for subview in view.subviews {
-                      disableBounces(in: subview)
-                  }
-              }
-          }
-          EOF
-
-          echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
-          echo "---"
-          tail -20 "$APPDELEGATE_PATH"
 
       - name: Configure iOS deep link
         script: |
@@ -697,55 +617,15 @@ workflows:
           set -euo pipefail
           npx cap add ios
 
-      - name: Disable UIScrollView bounce natively
+      - name: Restore native scroll bounce
         script: |
           set -euo pipefail
-
           APPDELEGATE_PATH="$CM_BUILD_DIR/ios/App/App/AppDelegate.swift"
-
-          if [ ! -f "$APPDELEGATE_PATH" ]; then
-            echo "ERROR: AppDelegate.swift not found."
-            exit 1
+          # Remove legacy invocations if an earlier patched AppDelegate was committed.
+          # Uncalled extension methods are harmless; do not edit other native code.
+          if [ -f "$APPDELEGATE_PATH" ]; then
+            sed -i '' '/^[[:space:]]*disableAllBounces()[[:space:]]*$/d' "$APPDELEGATE_PATH"
           fi
-
-          # O-13 (2026-09-20): Eski script bir YORUM satırını arıyordu
-          # ("Called when the application becomes active again after inactive
-          # state"). Capacitor bu yorumu değiştirince script kırıldı. Onun
-          # yerine gerçek bir UIApplicationDelegate metod imzasını
-          # hedefliyoruz — Apple'ın kendi UIKit API'si, Capacitor'ın şablon
-          # güncellemesiyle değişmesi beklenmez.
-          MARKER='func applicationDidBecomeActive(_ application: UIApplication) {'
-
-          if ! grep -qF "$MARKER" "$APPDELEGATE_PATH"; then
-            echo "ERROR: applicationDidBecomeActive(_:) AppDelegate.swift içinde bulunamadı."
-            echo "Capacitor şablonu bu fonksiyonun imzasını da değiştirmiş olabilir — AppDelegate.swift'i elle kontrol edin."
-            exit 1
-          fi
-
-          perl -i -pe "s/(\Q$MARKER\E)/\$1\n        disableAllBounces()/" "$APPDELEGATE_PATH"
-
-          cat >> "$APPDELEGATE_PATH" << 'EOF'
-
-          extension AppDelegate {
-              func disableAllBounces() {
-                  guard let window = self.window else { return }
-                  disableBounces(in: window)
-              }
-
-              private func disableBounces(in view: UIView) {
-                  if let scrollView = view as? UIScrollView {
-                      scrollView.bounces = false
-                  }
-                  for subview in view.subviews {
-                      disableBounces(in: subview)
-                  }
-              }
-          }
-          EOF
-
-          echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
-          echo "---"
-          tail -20 "$APPDELEGATE_PATH"
 
       - name: Configure iOS deep link
         script: |
@@ -908,46 +788,15 @@ workflows:
           set -euo pipefail
           npx cap add ios
 
-      - name: Disable UIScrollView bounce natively
+      - name: Restore native scroll bounce
         script: |
           set -euo pipefail
-
           APPDELEGATE_PATH="$CM_BUILD_DIR/ios/App/App/AppDelegate.swift"
-
-          if [ ! -f "$APPDELEGATE_PATH" ]; then
-            echo "ERROR: AppDelegate.swift not found."
-            exit 1
+          # Remove legacy invocations if an earlier patched AppDelegate was committed.
+          # Uncalled extension methods are harmless; do not edit other native code.
+          if [ -f "$APPDELEGATE_PATH" ]; then
+            sed -i '' '/^[[:space:]]*disableAllBounces()[[:space:]]*$/d' "$APPDELEGATE_PATH"
           fi
-
-          MARKER='func applicationDidBecomeActive(_ application: UIApplication) {'
-
-          if ! grep -qF "$MARKER" "$APPDELEGATE_PATH"; then
-            echo "ERROR: applicationDidBecomeActive(_:) AppDelegate.swift içinde bulunamadı."
-            exit 1
-          fi
-
-          perl -i -pe "s/(\Q$MARKER\E)/\$1\n        disableAllBounces()/" "$APPDELEGATE_PATH"
-
-          cat >> "$APPDELEGATE_PATH" << 'EOF'
-
-          extension AppDelegate {
-              func disableAllBounces() {
-                  guard let window = self.window else { return }
-                  disableBounces(in: window)
-              }
-
-              private func disableBounces(in view: UIView) {
-                  if let scrollView = view as? UIScrollView {
-                      scrollView.bounces = false
-                  }
-                  for subview in view.subviews {
-                      disableBounces(in: subview)
-                  }
-              }
-          }
-          EOF
-
-          echo "SUCCESS: bounce-disable code injected into AppDelegate.swift"
 
       - name: Configure iOS deep link
         script: |

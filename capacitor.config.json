@@ -3,7 +3,8 @@
   "appName": "SınavRotası",
   "webDir": "www",
   "ios": {
-    "scrollEnabled": true
+    "scrollEnabled": true,
+    "backgroundColor": "#061229"
   },
   "plugins": {
     "SplashScreen": {
