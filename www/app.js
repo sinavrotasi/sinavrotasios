@@ -384,7 +384,7 @@ const notifSheet = document.getElementById('notifSheet');
 const closeNotifSheetButton = document.getElementById('closeNotifSheet');
 const notifList = document.getElementById('notifList');
 const notifBadge = document.getElementById('notifBadge');
-const notifReadAllButton = document.getElementById('notifReadAllButton');
+const notifClearButton = document.getElementById('notifClearButton');
 
 let timerInterval = null;
 let searchFocusTimer = null;
@@ -1088,12 +1088,44 @@ function setNav(name) {
 // eski bir kategori paneli görünmez ve hem X hem Android geri tuşu aynı temiz
 // kapanış yolunu kullanır.
 const allSheets = [routeSheet, topicSheet, searchSheet, notifSheet];
+const sheetCloseTimers = new WeakMap();
 
 function setSheetOpen(sheet, isOpen) {
   if (!sheet) return;
-  sheet.classList.toggle('open', isOpen);
-  sheet.setAttribute('aria-hidden', String(!isOpen));
-  sheet.inert = !isOpen;
+  const pending = sheetCloseTimers.get(sheet);
+  if (pending) {
+    window.clearTimeout(pending);
+    sheetCloseTimers.delete(sheet);
+  }
+
+  if (isOpen) {
+    sheet.classList.remove('closing');
+    sheet.setAttribute('aria-hidden', 'false');
+    sheet.inert = false;
+    // iOS sheet hissi: önce görünür yap, ardından sonraki karede yukarı kaydır.
+    window.requestAnimationFrame(() => sheet.classList.add('open'));
+    return;
+  }
+
+  sheet.inert = true;
+  if (!sheet.classList.contains('open') && !sheet.classList.contains('closing')) {
+    sheet.setAttribute('aria-hidden', 'true');
+    return;
+  }
+
+  // aria-hidden kapanışın sonunda verilir; aksi halde CSS visibility:hidden
+  // dönüş animasyonunu ilk karede kesiyordu.
+  sheet.classList.remove('open');
+  sheet.classList.add('closing');
+  sheet.setAttribute('aria-hidden', 'false');
+  const timer = window.setTimeout(() => {
+    if (!sheet.classList.contains('open')) {
+      sheet.classList.remove('closing');
+      sheet.setAttribute('aria-hidden', 'true');
+    }
+    sheetCloseTimers.delete(sheet);
+  }, 430);
+  sheetCloseTimers.set(sheet, timer);
 }
 
 function restoreSearchScrollPosition() {
@@ -4595,54 +4627,38 @@ function renderStudyModeHubFresh(item, categoryKey, initialFilter = 'all') {
       <button type="button" data-hub-filter="started" aria-pressed="false">Devam Eden (${started})</button>
       <button type="button" data-hub-filter="completed" aria-pressed="false">Tamamlanan (${completed})</button>
     </div>
-    <label class="study-hub-search"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.8"/><path d="m16 16 5 5"/></svg></span><input type="search" placeholder="Bölüm veya çalışma ara..." aria-label="Bölüm veya çalışma ara" autocomplete="off"></label>
     <div class="study-hub-grid">${modes.map(mode => `<button type="button" class="study-hub-card${mode.enabled ? '' : ' is-unavailable'}" data-document-mode="${mode.id}" ${mode.enabled ? '' : 'disabled'}>
       <img class="study-hub-art" src="${STUDY_HUB_ART[mode.id]}" alt="" width="334" height="252" decoding="async" draggable="false">
       <span class="study-hub-card-title">${mode.title}</span><span class="study-hub-card-description">${mode.description}</span>
       <span class="study-hub-card-footer"><span><b>${mode.count}</b> soru</span><span class="study-hub-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span></span>
       ${mode.enabled ? '' : '<span class="study-hub-unavailable">İçerik hazırlanıyor</span>'}
     </button>`).join('')}</div>
-    <div class="study-hub-search-results" hidden></div>
     <div class="study-attempt-list" hidden></div>
     <p class="study-hub-empty" role="status" hidden>Bu filtreye uygun çalışma modu bulunamadı.</p>
   </div>`;
   const hub = topicList.querySelector('.study-mode-hub');
   let selectedFilter = initialFilter;
-  const normalize = value => String(value || '').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').trim();
-  const searchableSections = [];
-  const collectSections = items => (items || []).forEach(section => {
-    if(role && section.kadrolar && !section.kadrolar.includes(role)) return;
-    searchableSections.push(section); collectSections(section.children);
-  });
-  collectSections(item.children);
   const filterCards = () => {
-    const query = normalize(hub.querySelector('input').value);
     const all=selectedFilter==='all';
-    hub.querySelector('.study-hub-grid').hidden=!all;
-    const list=hub.querySelector('.study-attempt-list');list.hidden=all;
+    const grid=hub.querySelector('.study-hub-grid');
+    grid.hidden=!all;
+    const list=hub.querySelector('.study-attempt-list');
+    list.hidden=all;
     hub.querySelectorAll('[data-hub-filter]').forEach(tab=>tab.setAttribute('aria-pressed',String(tab.dataset.hubFilter===selectedFilter)));
-    const sectionResults=hub.querySelector('.study-hub-search-results');
-    sectionResults.hidden=true; sectionResults.innerHTML='';
     let visible=0;
     if(all){
-      hub.querySelectorAll('[data-document-mode]').forEach(card=>{const mode=modes.find(entry=>entry.id===card.dataset.documentMode);const match=normalize(item.title+' '+mode.title+' '+mode.description).includes(query);card.hidden=!match;if(match)visible++;});
-      if(query){
-        const matches=searchableSections.filter(section=>normalize(section.title+' '+(section.summary||'')+' '+(section.articleRange||'')+' '+(section.keyPoints||[]).join(' ')).includes(query));
-        sectionResults.hidden=!matches.length;
-        sectionResults.innerHTML=matches.map((section,index)=>`<button type="button" class="study-search-result" data-section-match="${index}"><span>${escapeHtml(section.title)}</span><span aria-hidden="true">›</span></button>`).join('');
-        sectionResults.querySelectorAll('[data-section-match]').forEach(button=>button.addEventListener('click',()=>openSectionQuiz(item,matches[Number(button.dataset.sectionMatch)],categoryKey)));
-        visible+=matches.length;
-      }
+      hub.querySelectorAll('[data-document-mode]').forEach(card=>{card.hidden=false;visible++;});
     }else{
-      const entries=attempts.filter(entry=>entry.status===selectedFilter&&normalize(entry.title+' '+studyAttemptLabel(entry)).includes(query));
-      visible=entries.length;list.innerHTML=studyAttemptCards(entries);
+      const entries=attempts.filter(entry=>entry.status===selectedFilter);
+      visible=entries.length;
+      list.innerHTML=studyAttemptCards(entries);
       list.querySelectorAll('[data-resume-study]').forEach(button=>button.addEventListener('click',()=>resumeStudyAttempt(button.dataset.resumeStudy,item,categoryKey)));
     }
-    const empty=hub.querySelector('.study-hub-empty');empty.hidden=visible>0;
-    empty.textContent=query?'Aramana uygun çalışma bulunamadı.':selectedFilter==='started'?'Yarım kalan test ve serilerin burada görünecek.':selectedFilter==='completed'?'Tamamladığın bölüm testleri ve seriler burada görünecek.':'Çalışma modu bulunamadı.';
+    const empty=hub.querySelector('.study-hub-empty');
+    empty.hidden=visible>0;
+    empty.textContent=selectedFilter==='started'?'Yarım kalan test ve serilerin burada görünecek.':selectedFilter==='completed'?'Tamamladığın bölüm testleri ve seriler burada görünecek.':'Çalışma modu bulunamadı.';
   };
   hub.querySelector('.study-hub-book').addEventListener('click', () => { haptic(14); renderCategoryLevel(categoryKey); });
-  hub.querySelector('input').addEventListener('input', filterCards);
   hub.querySelectorAll('[data-hub-filter]').forEach(button => button.addEventListener('click', () => {
     selectedFilter = button.dataset.hubFilter;
     hub.querySelectorAll('[data-hub-filter]').forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
@@ -5492,7 +5508,7 @@ function startQuiz({ questions, documentItem = null, section = null, kind, sessi
   clearInterval(timerInterval);
   timerInterval = null;
 
-  const isTimed = customTimeSeconds !== null ? true : (routeSettings.time === 'Süreli' || kind !== 'route');
+  const isTimed = customTimeSeconds !== null ? true : (kind === 'notification' ? false : (routeSettings.time === 'Süreli' || kind !== 'route'));
   const totalTime = customTimeSeconds !== null ? customTimeSeconds : (isTimed ? questions.length * QUESTION_TIME_LIMIT : 9999);
 
   // NOT (2026-08-18 sıralama düzeltmesi, 2026-09'da güncellendi): kind ===
@@ -6651,7 +6667,7 @@ function updateNotifBadge() {
   if (openNotifButton) {
     openNotifButton.setAttribute('aria-label', unread ? `Bildirimler, ${unread} okunmamış` : 'Bildirimler');
   }
-  if (notifReadAllButton) notifReadAllButton.hidden = unread === 0;
+  if (notifClearButton) notifClearButton.hidden = notifications.length === 0;
 }
 
 function notifDay(value) {
@@ -6663,6 +6679,16 @@ function notifDay(value) {
   const label = key === today.toLocaleDateString('sv-SE') ? 'Bugün'
     : key === yesterday.toLocaleDateString('sv-SE') ? 'Dün' : formatNotifDate(value);
   return { key, label, date: formatNotifDate(value) };
+}
+
+const LEGACY_NOTIFICATION_PREFIX = 'Bildirimin incelendi ve soru güncellendi. Katkın için teşekkürler.';
+
+function notificationAdminReply(item) {
+  let reply = String(item?.body || '').trim();
+  if (reply.startsWith(LEGACY_NOTIFICATION_PREFIX)) {
+    reply = reply.slice(LEGACY_NOTIFICATION_PREFIX.length).trim();
+  }
+  return reply || 'Admin yanıtı bulunamadı.';
 }
 
 function notifIcon(title) {
@@ -6697,16 +6723,33 @@ function renderNotifList() {
     lastDay = day.key;
     const date = new Date(item.created_at);
     const time = Number.isNaN(date.getTime()) ? '' : date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-    return `${heading}<article class="notif-message${item.read_at ? '' : ' unread'}" data-notif-id="${escapeHtml(item.id)}" ${item.read_at ? '' : 'role="button" tabindex="0"'} aria-label="${escapeHtml(item.title)}${item.read_at ? '' : ', okundu olarak işaretle'}">
+    const reply = notificationAdminReply(item);
+    const hasQuestion = Boolean(item.question_id || item.tf_question_id);
+    return `${heading}<article class="notif-message${item.read_at ? '' : ' unread'}" data-notif-id="${escapeHtml(item.id)}" ${item.read_at ? '' : 'role="button" tabindex="0"'} aria-label="${escapeHtml(reply)}${item.read_at ? '' : ', okundu olarak işaretle'}">
       ${notifIcon(item.title)}
-      <div class="notif-message-copy"><h4>${escapeHtml(item.title)}</h4><p>${escapeHtml(item.body || '')}</p><span class="notif-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${escapeHtml(time)}</span></div>
+      <div class="notif-message-copy">
+        <p class="notif-admin-reply">${escapeHtml(reply)}</p>
+        <div class="notif-message-footer">
+          <span class="notif-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${escapeHtml(time)}</span>
+          ${hasQuestion ? `<button type="button" class="notif-question-link" data-notif-question="${escapeHtml(item.id)}">Soruya Git <span aria-hidden="true">›</span></button>` : ''}
+        </div>
+      </div>
     </article>`;
   }).join('');
   notifList.scrollTop = scrollTop;
   notifList.querySelectorAll('[data-notif-id].unread').forEach(element => {
-    const open = () => markNotificationRead(element.dataset.notifId);
+    const open = event => {
+      if (event?.target?.closest?.('[data-notif-question]')) return;
+      markNotificationRead(element.dataset.notifId);
+    };
     element.addEventListener('click', open);
-    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
+    element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(event); } });
+  });
+  notifList.querySelectorAll('[data-notif-question]').forEach(button => {
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      openNotificationQuestion(button.dataset.notifQuestion);
+    });
   });
 }
 
@@ -6725,7 +6768,7 @@ function refreshNotifications() {
     try {
       const { data, error } = await supabaseClient
         .from('notifications')
-        .select('id, title, body, created_at, read_at')
+        .select('id, user_id, type, title, body, question_id, tf_question_id, feedback_id, created_at, read_at')
         .order('created_at', { ascending: false })
         .limit(30);
       if (error) throw error;
@@ -6759,22 +6802,165 @@ async function markNotificationRead(id) {
   }
 }
 
-async function markAllNotificationsRead() {
-  const unread = notifications.filter(item => !item.read_at);
-  if (!unread.length || !window.currentUser?.id) return;
-  const now = new Date().toISOString();
-  unread.forEach(item => { item.read_at = now; });
+async function clearNotifications() {
+  if (!notifications.length || !window.currentUser?.id) return;
+  const previous = notifications.slice();
+  notifications = [];
   renderNotifList();
+  if (notifClearButton) notifClearButton.disabled = true;
+
   const { error } = await supabaseClient
     .from('notifications')
-    .update({ read_at: now })
-    .eq('user_id', window.currentUser.id)
-    .is('read_at', null);
+    .delete()
+    .eq('user_id', window.currentUser.id);
+
+  if (notifClearButton) notifClearButton.disabled = false;
   if (error) {
-    console.error('Bildirimler okundu işaretlenemedi:', error);
-    showToast('Bildirimler güncellenemedi.');
-    refreshNotifications();
+    console.error('Bildirimler temizlenemedi:', error);
+    notifications = previous;
+    renderNotifList();
+    showToast('Bildirimler temizlenemedi, tekrar dene.');
+    return;
   }
+  showToast('Bildirimler temizlendi.');
+}
+
+function findNotificationQuestionContext(topicId) {
+  if (!topicId || !state.catalogue) return null;
+  const wanted = String(topicId);
+  const containsTopic = node => {
+    if (!node) return false;
+    if (String(node.id) === wanted) return true;
+    return (node.children || []).some(containsTopic);
+  };
+  for (const [categoryKey] of getCategories()) {
+    for (const item of getCategoryItems(categoryKey)) {
+      if (containsTopic(item)) return { categoryKey, documentItem: item };
+    }
+  }
+  return null;
+}
+
+async function openNotificationQuestion(notificationId) {
+  const item = notifications.find(entry => String(entry.id) === String(notificationId));
+  if (!item) return;
+  await markNotificationRead(item.id);
+  if (!requirePremiumOrWarn()) return;
+
+  try {
+    if (item.question_id) {
+      const { data: row, error } = await supabaseClient
+        .from('questions')
+        .select('id, topic_id, prompt, options, answer_index, explanation')
+        .eq('id', item.question_id)
+        .maybeSingle();
+      if (error) throw error;
+      if (!row) throw new Error('Soru artık erişilebilir değil.');
+
+      const context = findNotificationQuestionContext(row.topic_id);
+      const documentItem = context?.documentItem || null;
+      const categoryKey = context?.categoryKey || null;
+      const question = {
+        id: row.id,
+        prompt: row.prompt,
+        options: row.options,
+        answerIndex: row.answer_index,
+        explanation: row.explanation,
+        topicId: row.topic_id,
+        documentId: documentItem?.id || null,
+        documentTitle: documentItem?.title || 'Bildirdiğin soru',
+        categoryKey
+      };
+
+      closeAllSheets(topicSheet);
+      topicSheet.classList.add('open', 'quiz-active');
+      topicSheet.setAttribute('aria-hidden', 'false');
+      topicBackdrop.classList.add('open');
+      startQuiz({
+        questions: [question],
+        documentItem,
+        kind: 'notification',
+        title: documentItem?.title || 'Bildirdiğin Soru',
+        subtitle: 'Bildiriminle ilgili soru',
+        returnView: () => documentItem && categoryKey ? renderDocumentHub(documentItem, categoryKey) : closeTopicSheet()
+      });
+      return;
+    }
+
+    if (item.tf_question_id) {
+      const { data: row, error } = await supabaseClient
+        .from('tf_pool')
+        .select('id, statement, is_true, correction, explanation, topic_id')
+        .eq('id', item.tf_question_id)
+        .maybeSingle();
+      if (error) throw error;
+      if (!row) throw new Error('Soru artık erişilebilir değil.');
+
+      const context = findNotificationQuestionContext(row.topic_id);
+      const documentItem = context?.documentItem || null;
+      const categoryKey = context?.categoryKey || null;
+      state.tfQuiz = {
+        questions: [{
+          id: row.id,
+          feedbackQuestionId: `tf_${row.id}`,
+          prompt: '',
+          displayAnswer: row.statement,
+          isCorrectShown: row.is_true,
+          correctAnswer: row.is_true ? row.statement : (row.correction || row.statement),
+          categoryKey,
+          sourceQuestion: null
+        }],
+        index: 0,
+        score: 0,
+        answers: [],
+        documentItem,
+        categoryKey,
+        returnView: () => documentItem && categoryKey ? renderDocumentHub(documentItem, categoryKey) : closeTopicSheet()
+      };
+      closeAllSheets(topicSheet);
+      topicSheet.classList.add('open', 'quiz-active');
+      topicSheet.classList.remove('document-flow', 'card-study-active');
+      topicSheet.setAttribute('aria-hidden', 'false');
+      topicBackdrop.classList.add('open');
+      renderTrueFalse();
+    }
+  } catch (error) {
+    console.error('Bildirimdeki soru açılamadı:', error);
+    showToast(error?.message || 'Soru açılamadı.');
+  }
+}
+
+let notificationRealtimeChannel = null;
+function subscribeNotificationsRealtime() {
+  const userId = window.currentUser?.id;
+  if (!userId || typeof supabaseClient === 'undefined' || typeof supabaseClient.channel !== 'function') return;
+
+  if (notificationRealtimeChannel) {
+    try { supabaseClient.removeChannel(notificationRealtimeChannel); } catch (_) {}
+    notificationRealtimeChannel = null;
+  }
+
+  notificationRealtimeChannel = supabaseClient
+    .channel(`user-notifications-${userId}`)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${userId}`
+    }, payload => {
+      const row = payload?.new;
+      if (!row?.id) return;
+      const index = notifications.findIndex(entry => String(entry.id) === String(row.id));
+      if (index >= 0) notifications[index] = { ...notifications[index], ...row };
+      else notifications.unshift(row);
+      renderNotifList();
+      haptic(8);
+    })
+    .subscribe(status => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        console.warn('Bildirim Realtime bağlantısı:', status);
+      }
+    });
 }
 
 function openNotifSheet() {
@@ -6785,7 +6971,7 @@ function openNotifSheet() {
 
 openNotifButton?.addEventListener('click', openNotifSheet);
 closeNotifSheetButton?.addEventListener('click', () => closeAllSheets());
-notifReadAllButton?.addEventListener('click', markAllNotificationsRead);
+notifClearButton?.addEventListener('click', clearNotifications);
 // Uygulama arka plandan öne gelince yeni bildirim var mı diye bak.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') refreshNotifications();
@@ -6846,6 +7032,7 @@ async function handleAuthenticated() {
     // fetchExamDate/fetchDueFlashcardCounts noktalarında ayrıca senkronize edilir.
     syncLocalNotificationSchedule();
     refreshNotifications();
+    subscribeNotificationsRealtime();
 
     if (progress.selectedRole) {
       initializeApp();

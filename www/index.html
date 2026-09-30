@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#061229">
   <title>SınavRotası</title>
-  <link rel="stylesheet" href="style.css?v=92">
+  <link rel="stylesheet" href="style.css?v=94">
   <style>
     /* Bildirim zili + bildirim paneli (style.css'e dokunmadan) */
     #openNotifButton{position:relative}
@@ -235,7 +235,10 @@
         <button class="sheet-close" id="closeNotifSheet" type="button" aria-label="Bildirimleri kapat">×</button>
       </div>
       <div class="notif-toolbar">
-        <button class="notif-readall" id="notifReadAllButton" type="button" hidden><span aria-hidden="true">✓✓</span> Tümünü okundu say</button>
+        <button class="notif-clear" id="notifClearButton" type="button" hidden aria-label="Bildirimleri temizle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="m6 7 1 14h10l1-14"/><path d="M10 11v6m4-6v6"/></svg>
+          <span>Bildirimleri temizle</span>
+        </button>
       </div>
       <div class="notif-tabs" role="group" aria-label="Bildirim filtresi">
         <button type="button" data-notif-filter="all" aria-pressed="true" aria-controls="notifList">Tümü <span id="notifAllCount">0</span></button>
@@ -284,6 +287,6 @@
        sessizce kaybolur. app-guard.js'ten önce yükleniyor. -->
   <script src="auth-common.js" defer></script>
   <script src="app-guard.js" defer></script>
-  <script src="app.js?v=192" defer></script>
+  <script src="app.js?v=194" defer></script>
 </body>
 </html>

@@ -7384,3 +7384,113 @@ html.native-ios-scroll #appPhone>.scroll-area>.app-scroll{background-color:var(-
 .notif-empty .notif-symbol{margin:0 auto 14px}.notif-empty h4{font-size:16px;font-weight:500;color:var(--navy);margin:0 0 8px}.notif-empty p{margin:0}
 #notifSheet button:focus-visible,.notif-message:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){#notifSheet.notif-inbox{transition:none}}
+
+
+/* ============================================================
+   KARTLARIM > KATEGORİ LİSTESİ — SATIR ÇAKIŞMASI DÜZELTMESİ
+   Uzun konu adlarında satır yüksekliği içeriğe göre büyür; flex öğeleri
+   küçülmez ve liste yalnız kendi alanında kayar. Bu blok dosyanın sonunda
+   bilerek yer alır: önceki kategori/list override'larını kesin olarak ezer.
+   ============================================================ */
+#topicSheet.category-glass{
+  overflow:hidden!important;
+}
+#topicSheet.category-glass>.topic-list{
+  display:flex!important;
+  flex:1 1 auto!important;
+  flex-direction:column!important;
+  min-height:0!important;
+  gap:11px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding:0 1px max(36px,env(safe-area-inset-bottom))!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+#topicSheet.category-glass>.topic-list>.topic-item{
+  flex:0 0 auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:72px!important;
+  margin:0!important;
+  padding:11px 12px 11px 10px!important;
+  align-items:center!important;
+}
+#topicSheet.category-glass>.topic-list>.topic-item .topic-copy{
+  min-width:0!important;
+  overflow:visible!important;
+}
+#topicSheet.category-glass>.topic-list>.topic-item .topic-copy h4{
+  display:block!important;
+  height:auto!important;
+  max-height:none!important;
+  margin:0 0 4px!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+  line-height:1.3!important;
+}
+#topicSheet.category-glass>.topic-list>.topic-item .topic-copy p{
+  display:block!important;
+  height:auto!important;
+  max-height:none!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  line-height:1.35!important;
+}
+
+
+/* === 2026-09-30 Bildirim merkezi revizyonu ============================ */
+/* iOS sheet kapanışı: aria-hidden kapanış sonunda JS tarafından verilir. */
+.topic-sheet,
+.bottom-sheet{
+  transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .22s ease-out;
+  will-change:transform;
+}
+.topic-sheet.closing,
+.bottom-sheet.closing{
+  pointer-events:none!important;
+  opacity:.985;
+}
+.topic-backdrop{transition:opacity .30s cubic-bezier(.32,.72,0,1),backdrop-filter .30s ease}
+
+#notifSheet.notif-inbox{
+  transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .22s ease-out;
+}
+#notifSheet .notif-toolbar{min-height:46px;margin-top:4px}
+#notifSheet .notif-clear{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  border:0;border-radius:13px;padding:8px 11px;background:#fff0f2;
+  color:var(--red);font:inherit;font-size:12px;font-weight:600;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+#notifSheet .notif-clear[hidden]{display:none}
+#notifSheet .notif-clear:disabled{opacity:.45;pointer-events:none}
+#notifSheet .notif-clear svg{width:15px;height:15px;flex:0 0 15px}
+#notifSheet .notif-message{align-items:flex-start;padding:16px 14px}
+#notifSheet .notif-message-copy{display:flex;flex-direction:column;gap:11px}
+#notifSheet .notif-admin-reply{
+  margin:0!important;color:var(--navy)!important;font-size:13.5px!important;
+  line-height:1.55!important;font-weight:500;white-space:pre-line!important;
+}
+#notifSheet .notif-message-footer{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding-top:10px;border-top:1px solid #eef1f5;
+}
+#notifSheet .notif-time{margin-top:0;flex:0 0 auto}
+#notifSheet .notif-question-link{
+  display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;
+  color:var(--red);font:inherit;font-size:12.5px;font-weight:650;padding:4px 0 4px 8px;
+  cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;
+}
+#notifSheet .notif-question-link span{font-size:20px;line-height:12px;font-weight:400;transform:translateY(-1px)}
+#notifSheet .notif-question-link:active{opacity:.62}
+@media(max-width:370px){
+  #notifSheet .notif-message-footer{align-items:flex-end}
+  #notifSheet .notif-question-link{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  .topic-sheet,.bottom-sheet,#notifSheet.notif-inbox,.topic-backdrop{transition:none!important}
+}
