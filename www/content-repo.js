@@ -29,6 +29,9 @@ const ContentRepo = (() => {
   // Kanun: 1.110 soru) sorular sessizce kesiliyordu. Bu yardımcı, sorguyu
   // sayfalar halinde çalıştırıp tüm satırları toplar. buildQuery her çağrıda
   // YENİ bir sorgu oluşturmalıdır (PostgREST builder'ları tek kullanımlıktır).
+  // PERF (2026-10-01): questions için select('*') yerine sadece mapQuestionRow'un
+  // kullandığı sütunlar çekilir.
+  const QUESTION_COLUMNS = 'id, prompt, options, answer_index, topic_id, explanation, sort_order';
   const PAGE_SIZE = 1000;
   const MAX_PAGES = 50;
   async function fetchAllRows(buildQuery) {
@@ -151,8 +154,10 @@ const ContentRepo = (() => {
   }
 
   // Resolve current named sections using the same visibility and metadata contract.
-  async function fetchStudyDocument(topicId) {
-    const catalogue = await fetchCatalogue();
+  // PERF: knownCatalogue verilirse (ör. app state'indeki katalog) tüm katalog
+  // (categories + topics + sayaçlar) yeniden indirilmez.
+  async function fetchStudyDocument(topicId, knownCatalogue) {
+    const catalogue = knownCatalogue || await fetchCatalogue();
     const find = nodes => {
       for (const node of nodes || []) {
         if (node.id === topicId) return node;
@@ -170,7 +175,7 @@ const ContentRepo = (() => {
 
   async function fetchQuestionsByTopicId(topicId) {
     const topicIds = await collectDescendantTopicIds(topicId);
-    const rows = await fetchAllRows(() => client.from('questions').select('*').in('topic_id', topicIds).order('sort_order').order('id'));
+    const rows = await fetchAllRows(() => client.from('questions').select(QUESTION_COLUMNS).in('topic_id', topicIds).order('sort_order').order('id'));
     return rows.map(mapQuestionRow);
   }
 
@@ -184,21 +189,45 @@ const ContentRepo = (() => {
   // üst konunun id'sine değil, tüm alt konu id'lerine de bakmamız gerekiyor;
   // aksi halde alt konusu olan konularda (örn. Atatürk İlkeleri ve İnkılap Tarihi)
   // panelde görünen sorular sitede hiç listelenmiyordu.
+  // PERF (2026-10-01): topics id/parent_id haritası eskiden her çağrıda (bölüm başına
+  // bir kez) yeniden indiriliyordu. Artık 5 dk önbellekte tutuluyor ve eşzamanlı
+  // çağrılar aynı isteği paylaşıyor.
+  const TOPIC_TREE_TTL_MS = 5 * 60 * 1000;
+  let topicTreeCache = null; // { at, promise }
+  function loadTopicParentMap() {
+    if (topicTreeCache && Date.now() - topicTreeCache.at < TOPIC_TREE_TTL_MS) return topicTreeCache.promise;
+    const promise = fetchAllRows(() => client.from('topics').select('id, parent_id').order('id')).then(children => {
+      const byParent = new Map();
+      children.forEach(t => {
+        if (!t.parent_id) return;
+        if (!byParent.has(t.parent_id)) byParent.set(t.parent_id, []);
+        byParent.get(t.parent_id).push(t.id);
+      });
+      return byParent;
+    });
+    topicTreeCache = { at: Date.now(), promise };
+    promise.catch(() => { if (topicTreeCache && topicTreeCache.promise === promise) topicTreeCache = null; });
+    return promise;
+  }
+
   async function collectDescendantTopicIds(rootId) {
     const ids = [rootId];
-    const children = await fetchAllRows(() => client.from('topics').select('id, parent_id').order('id'));
-    const byParent = new Map();
-    children.forEach(t => {
-      if (!t.parent_id) return;
-      if (!byParent.has(t.parent_id)) byParent.set(t.parent_id, []);
-      byParent.get(t.parent_id).push(t.id);
-    });
+    const byParent = await loadTopicParentMap();
     const stack = [rootId];
     while (stack.length) {
       const cur = stack.pop();
       (byParent.get(cur) || []).forEach(childId => { ids.push(childId); stack.push(childId); });
     }
     return ids;
+  }
+
+  // PERF: Bölüm (section) quiz'i için tüm kanunu değil, sadece verilen topic id'lerinin
+  // sorularını çeker. Ağaç bilgisi çağıran tarafta (katalog) zaten var.
+  async function fetchQuestionsByTopicIds(topicIds) {
+    const ids = Array.from(new Set(topicIds || [])).filter(Boolean);
+    if (!ids.length) return [];
+    const rows = await fetchAllRows(() => client.from('questions').select(QUESTION_COLUMNS).in('topic_id', ids).order('sort_order').order('id'));
+    return rows.map(mapQuestionRow);
   }
 
   // NOT: `questions`/`card_questions` tabloları production'da RLS ile zaten
@@ -210,7 +239,7 @@ const ContentRepo = (() => {
     const { data: topic } = await client.from('topics').select('id, title').eq('source_file', path).maybeSingle();
     if (topic) {
       const topicIds = await collectDescendantTopicIds(topic.id);
-      const data = await fetchAllRows(() => client.from('questions').select('*').in('topic_id', topicIds).order('sort_order').order('id'));
+      const data = await fetchAllRows(() => client.from('questions').select(QUESTION_COLUMNS).in('topic_id', topicIds).order('sort_order').order('id'));
       return { topicId: topic.id, title: topic.title, questions: data.map(mapQuestionRow) };
     }
     const { data: deck } = await client.from('card_decks').select('id, title').eq('source_file', path).eq('deck_type', 'quiz').maybeSingle();
@@ -246,14 +275,14 @@ const ContentRepo = (() => {
     const { data: topic, error: topicError } = await client.from('topics').select('id, title').eq('source_file', path).maybeSingle();
     if (topicError) throw topicError;
     if (topic) {
-      const data = await fetchAllRows(() => client.from('questions').select('*').eq('topic_id', topic.id).order('sort_order').order('id'));
+      const data = await fetchAllRows(() => client.from('questions').select(QUESTION_COLUMNS).eq('topic_id', topic.id).order('sort_order').order('id'));
       if (data && data.length) {
         return { topicId: topic.id, title: topic.title, questions: data.map(mapQuestionRow) };
       }
       // Kendi topic_id'sinde soru yok — alt bölümleri (varsa) dene.
       const descendantIds = await collectDescendantTopicIds(topic.id);
       if (descendantIds.length > 1) {
-        const childData = await fetchAllRows(() => client.from('questions').select('*').in('topic_id', descendantIds).order('sort_order').order('id'));
+        const childData = await fetchAllRows(() => client.from('questions').select(QUESTION_COLUMNS).in('topic_id', descendantIds).order('sort_order').order('id'));
         return { topicId: topic.id, title: topic.title, questions: (childData || []).map(mapQuestionRow) };
       }
       return { topicId: topic.id, title: topic.title, questions: [] };
@@ -588,5 +617,5 @@ const ContentRepo = (() => {
     return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
   }
 
-  return { fetchAllRows, fetchCatalogue, fetchStudyDocument, fetchQuestionsByTopicId, fetchQuestionsByPath, fetchQuestionsByPathExact, fetchFlashcardsByPath, fetchFlashcardDecks, fetchCardsByTopicId, fetchExamTaxonomy, fetchExamBlueprint, fetchRandomTestQuestions, revealQuizSession, fetchQuestionCount, fetchQuestionCountByTopicId, fetchFlashcardProgress, rateFlashcard, fetchDueFlashcardCounts, fetchDueFlashcards, fetchTotalQuestionCount, fetchExamDate };
+  return { fetchAllRows, fetchCatalogue, fetchStudyDocument, fetchQuestionsByTopicId, fetchQuestionsByTopicIds, fetchQuestionsByPath, fetchQuestionsByPathExact, fetchFlashcardsByPath, fetchFlashcardDecks, fetchCardsByTopicId, fetchExamTaxonomy, fetchExamBlueprint, fetchRandomTestQuestions, revealQuizSession, fetchQuestionCount, fetchQuestionCountByTopicId, fetchFlashcardProgress, rateFlashcard, fetchDueFlashcardCounts, fetchDueFlashcards, fetchTotalQuestionCount, fetchExamDate };
 })();

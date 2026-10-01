@@ -4765,14 +4765,17 @@ async function renderSectionsFresh(documentItem, categoryKey) {
   pendingView.textContent = 'Bölümler yükleniyor…';
   topicList.replaceChildren(pendingView);
   try {
-    const current = await ContentRepo.fetchStudyDocument(documentItem.id);
+    // PERF: katalog zaten bellekteyse yeniden indirme (categories+topics+sayaçlar).
+    const hadCatalogue = Boolean(state.catalogue);
+    const current = await ContentRepo.fetchStudyDocument(documentItem.id, state.catalogue || undefined);
     if (!topicList.contains(pendingView)) return;
     if (role && current.kadrolar && !current.kadrolar.includes(role)) {
       pendingView.textContent = 'Bu konu seçili kadron için kullanılamıyor.';
       return;
     }
     Object.assign(documentItem, current, {children: current.children || []});
-    state.questionBanks.delete(documentItem.id);
+    // Bellekteki katalog kullanıldıysa soru bankası önbelleği korunur (yeniden indirme yok).
+    if (!hadCatalogue) state.questionBanks.delete(documentItem.id);
     renderBreadcrumb(documentItem.title, () => renderDocumentHub(documentItem, categoryKey));
   } catch (error) {
     if (topicList.contains(pendingView)) pendingView.textContent = error.message || 'Bölümler yüklenemedi. Geri dönüp yeniden dene.';
@@ -4828,7 +4831,9 @@ async function renderSectionsFresh(documentItem, categoryKey) {
 // yenileme hedeflerinin dışında bırakıyor, satır sonsuza kadar "0" göstermeye
 // devam ediyordu. "0"ı da boş değer gibi ele alıyoruz.
 async function refreshSectionQuestionCounts(sections) {
-  const targets = (sections || []).filter(section => !section.generated);
+  // PERF: katalog sayaçları (topic_question_counts) düğümlere zaten yazılıyor; sayısı
+  // bilinen bölümler için ağ isteği yapılmaz.
+  const targets = (sections || []).filter(section => !section.generated && !Number.isFinite(Number(section.questionCount)));
   if (!targets.length) return;
   const rows=Array.from(topicList.querySelectorAll('[data-section-index]'));
   const results = await Promise.allSettled(targets.map(async section => {
@@ -5015,10 +5020,20 @@ async function openSectionQuiz(documentItem, section, categoryKey) {
   if (!requirePremiumOrWarn()) return;
   try {
     showToast('Sorular hazırlanıyor…');
-    const bank = tagQuestions(await loadQuestionBank(documentItem), documentItem, categoryKey);
     const sectionIds=new Set();
     const collect=entry=>{ if(progress.selectedRole && entry.kadrolar && !entry.kadrolar.includes(progress.selectedRole)) return; sectionIds.add(entry.id); (entry.children||[]).forEach(collect); }; collect(section);
     const questionIds=section.generated ? new Set(section.questionIds) : null;
+    // PERF: gerçek (generated olmayan) bölümlerde tüm kanunu değil sadece bölümün
+    // sorularını çek. Banka zaten bellekteyse onu kullan.
+    let rawBank;
+    if (!section.generated && !state.questionBanks.has(documentItem.id) && sectionIds.size) {
+      const cacheKey = `section:${[...sectionIds].sort().join(',')}`;
+      rawBank = state.questionBanks.get(cacheKey);
+      if (!rawBank) { rawBank = await ContentRepo.fetchQuestionsByTopicIds([...sectionIds]); state.questionBanks.set(cacheKey, rawBank); }
+    } else {
+      rawBank = await loadQuestionBank(documentItem);
+    }
+    const bank = tagQuestions(rawBank, documentItem, categoryKey);
     const questions = bank.filter(question => questionIds ? questionIds.has(question.id) : sectionIds.has(question.topicId));
     if (!questions.length) return showToast('Bu bölüm için henüz soru bulunmuyor.');
     startQuiz({
@@ -6421,40 +6436,36 @@ document.addEventListener('touchend',edgeBackEnd,{passive:true});
 document.addEventListener('touchcancel',clearEdgeBackGesture,{passive:true});
 document.addEventListener('click',event=>{if(Date.now()<edgeBackSuppressClickUntil){event.preventDefault();event.stopImmediatePropagation();}},true);
 
-async function loadCatalogue() {
-  state.catalogueError = '';
-  state.catalogue = null;
-  // Y-01 (cihaz testi sonrası): Cihaz çevrimdışıysa istekleri denemeden
-  // (supabase-js yeniden deneme beklemeleri olmadan) hemen bilgilendir.
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-    state.catalogueError = 'İnternet bağlantısı yok. Bağlantı gelince içerikler otomatik yüklenecek.';
-    render();
-    return;
-  }
-  render();
+// PERF (2026-10-01): Katalog için "stale-while-revalidate" önbelleği. İlk
+// açılıştan sonra katalog localStorage'dan ANINDA çizilir; Supabase'den güncel
+// hâli arka planda alınır, değiştiyse sessizce yenilenir. Kullanıcıya göre ayrı
+// anahtar (RLS farkları ya da hesap değişimi eski veriyi sızdırmasın).
+const CATALOGUE_CACHE_PREFIX = 'sr_catalogue_v1:';
+function catalogueCacheKey() { return CATALOGUE_CACHE_PREFIX + (window.currentUser?.id || 'anon'); }
+function readCatalogueCache() {
   try {
-    // Çevrimdışıyken istek uzun süre askıda kalabiliyor; 15 sn sonra
-    // "Tekrar Dene" ekranını göster.
-    const withTimeout = (promise, ms) => Promise.race([
-      promise,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Sunucuya bağlanılamadı, internet bağlantını kontrol et.')), ms))
-    ]);
-    const [data, flashcardDecks] = await withTimeout(Promise.all([
-      ContentRepo.fetchCatalogue(),
-      // Flashcard desteleri çekilemese bile (ör. ağ hatası) katalog ekranı
-      // çalışmaya devam etsin — bu yüzden hata burada yutulup boş dizi dönüyor.
-      ContentRepo.fetchFlashcardDecks().catch(error => {
-        console.error('Flashcard desteleri yüklenemedi:', error);
-        return [];
-      })
-    ]), 15000);
-    if (!data || typeof data !== 'object') throw new Error('Konu verisi geçerli değil.');
-    state.catalogue = data;
+    const raw = localStorage.getItem(catalogueCacheKey());
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed.data === 'object' && parsed.data ? parsed.data : null;
+  } catch { return null; }
+}
+function writeCatalogueCache(data) {
+  try { localStorage.setItem(catalogueCacheKey(), JSON.stringify({ savedAt: Date.now(), data })); }
+  catch { /* kota dolu / özel mod: önbellek sadece hız içindir, sessizce geç */ }
+}
+
+// Flashcard desteleri artık ana sayfayı BEKLETMEZ: katalog çizildikten sonra
+// arka planda gelir, hazır olunca (home/cards görünümündeyse) yeniden render edilir.
+function loadFlashcardDecksInBackground() {
+  ContentRepo.fetchFlashcardDecks().catch(error => {
+    // Flashcard desteleri çekilemese bile katalog ekranı çalışmaya devam etsin.
+    console.error('Flashcard desteleri yüklenemedi:', error);
+    return [];
+  }).then(flashcardDecks => {
     state.flashcardDecks = flashcardDecks;
-    render();
-    // Faz 4: ana ekrandaki "bugünkü tekrarlar" widget'ı için toplam gecikmiş
-    // kart sayısı — katalog render edildikten SONRA arka planda çekiliyor,
-    // ana ekranın açılışını bloke etmesin diye ayrı bir render() ile gelir.
+    if (state.view === 'home' || state.view === 'cards') render();
+    // Faz 4: ana ekrandaki "bugünkü tekrarlar" widget'ı için toplam gecikmiş kart sayısı.
     if (window.currentUser && flashcardDecks.length) {
       const role = progress.selectedRole;
       const roleFilteredDecks = flashcardDecks.filter(d => !role || !d.kadrolar || d.kadrolar.includes(role));
@@ -6467,6 +6478,44 @@ async function loadCatalogue() {
         })
         .catch(() => {}); // widget süsleme, sessizce geç
     }
+  });
+}
+
+async function loadCatalogue() {
+  state.catalogueError = '';
+  const cached = readCatalogueCache();
+  state.catalogue = cached;
+  // Y-01 (cihaz testi sonrası): Cihaz çevrimdışıysa istekleri denemeden
+  // (supabase-js yeniden deneme beklemeleri olmadan) hemen bilgilendir.
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    if (!cached) state.catalogueError = 'İnternet bağlantısı yok. Bağlantı gelince içerikler otomatik yüklenecek.';
+    render();
+    return;
+  }
+  render();
+  try {
+    // Çevrimdışıyken istek uzun süre askıda kalabiliyor; 15 sn sonra
+    // "Tekrar Dene" ekranını göster (önbellek varsa sessizce önbellekle devam).
+    const withTimeout = (promise, ms) => Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Sunucuya bağlanılamadı, internet bağlantını kontrol et.')), ms))
+    ]);
+    let data;
+    try {
+      data = await withTimeout(ContentRepo.fetchCatalogue(), 15000);
+      if (!data || typeof data !== 'object') throw new Error('Konu verisi geçerli değil.');
+    } catch (fetchError) {
+      if (cached) { console.warn('Katalog güncellenemedi, önbellek kullanılıyor:', fetchError); loadFlashcardDecksInBackground(); return; }
+      throw fetchError;
+    }
+    const changed = !cached || JSON.stringify(cached) !== JSON.stringify(data);
+    state.catalogue = data;
+    writeCatalogueCache(data);
+    // Önbellekten çizilmişse ve içerik değişmediyse yeniden render gereksiz;
+    // değiştiyse sadece ana sayfa/kartlar görünümündeyken (kullanıcıyı başka bir
+    // ekranın ortasında bozmadan) yenile.
+    if (!cached || (changed && (state.view === 'home' || state.view === 'cards'))) render();
+    loadFlashcardDecksInBackground();
     // Ana sayfadaki "Genel İlerleme" halkası için toplam soru bankası
     // büyüklüğü — aynı "arka planda çek, hazır olunca sessizce yeniden
     // render et" deseni.
