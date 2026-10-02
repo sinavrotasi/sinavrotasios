@@ -7392,10 +7392,10 @@ html.native-ios-scroll #appPhone>.scroll-area>.app-scroll{background-color:var(-
    küçülmez ve liste yalnız kendi alanında kayar. Bu blok dosyanın sonunda
    bilerek yer alır: önceki kategori/list override'larını kesin olarak ezer.
    ============================================================ */
-#topicSheet.category-glass{
+#topicSheet:is(.category-glass, :has(> .topic-list > [data-card-doc-index])){
   overflow:hidden!important;
 }
-#topicSheet.category-glass>.topic-list{
+#topicSheet:is(.category-glass, :has(> .topic-list > [data-card-doc-index]))>.topic-list{
   display:flex!important;
   flex:1 1 auto!important;
   flex-direction:column!important;
@@ -7407,7 +7407,7 @@ html.native-ios-scroll #appPhone>.scroll-area>.app-scroll{background-color:var(-
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
 }
-#topicSheet.category-glass>.topic-list>.topic-item{
+#topicSheet:is(.category-glass, :has(> .topic-list > [data-card-doc-index]))>.topic-list>.topic-item{
   flex:0 0 auto!important;
   width:100%!important;
   height:auto!important;
@@ -7416,11 +7416,11 @@ html.native-ios-scroll #appPhone>.scroll-area>.app-scroll{background-color:var(-
   padding:11px 12px 11px 10px!important;
   align-items:center!important;
 }
-#topicSheet.category-glass>.topic-list>.topic-item .topic-copy{
+#topicSheet:is(.category-glass, :has(> .topic-list > [data-card-doc-index]))>.topic-list>.topic-item .topic-copy{
   min-width:0!important;
   overflow:visible!important;
 }
-#topicSheet.category-glass>.topic-list>.topic-item .topic-copy h4{
+#topicSheet:is(.category-glass, :has(> .topic-list > [data-card-doc-index]))>.topic-list>.topic-item .topic-copy h4{
   display:block!important;
   height:auto!important;
   max-height:none!important;
@@ -7432,7 +7432,7 @@ html.native-ios-scroll #appPhone>.scroll-area>.app-scroll{background-color:var(-
   word-break:normal!important;
   line-height:1.3!important;
 }
-#topicSheet.category-glass>.topic-list>.topic-item .topic-copy p{
+#topicSheet:is(.category-glass, :has(> .topic-list > [data-card-doc-index]))>.topic-list>.topic-item .topic-copy p{
   display:block!important;
   height:auto!important;
   max-height:none!important;
@@ -7494,3 +7494,39 @@ html.native-ios-scroll #appPhone>.scroll-area>.app-scroll{background-color:var(-
 @media(prefers-reduced-motion:reduce){
   .topic-sheet,.bottom-sheet,#notifSheet.notif-inbox,.topic-backdrop{transition:none!important}
 }
+
+
+/* Profile tools: compact editable reminder and persistent focus preference. */
+.profile-v2 .sp-tools-card .sp-tools-row {min-height:66px;gap:12px;}
+.profile-v2 .sp-tools-card .sp-reminder-copy>strong,
+.profile-v2 .sp-tools-card .sp-focus-copy>strong {font-weight:500;}
+.profile-v2 .sp-tools-card .sp-focus-copy>small {font-size:11px;line-height:1.4;}
+.profile-v2 .sp-tools-card .sp-switch.on {background:var(--sp-red, #e93238);}
+.profile-v2 .sp-tools-divider {margin:0;background:#e8edf3;}
+.sp-time-edit-row {display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:3px 0 15px 59px;border:0;background:transparent;color:#071f49;font:500 13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-align:left;cursor:pointer;box-sizing:border-box;}
+.sp-time-edit-value {display:flex;align-items:center;gap:9px;flex-shrink:0;padding:9px 12px;min-height:44px;box-sizing:border-box;border:1px solid #f8cdd2;border-radius:13px;background:#fff3f4;color:#e93238;}
+.sp-time-edit-value time {font-size:19px;font-weight:500;font-variant-numeric:tabular-nums;}
+.sp-time-edit-value svg {width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.sp-time-edit-value>span {font-size:25px;font-weight:400;line-height:1;}
+.sp-time-edit-row:focus-visible,.sp-tools-card button:focus-visible {outline:2px solid #e93238;outline-offset:3px;}
+.sp-time-dialog {position:fixed;inset:0;margin:auto;width:min(340px,calc(100vw - 32px));max-height:calc(100dvh - 40px);overflow:auto;box-sizing:border-box;padding:22px;border:1px solid #e8edf3;border-radius:22px;background:#fff;color:#071f49;box-shadow:0 20px 70px #071f4933;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+.sp-time-dialog::backdrop {background:rgba(7,31,73,.3);backdrop-filter:blur(6px);}
+.sp-time-dialog h3 {margin:0;font-size:19px;font-weight:500;}
+.sp-time-dialog p {margin:9px 0 20px;font-size:13px;line-height:1.5;color:#778399;}
+.sp-time-selectors {display:flex;gap:12px;align-items:center;}
+.sp-time-selectors label {display:flex;flex:1;min-width:0;flex-direction:column;gap:7px;font-size:12px;color:#778399;}
+.sp-time-selectors select {width:100%;min-height:54px;padding:8px;border:1px solid #dce3ec;border-radius:12px;background:#f7f9fc;color:#071f49;font:500 25px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+.sp-time-selectors>span {padding-top:20px;font-size:24px;}
+.sp-time-dialog-actions {display:flex;gap:10px;margin-top:24px;}
+.sp-time-dialog-actions button {flex:1;min-height:44px;border:0;border-radius:12px;background:#f0f3f8;color:#071f49;font:500 14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;}
+.sp-time-dialog-actions #profileReminderSave {background:#e93238;color:white;}
+html[data-focus-mode="true"]:has(#topicSheet.open:is(.quiz-active,.card-study-active)) #notifBadge {display:none!important;}
+@media(max-width:360px){.sp-time-edit-row{padding-left:0;}.sp-time-edit-value{gap:7px;padding:8px 10px;}}
+
+/* Answer feedback preference: same red enabled switch as profile tools. */
+.study-feedback-row {display:flex;align-items:center;gap:16px;}
+.study-feedback-row>div {flex:1;min-width:0;}
+.study-feedback-row strong {display:block;font-size:14px;font-weight:500;line-height:1.4;color:#071f49;}
+.study-feedback-row p {margin:7px 0 0;font-size:12px;line-height:1.55;color:#778399;}
+.study-feedback-row .sp-switch.on {background:#e93238;}
+.study-feedback-row .sp-switch:focus-visible {outline:2px solid #e93238;outline-offset:4px;}

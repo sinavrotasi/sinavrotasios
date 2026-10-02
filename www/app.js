@@ -16,7 +16,7 @@ const UI_PREFS_STORAGE_KEY = 'sinavrotasi-ui-prefs-v1';
 const DEFAULT_UI_PREFS = { textSize: 'standard', density: 'standard' };
 
 const STUDY_PREFS_STORAGE_KEY = 'sinavrotasi-study-prefs-v1';
-const DEFAULT_STUDY_PREFS = { repeatPriority:'personal', pauseStartedAt:null, pauseUntil:null };
+const DEFAULT_STUDY_PREFS = { repeatPriority:'personal', pauseStartedAt:null, pauseUntil:null, focusMode:false, showAnswerFeedback:false };
 
 function loadStudyPrefs() {
   try {
@@ -26,12 +26,50 @@ function loadStudyPrefs() {
         ? saved.repeatPriority
         : (saved.repeatPriority === 'balanced' ? 'random' : 'personal'),
       pauseStartedAt: typeof saved.pauseStartedAt === 'string' ? saved.pauseStartedAt : null,
-      pauseUntil: typeof saved.pauseUntil === 'string' ? saved.pauseUntil : null
+      pauseUntil: typeof saved.pauseUntil === 'string' ? saved.pauseUntil : null,
+      focusMode: saved.focusMode === true,
+      showAnswerFeedback: saved.showAnswerFeedback === true
     };
   } catch (_) { return { ...DEFAULT_STUDY_PREFS }; }
 }
 let studyPrefs = loadStudyPrefs();
+document.documentElement.dataset.focusMode = String(studyPrefs.focusMode);
+
+// Only incoming notification distractions are muted; answer/error feedback stays available.
+function isFocusSessionActive() {
+  return studyPrefs.focusMode === true && Boolean(document.querySelector(
+    '#topicSheet.open.quiz-active, #topicSheet.open.card-study-active'
+  ));
+}
+function setFocusMode(enabled) {
+  const previous = studyPrefs.focusMode;
+  studyPrefs.focusMode = enabled === true;
+  try { saveStudyPrefs(); }
+  catch (_) {
+    studyPrefs.focusMode = previous;
+    showToast('Odak tercihi kaydedilemedi. Lütfen tekrar dene.');
+    return false;
+  }
+  document.documentElement.dataset.focusMode = String(studyPrefs.focusMode);
+  return true;
+}
 function saveStudyPrefs(){ localStorage.setItem(STUDY_PREFS_STORAGE_KEY, JSON.stringify(studyPrefs)); }
+// Presentation preference is independent of deferred scoring/answer recording.
+function shouldShowAnswerFeedback(quiz) {
+  return quiz?.revealed === true || studyPrefs.showAnswerFeedback === true;
+}
+function setAnswerFeedback(enabled) {
+  const previous = studyPrefs.showAnswerFeedback;
+  studyPrefs.showAnswerFeedback = enabled === true;
+  try { saveStudyPrefs(); }
+  catch (_) {
+    studyPrefs.showAnswerFeedback = previous;
+    showToast('Tercih kaydedilemedi. Lütfen tekrar dene.');
+    return false;
+  }
+  return true;
+}
+
 function getRepeatPriorityLabel(value = studyPrefs.repeatPriority){
   return ({
     personal:'Sana Özel',
@@ -670,7 +708,7 @@ function saveProgress({ rerender = true } = {}) {
   scheduleLocalProgressSave();
   scheduleCloudSync();
   updateHeader();
-  const pickerOpen = document.activeElement?.id === 'notifReminderTimeInput';
+  const pickerOpen = document.activeElement?.id === 'notifReminderTimeInput' || Boolean(document.querySelector('#profileReminderDialog[open]'));
   if (rerender && !pickerOpen && (state.view === 'home' || state.view === 'profile' || state.view === 'mistakes')) render();
 }
 
@@ -2589,22 +2627,33 @@ function profileView() {
     <section class="sp-tools-card">
       <div class="sp-tools-row sp-tools-row-reminder">
         <span class="sp-round-icon red">${svg('clock')}</span>
-        <label class="sp-reminder-copy" for="notifReminderTimeInput">
-          <strong>Hatırlatma saati</strong>
-          <input type="time" id="notifReminderTimeInput" lang="tr-TR" value="${escapeHtml(prefs.reminderTime || '20:00')}" aria-label="Hatırlatma saati">
-        </label>
+        <div class="sp-reminder-copy"><strong>Hatırlatma saati</strong></div>
         <button class="sp-switch${prefs.dailyReminder ? ' on' : ''}" type="button" data-notif-pref="dailyReminder" role="switch" aria-checked="${prefs.dailyReminder ? 'true' : 'false'}" aria-label="Günlük hatırlatma"><i></i></button>
       </div>
 
+      <button class="sp-time-edit-row" id="profileReminderEditButton" type="button" aria-haspopup="dialog" aria-controls="profileReminderDialog" aria-label="Hatırlatma saatini değiştir: ${escapeHtml(prefs.reminderTime || '20:00')}">
+        <span>Saati değiştir</span>
+        <span class="sp-time-edit-value"><time id="profileReminderTimeValue">${escapeHtml(prefs.reminderTime || '20:00')}</time><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z"/></svg><span aria-hidden="true">›</span></span>
+      </button>
+      <dialog class="sp-time-dialog" id="profileReminderDialog" aria-labelledby="profileReminderDialogTitle">
+        <h3 id="profileReminderDialogTitle">Hatırlatma saati</h3>
+        <p>Her gün hatırlatılmasını istediğin saati seç.</p>
+        <div class="sp-time-selectors">
+          <label>Saat<select id="profileReminderHour">${Array.from({length:24},(_,i)=>String(i).padStart(2,'0')).map(v=>`<option value="${v}">${v}</option>`).join('')}</select></label>
+          <span aria-hidden="true">:</span>
+          <label>Dakika<select id="profileReminderMinute">${Array.from({length:60},(_,i)=>String(i).padStart(2,'0')).map(v=>`<option value="${v}">${v}</option>`).join('')}</select></label>
+        </div>
+        <div class="sp-time-dialog-actions"><button id="profileReminderCancel" type="button">Vazgeç</button><button id="profileReminderSave" type="button">Kaydet</button></div>
+      </dialog>
       <div class="sp-tools-divider" aria-hidden="true"></div>
 
       <div class="sp-tools-row sp-tools-row-focus">
         <span class="sp-round-icon navy">${focusIcon}</span>
         <div class="sp-focus-copy">
           <strong>Odak modu</strong>
-          <small>Dikkatini dağıtan bildirimleri sınırla.</small>
+          <small>Çalışırken bildirim titreşimini ve rozetini gizle.</small>
         </div>
-        <button class="sp-switch" id="profileFocusModeButton" type="button" role="switch" aria-checked="false" aria-label="Odak modu"><i></i></button>
+        <button class="sp-switch${studyPrefs.focusMode ? ' on' : ''}" id="profileFocusModeButton" type="button" role="switch" aria-checked="${studyPrefs.focusMode ? 'true' : 'false'}" aria-label="Odak modu"><i></i></button>
       </div>
     </section>
 
@@ -2676,6 +2725,13 @@ function studyPreferencesView() {
     <section class="study-pref-intro">
       <span class="study-pref-intro-icon">${svg('compass')}</span>
       <div><strong>Çalışma rotanı kişiselleştir</strong><small>Bugünkü rotanı ve çalışma planının durumunu belirle.</small></div>
+    </section>
+
+    <section class="study-pref-card study-feedback-card">
+      <div class="study-feedback-row">
+        <div><strong id="answerFeedbackLabel">Cevap sonucunu hemen göster</strong><p id="answerFeedbackDescription">Açıkken doğru şık yeşil, yanlış seçimin kırmızı görünür. Kapalıyken seçimin nötr gösterilir. Sınav sonu sonuçları her iki durumda da gösterilir.</p></div>
+        <button id="answerFeedbackButton" class="sp-switch${studyPrefs.showAnswerFeedback ? ' on' : ''}" type="button" role="switch" aria-checked="${studyPrefs.showAnswerFeedback ? 'true' : 'false'}" aria-labelledby="answerFeedbackLabel" aria-describedby="answerFeedbackDescription"><i></i></button>
+      </div>
     </section>
 
     <section class="study-pref-card">
@@ -3472,6 +3528,23 @@ function bindViewEvents() {
   document.getElementById('notifReminderTimeInput')?.addEventListener('change', event => {
     setReminderTime(event.target.value);
   });
+  const reminderDialog = document.getElementById('profileReminderDialog');
+  const reminderEdit = document.getElementById('profileReminderEditButton');
+  reminderEdit?.addEventListener('click', () => {
+    const [hour, minute] = (progress.notificationPrefs?.reminderTime || '20:00').split(':');
+    document.getElementById('profileReminderHour').value = hour;
+    document.getElementById('profileReminderMinute').value = minute;
+    reminderDialog.showModal();
+  });
+  document.getElementById('profileReminderCancel')?.addEventListener('click', () => reminderDialog.close());
+  document.getElementById('profileReminderSave')?.addEventListener('click', () => {
+    const value = `${document.getElementById('profileReminderHour').value}:${document.getElementById('profileReminderMinute').value}`;
+    if (!setReminderTime(value)) return;
+    document.getElementById('profileReminderTimeValue').textContent = value;
+    reminderEdit.setAttribute('aria-label', `Hatırlatma saatini değiştir: ${value}`);
+    reminderDialog.close();
+    showToast(progress.notificationPrefs.dailyReminder ? 'Hatırlatma saati kaydedildi.' : 'Saat kaydedildi. Bildirim almak için hatırlatmayı aç.');
+  });
   bindWeeklyFlowEvents();
 
   // Profil v2 etkileşimleri
@@ -3501,7 +3574,8 @@ function bindViewEvents() {
 
   document.getElementById('profileFocusModeButton')?.addEventListener('click', event => {
     const button = event.currentTarget;
-    const next = button.getAttribute('aria-checked') !== 'true';
+    const next = !studyPrefs.focusMode;
+    if (!setFocusMode(next)) return;
     button.setAttribute('aria-checked', String(next));
     button.classList.toggle('on', next);
     showToast(next ? 'Odak modu açıldı.' : 'Odak modu kapatıldı.');
@@ -3613,6 +3687,13 @@ function bindViewEvents() {
     requestAnimationFrame(() => {
       scrollArea.scrollTop = returnTop;
     });
+  });
+  document.getElementById('answerFeedbackButton')?.addEventListener('click', event => {
+    const next = !studyPrefs.showAnswerFeedback;
+    if (!setAnswerFeedback(next)) return;
+    event.currentTarget.classList.toggle('on', next);
+    event.currentTarget.setAttribute('aria-checked', String(next));
+    showToast(next ? 'Cevap sonuçları hemen gösterilecek.' : 'Soru çözerken seçimler nötr gösterilecek.');
   });
   app.querySelectorAll('[data-repeat-priority]').forEach(button => button.addEventListener('click', () => {
     setStudyRepeatPriority(button.dataset.repeatPriority);
@@ -5723,7 +5804,7 @@ function renderQuiz() {
               let className = 'quiz-option';
               let iconHtml = '';
               const answered = current.userSelected !== null;
-              const deferReveal = DEFERRED_REVEAL_KINDS.includes(quiz.kind) && !quiz.revealed;
+              const deferReveal = !shouldShowAnswerFeedback(quiz);
               if (deferReveal) {
                 if (current.userSelected === index) className += ' selected';
               } else if (answered && index === current.answerIndex) {
@@ -6095,7 +6176,7 @@ function openQuizNav() {
     let className = 'quiz-nav-cell';
     if (index === quiz.index) className += ' current';
     else if (question.userSelected !== null) {
-      if (DEFERRED_REVEAL_KINDS.includes(quiz.kind) && !quiz.revealed) className += ' answered';
+      if (!shouldShowAnswerFeedback(quiz)) className += ' answered';
       else className += question.userSelected === question.answerIndex ? ' answered-correct' : ' answered-wrong';
     }
     if (progress.flaggedQuestions[question.id]) className += ' flagged';
@@ -6158,7 +6239,7 @@ function bindQuizEvents() {
       const current = quiz.questions[quiz.index];
       const selected = Number(button.dataset.answerIndex);
       current.userSelected = selected;
-      haptic(DEFERRED_REVEAL_KINDS.includes(quiz.kind) ? 16 : (selected === current.answerIndex ? 16 : [12, 40, 12]));
+      haptic(!shouldShowAnswerFeedback(quiz) ? 16 : (selected === current.answerIndex ? 16 : [12, 40, 12]));
       renderQuiz();
     });
   });
@@ -7003,7 +7084,7 @@ function subscribeNotificationsRealtime() {
       if (index >= 0) notifications[index] = { ...notifications[index], ...row };
       else notifications.unshift(row);
       renderNotifList();
-      haptic(8);
+      if (!isFocusSessionActive()) haptic(8);
     })
     .subscribe(status => {
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
