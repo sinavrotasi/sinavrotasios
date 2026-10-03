@@ -1383,31 +1383,23 @@ function renderBankProgressWidget(stats) {
 function homeView() {
   if (!state.catalogue) return state.catalogueError ? errorView() : loadingView();
   const stats = getStats();
-  const categories = getCategories().filter(([key]) => getCategoryItems(key).length > 0).map(([key]) => {
-    const meta = categoryCardMeta(key);
-    const topics = getCategoryItems(key);
-    const activePackages = topics.filter(item => item.questionFile).length;
-    const metaText = activePackages ? `${topics.length} başlık • ${activePackages} aktif paket` : `${topics.length} başlık • içerik planlanıyor`;
-    return `<article class="category" role="button" tabindex="0" data-open-category="${key}">
-      <div class="cat-icon ${meta.iconClass}">${svg(meta.icon)}</div>
-      <div class="cat-copy"><h4>${escapeHtml(meta.title)}</h4><p>${escapeHtml(meta.description)}</p><small>${metaText}</small></div>
-      <div class="chevron">${svg('arrow')}</div>
-    </article>`;
-  }).join('');
-
-  return `<section class="screen home-screen">
-    ${renderBankProgressWidget(stats)}
-    <div class="section-head"><h3>Test Kategorileri</h3></div>
-    <section class="categories">${categories}</section>
-    
-    <!-- BUGÜNKÜ ROTA BUTONU -->
-    <button class="cta-btn" id="openRouteSheetButton" type="button">
-      <div class="cta-icon">${svg('compass')}</div><div><strong>Bugünkü Rota</strong><span>Önerilen planı gör veya özelleştir</span></div><span class="chevron-w">${svg('arrow')}</span>
+  const modules = [
+    { title: 'Test Çöz', subtitle: 'Konulara göre, sınav simülasyonu ile çalış.', icon: 'target', tone: 'red', nav: 'bank' },
+    { title: 'Yanlışlarım', subtitle: 'Tekrar et, eksiklerini tamamla.', icon: 'x', tone: 'blue', nav: 'mistakes' },
+    { title: 'Kartlarım', subtitle: 'Kısa notlarla bilgini güçlendir.', icon: 'layers', tone: 'purple', nav: 'cards' },
+    { title: 'Denemeler', subtitle: 'Gerçek sınav deneyimini yaşa.', icon: 'chart', tone: 'teal', nav: 'bank' }
+  ];
+  const moduleCards = modules.map(item => `<button class="home-module-card ${item.tone}" type="button" data-home-nav="${item.nav}">
+    <span class="home-module-icon">${svg(item.icon === 'target' ? 'target' : item.icon === 'x' ? 'x' : item.icon === 'layers' ? 'flashcards' : 'chart')}</span>
+    <span class="home-module-copy"><strong>${item.title}</strong><small>${item.subtitle}</small></span>
+    <span class="home-module-arrow">${svg('arrow')}</span>
+  </button>`).join('');
+  return `<section class="screen home-screen home-glass-layout">
+    <div class="home-module-grid">${moduleCards}</div>
+    <button class="cta-btn home-route-card" id="openRouteSheetButton" type="button">
+      <div class="cta-icon">${svg('compass')}</div><div><strong>Bugünkü Rotan</strong><span>Planını görüntüle ve devam et</span></div><span class="chevron-w">${svg('arrow')}</span>
     </button>
-    ${state.totalDueFlashcards > 0 ? `
-    <button class="cta-btn cta-btn-flashcards" id="openDueFlashcardsButton" type="button">
-      <div class="cta-icon">${svg('gavel')}</div><div><strong>Bugün ${state.totalDueFlashcards} kart tekrar seni bekliyor</strong><span>Leitner kutu sistemine göre öncelikli</span></div><span class="chevron-w">${svg('arrow')}</span>
-    </button>` : ''}
+    ${state.totalDueFlashcards > 0 ? `<button class="cta-btn cta-btn-flashcards" id="openDueFlashcardsButton" type="button"><div class="cta-icon">${svg('cards')}</div><div><strong>Bugün ${state.totalDueFlashcards} kart tekrar seni bekliyor</strong><span>Öncelikli kart tekrarına devam et</span></div><span class="chevron-w">${svg('arrow')}</span></button>` : ''}
   </section>`;
 }
 
@@ -3475,6 +3467,8 @@ function bindViewEvents() {
   });
   app.querySelectorAll('[data-stat-target]').forEach(element => element.addEventListener('click', () => window.go(element.dataset.statTarget)));
   
+  app.querySelectorAll('[data-home-nav]').forEach(element => element.addEventListener('click', () => window.go(element.dataset.homeNav)));
+
   // Rota panelini açma butonu
   document.getElementById('openRouteSheetButton')?.addEventListener('click', openRouteSheet);
   document.getElementById('openDueFlashcardsButton')?.addEventListener('click', openDueReviewSession);
@@ -6400,6 +6394,7 @@ function renderQuizResult() {
 }
 
 navButtons.forEach(button => button.addEventListener('click', () => window.go(button.dataset.nav)));
+document.getElementById('bottomNotifButton')?.addEventListener('click', () => openNotifButton?.click());
 closeTopicSheetButton.addEventListener('click', closeTopicSheet);
 topicBackdrop.addEventListener('click', () => closeAllSheets());
 
