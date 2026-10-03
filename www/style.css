@@ -7530,3 +7530,64 @@ html[data-focus-mode="true"]:has(#topicSheet.open:is(.quiz-active,.card-study-ac
 .study-feedback-row p {margin:7px 0 0;font-size:12px;line-height:1.55;color:#778399;}
 .study-feedback-row .sp-switch.on {background:#e93238;}
 .study-feedback-row .sp-switch:focus-visible {outline:2px solid #e93238;outline-offset:4px;}
+
+/* SınavRotası — açık zeminli Glassmorphism ana sayfa (2. tasarım) */
+:root{--bg:#f4f7fc;--line:#e2e9f4;--shadow:0 12px 30px rgba(27,58,105,.08)}
+body:not(.auth-page){background:linear-gradient(145deg,#f8faff 0%,#eef4fc 52%,#f8faff 100%)}
+#appPhone:has(.app-scroll > .home-screen){background:transparent}
+#appPhone:has(.app-scroll > .home-screen) .app-header{
+  color:var(--navy);background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.92);
+  border-radius:0 0 24px 24px;box-shadow:0 8px 28px rgba(23,55,103,.07);
+  backdrop-filter:blur(22px) saturate(145%);-webkit-backdrop-filter:blur(22px) saturate(145%);
+}
+#appPhone:has(.app-scroll > .home-screen) .user-text h1{color:#071f49}
+#appPhone:has(.app-scroll > .home-screen) .user-text p,
+#appPhone:has(.app-scroll > .home-screen) .user-text .role-badge{color:#75839b}
+#appPhone:has(.app-scroll > .home-screen) .header-avatar{border-color:#fff;box-shadow:0 0 0 1px #dce5f2,0 4px 12px rgba(7,31,73,.10)}
+#appPhone:has(.app-scroll > .home-screen) .round-btn{background:rgba(255,255,255,.8);color:#071f49;border:1px solid #e2e9f4;box-shadow:0 3px 10px rgba(7,31,73,.05)}
+#appPhone:has(.app-scroll > .home-screen) .round-btn .notif-badge{border-color:#fff}
+#appPhone:has(.app-scroll > .home-screen) .hero-progress-card{
+  background:linear-gradient(120deg,rgba(255,255,255,.92),rgba(239,246,255,.76));
+  border:1px solid rgba(174,197,230,.55);border-radius:22px;
+  box-shadow:0 12px 30px rgba(30,66,119,.09),inset 0 1px 0 rgba(255,255,255,.95);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);padding:14px 12px;
+}
+#appPhone:has(.app-scroll > .home-screen) .hero-glow{width:190px;height:190px;right:-90px;bottom:-110px;background:radial-gradient(circle,rgba(233,50,56,.12),transparent 68%)}
+#appPhone:has(.app-scroll > .home-screen) .hero-progress-title{color:#071f49;font-weight:700}
+#appPhone:has(.app-scroll > .home-screen) .hero-progress-card-solo #dailyGoalMessage{color:#72819a;font-size:11px;line-height:1.45}
+#appPhone:has(.app-scroll > .home-screen) .hero-progress-card-solo .hero-progress-count{color:#71809a}
+#appPhone:has(.app-scroll > .home-screen) .hero-progress-card-solo .hero-progress-count strong{color:#e93238}
+#appPhone:has(.app-scroll > .home-screen) .circle-bg{stroke:#e0e9f6}
+#appPhone:has(.app-scroll > .home-screen) .circle{stroke:#e93238}
+#appPhone:has(.app-scroll > .home-screen) .ring-content span{color:#071f49}
+#appPhone:has(.app-scroll > .home-screen) .hero-progress-bar{height:7px;background:#e4ebf5;border-radius:20px}
+#appPhone:has(.app-scroll > .home-screen) .hero-progress-bar i{background:linear-gradient(90deg,#e93238,#ff6870);box-shadow:0 1px 5px rgba(233,50,56,.2)}
+#appPhone:has(.app-scroll > .home-screen) .home-screen{padding-top:14px}
+#appPhone:has(.app-scroll > .home-screen) .bank-progress-card,
+#appPhone:has(.app-scroll > .home-screen) .category{
+  background:rgba(255,255,255,.76);border:1px solid rgba(190,207,232,.58);border-radius:17px;
+  box-shadow:0 8px 22px rgba(29,62,111,.055),inset 0 1px 0 rgba(255,255,255,.95);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+#appPhone:has(.app-scroll > .home-screen) .bank-progress-percent{color:#e93238}
+#appPhone:has(.app-scroll > .home-screen) .bank-progress-track-fill{background:linear-gradient(90deg,#e93238,#ff6970)}
+#appPhone:has(.app-scroll > .home-screen) .category{grid-template-columns:42px minmax(0,1fr) 18px;padding:12px;border-color:rgba(190,207,232,.48)}
+#appPhone:has(.app-scroll > .home-screen) .category:active{transform:scale(.99)}
+#appPhone:has(.app-scroll > .home-screen) .section-head h3{color:#071f49;font-size:14px}
+#appPhone:has(.app-scroll > .home-screen) .cta-btn{
+  color:#071f49;background:linear-gradient(115deg,rgba(255,255,255,.94),rgba(239,245,255,.84));
+  border:1px solid rgba(173,196,229,.65);border-radius:18px;padding:13px 14px;
+  box-shadow:0 9px 24px rgba(27,58,105,.08),inset 0 1px 0 #fff;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+#appPhone:has(.app-scroll > .home-screen) .cta-btn strong{color:#071f49}
+#appPhone:has(.app-scroll > .home-screen) .cta-btn>div>span,
+#appPhone:has(.app-scroll > .home-screen) .cta-btn div span{color:#74839c}
+#appPhone:has(.app-scroll > .home-screen) .cta-btn .chevron-w{color:#e93238}
+#appPhone:has(.app-scroll > .home-screen) .cta-btn .cta-icon{background:linear-gradient(135deg,#e93238,#ff6870);color:#fff;border-radius:13px;box-shadow:0 5px 12px rgba(233,50,56,.18)}
+#appPhone:has(.app-scroll > .home-screen) .cta-btn-flashcards .cta-icon{background:linear-gradient(135deg,#168b73,#35b7a2)}
+#appPhone:has(.app-scroll > .home-screen) .bottom-nav{background:rgba(255,255,255,.88);border-top:1px solid rgba(203,216,235,.8);box-shadow:0 -8px 24px rgba(27,58,105,.045);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+#appPhone:has(.app-scroll > .home-screen) .bottom-nav button{color:#75839b}
+#appPhone:has(.app-scroll > .home-screen) .bottom-nav button.active{color:#e93238}
+@media(min-width:600px){#appPhone:has(.app-scroll > .home-screen) .hero-progress-card{padding:16px 15px}#appPhone:has(.app-scroll > .home-screen) .category{padding:14px}}
+@media(prefers-reduced-motion:no-preference){#appPhone:has(.app-scroll > .home-screen) .category,#appPhone:has(.app-scroll > .home-screen) .cta-btn{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}#appPhone:has(.app-scroll > .home-screen) .category:active,#appPhone:has(.app-scroll > .home-screen) .cta-btn:active{transform:scale(.99)}}
