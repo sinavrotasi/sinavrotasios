@@ -458,9 +458,6 @@ const iconPaths = {
   target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
   compass: '<path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/>',
   book: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>',
-  needle: '<path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/>',
-  xMark: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
-  barsChart: '<path d="M6 20v-6"/><path d="M12 20V6"/><path d="M18 20v-9"/>',
   trophy: '<path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"/><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"/><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"/>',
   flame: '<path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
@@ -1212,7 +1209,7 @@ function closeAllSheets(exceptSheet = null) {
 window.go = function go(view) {
   if(closeAllSheets()===false)return;
   state.view = view;
-  setNav(['tests', 'bank', 'cards', 'mistakes'].includes(view) ? 'home' : view);
+  setNav(view);
   render();
   scrollArea.scrollTop = 0;
 };
@@ -1385,42 +1382,7 @@ function renderBankProgressWidget(stats) {
 
 function homeView() {
   if (!state.catalogue) return state.catalogueError ? errorView() : loadingView();
-  // Tasarım 3 (Dinamik Gradient): 2x2 modül kartları + Bugünkü Rota satırı.
-  // "Test Çöz" eski ana sayfadaki kategori listesini (testsView) açar.
-  const modules = [
-    { go: 'tests',    tone: 'red',    icon: 'target',     title: 'Test Çöz',   desc: 'Kendini ölç,<br>ilerle.' },
-    { go: 'mistakes', tone: 'blue',   icon: 'xMark',      title: 'Yanlışlarım', desc: 'Eksiklerini<br>tamamla.' },
-    { go: 'cards',    tone: 'violet', icon: 'flashcards', title: 'Kartlarım',  desc: 'Bilgini pekiştir.' },
-    { go: 'bank',     tone: 'teal',   icon: 'barsChart',  title: 'Denemeler',  desc: 'Gerçek sınav deneyimini yaşa.' }
-  ].map(item => `<button class="home-v3-card tone-${item.tone}" type="button" data-home-go="${item.go}">
-      <span class="home-v3-card-icon">${svg(item.icon)}</span>
-      <strong class="home-v3-card-title">${item.title}</strong>
-      <span class="home-v3-card-desc">${item.desc}</span>
-      <span class="home-v3-card-chevron">${svg('arrow')}</span>
-    </button>`).join('');
-
-  return `<section class="screen home-screen home-v3">
-    <div class="home-v3-grid">${modules}</div>
-
-    <!-- BUGÜNKÜ ROTA -->
-    <button class="home-v3-row" id="openRouteSheetButton" type="button">
-      <span class="home-v3-row-icon">${svg('needle')}</span>
-      <span class="home-v3-row-copy"><strong>Bugünkü Rota</strong><span>Planını görüntüle ve devam et.</span></span>
-      <span class="home-v3-row-chevron">${svg('arrow')}</span>
-    </button>
-    ${state.totalDueFlashcards > 0 ? `
-    <button class="home-v3-row tone-green" id="openDueFlashcardsButton" type="button">
-      <span class="home-v3-row-icon">${svg('gavel')}</span>
-      <span class="home-v3-row-copy"><strong>Bugün ${state.totalDueFlashcards} kart tekrar seni bekliyor</strong><span>Leitner kutu sistemine göre öncelikli</span></span>
-      <span class="home-v3-row-chevron">${svg('arrow')}</span>
-    </button>` : ''}
-  </section>`;
-}
-
-// Test Çöz ekranı: eski ana sayfadaki "Test Kategorileri" listesi (aynı kartlar,
-// aynı data-open-category davranışı) artık kendi ekranında.
-function testsView() {
-  if (!state.catalogue) return state.catalogueError ? errorView() : loadingView();
+  const stats = getStats();
   const categories = getCategories().filter(([key]) => getCategoryItems(key).length > 0).map(([key]) => {
     const meta = categoryCardMeta(key);
     const topics = getCategoryItems(key);
@@ -1432,13 +1394,20 @@ function testsView() {
       <div class="chevron">${svg('arrow')}</div>
     </article>`;
   }).join('');
-  return `<section class="screen content-screen tests-page sp-subscreen">
-    <header class="sp-page-head sp-subpage-head">
-      <button class="sp-back" id="testsBackButton" type="button" aria-label="Ana sayfaya dön">${svg('back')}</button>
-      <h1>Test Çöz</h1>
-    </header>
+
+  return `<section class="screen home-screen">
+    ${renderBankProgressWidget(stats)}
     <div class="section-head"><h3>Test Kategorileri</h3></div>
     <section class="categories">${categories}</section>
+    
+    <!-- BUGÜNKÜ ROTA BUTONU -->
+    <button class="cta-btn" id="openRouteSheetButton" type="button">
+      <div class="cta-icon">${svg('compass')}</div><div><strong>Bugünkü Rota</strong><span>Önerilen planı gör veya özelleştir</span></div><span class="chevron-w">${svg('arrow')}</span>
+    </button>
+    ${state.totalDueFlashcards > 0 ? `
+    <button class="cta-btn cta-btn-flashcards" id="openDueFlashcardsButton" type="button">
+      <div class="cta-icon">${svg('gavel')}</div><div><strong>Bugün ${state.totalDueFlashcards} kart tekrar seni bekliyor</strong><span>Leitner kutu sistemine göre öncelikli</span></div><span class="chevron-w">${svg('arrow')}</span>
+    </button>` : ''}
   </section>`;
 }
 
@@ -3477,9 +3446,9 @@ function updatePageNavigation() {
 }
 
 function render() {
-  const views = { home: homeView, tests: testsView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, statistics: statisticsView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView, 'data-account': dataAccountView, appearance: appearanceSettingsView, 'study-preferences': studyPreferencesView };
+  const views = { home: homeView, bank: bankView, mistakes: mistakesView, cards: cardsView, profile: profileView, statistics: statisticsView, achievements: achievementsView, 'profile-edit': profileEditView, 'goal-settings': goalSettingsView, 'data-account': dataAccountView, appearance: appearanceSettingsView, 'study-preferences': studyPreferencesView };
   const appHeader = document.querySelector('.app-header');
-  if (appHeader) appHeader.classList.toggle('hidden', ['tests', 'cards', 'bank', 'mistakes', 'profile', 'statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance', 'study-preferences'].includes(state.view));
+  if (appHeader) appHeader.classList.toggle('hidden', ['cards', 'bank', 'mistakes', 'profile', 'statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance', 'study-preferences'].includes(state.view));
   app.innerHTML = (views[state.view] || homeView)();
   bindViewEvents();
   updatePageNavigation();
@@ -3506,10 +3475,6 @@ function bindViewEvents() {
   });
   app.querySelectorAll('[data-stat-target]').forEach(element => element.addEventListener('click', () => window.go(element.dataset.statTarget)));
   
-  // Ana sayfa modül kartları (Test Çöz / Yanlışlarım / Kartlarım / Denemeler)
-  app.querySelectorAll('[data-home-go]').forEach(element => element.addEventListener('click', () => window.go(element.dataset.homeGo)));
-  document.getElementById('testsBackButton')?.addEventListener('click', () => window.go('home'));
-
   // Rota panelini açma butonu
   document.getElementById('openRouteSheetButton')?.addEventListener('click', openRouteSheet);
   document.getElementById('openDueFlashcardsButton')?.addEventListener('click', openDueReviewSession);
@@ -3618,14 +3583,12 @@ function bindViewEvents() {
 
   document.getElementById('openStatisticsButton')?.addEventListener('click', () => {
     profileReturnScrollTop = scrollArea.scrollTop;
-    state.statsReturn = 'profile';
     state.view = 'statistics';
     setNav('profile');
     render();
     scrollArea.scrollTop = 0;
   });
   document.getElementById('statisticsBackButton')?.addEventListener('click', () => {
-    if (state.statsReturn === 'home') { state.statsReturn = null; window.go('home'); return; }
     state.view = 'profile';
     setNav('profile');
     render();
@@ -4126,7 +4089,7 @@ function updateHeader() {
   solved.textContent = stats.todayAnswers;
   total.textContent = stats.dailyGoal;
   progressFill.style.width = `${stats.dailyPercentage}%`;
-  if (message) message.textContent = stats.dailyPercentage >= 100 ? 'Günlük hedefini tamamladın. Harika iş!' : 'Bugünkü hedefine ulaşmanın en güvenilir yoludur.';
+  if (message) message.textContent = stats.dailyPercentage >= 100 ? 'Günlük hedefini tamamladın. Harika iş!' : stats.todayAnswers ? 'Hedefine düzenli biçimde yaklaşıyorsun.' : 'İlk soruyla günlük hedefini başlat.';
 }
 
 async function resetProgress(options = {}) {
@@ -6436,16 +6399,7 @@ function renderQuizResult() {
   topicSheet.scrollTop = 0;
 }
 
-navButtons.forEach(button => button.addEventListener('click', () => {
-  const target = button.dataset.nav;
-  // Bildirimler sekmesi ekran değil, gelen kutusu panelini açar.
-  if (target === 'notifications') { openNotifSheet(); return; }
-  // İstatistikler alt menüden açıldığında geri tuşu ana sayfaya dönsün.
-  if (target === 'statistics') state.statsReturn = 'home';
-  window.go(target);
-}));
-// Ana sayfa özet kartındaki ok: Bugünkü Rota panelini açar (header statik HTML).
-document.getElementById('heroRouteButton')?.addEventListener('click', () => openRouteSheet());
+navButtons.forEach(button => button.addEventListener('click', () => window.go(button.dataset.nav)));
 closeTopicSheetButton.addEventListener('click', closeTopicSheet);
 topicBackdrop.addEventListener('click', () => closeAllSheets());
 
@@ -6505,7 +6459,6 @@ function handleHardwareBack() {
     });
     return true;
   }
-  if (state.view === 'statistics' && state.statsReturn === 'home') { state.statsReturn = null; go('home'); return true; }
   if (['statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance'].includes(state.view)) {
     state.view = 'profile';
     setNav('profile');
@@ -6843,11 +6796,6 @@ function updateNotifBadge() {
   }
   if (openNotifButton) {
     openNotifButton.setAttribute('aria-label', unread ? `Bildirimler, ${unread} okunmamış` : 'Bildirimler');
-  }
-  const navNotifBadge = document.getElementById('navNotifBadge');
-  if (navNotifBadge) {
-    navNotifBadge.hidden = unread === 0;
-    navNotifBadge.textContent = unread > 9 ? '9+' : String(unread);
   }
   if (notifClearButton) notifClearButton.hidden = notifications.length === 0;
 }
