@@ -186,18 +186,44 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.ap
 
 /* Mevcut İstatistikler üst gezinmesinin konumu ve yüksekliği style.css'ten gelir. */
 :root{--ios-panel-duration:360ms;--ios-panel-easing:cubic-bezier(.22,1,.36,1)}
+/* Geri düğmeleri, referans paketteki home-module-back ile aynı tasarım. */
 #appPhone .page-navigation-row{grid-template-columns:82px minmax(0,1fr) 82px}
-#appPhone .page-navigation-back{
-  display:inline-flex;align-items:center;justify-content:flex-start;gap:5px;
-  width:82px!important;min-height:44px;padding:0 2px!important;
-  border:0!important;border-radius:10px!important;background:transparent!important;box-shadow:none!important;
-  font:inherit;font-size:16px;font-weight:600;color:#071f49;white-space:nowrap;
+#appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"]){
+  display:inline-flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:6px!important;
+  width:auto!important;min-width:76px!important;min-height:44px!important;height:auto!important;
+  padding:8px 12px!important;border:1px solid #e3e9f2!important;border-radius:12px!important;
+  background:#fff!important;color:#071f49!important;font:inherit;font-size:14px!important;font-weight:600!important;
+  cursor:pointer;white-space:nowrap;box-shadow:none!important;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
 }
+#appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"]) svg{
+  display:block!important;width:20px!important;height:20px!important;flex:0 0 20px!important;color:inherit!important;
+}
+#appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"]) span{
+  font:inherit!important;line-height:1.2!important;color:inherit!important;margin:0!important;
+}
+#appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"]):active{background:#edf2fa!important}
+#appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"]):focus-visible{outline:2px solid #e5303a;outline-offset:3px}
+#appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"])::before,
+#appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"])::after{content:none!important;display:none!important}
+#appPhone .page-navigation-source > .sp-back,
 #appPhone .page-navigation-back[hidden]{display:none!important}
-#appPhone .page-navigation-back::before,
-#appPhone .page-navigation-back::after{content:none!important;display:none!important}
 #appPhone .page-navigation-spacer{width:82px}
-#appPhone .ios-back-chevron{font-family:Arial,sans-serif;font-size:25px;font-weight:400;line-height:1}
+
+/* Alt sayfaların başlık ve içerik aralığı; kaydırma/viewport yapısı korunur. */
+#appPhone .sp-subscreen{padding-top:16px!important}
+#appPhone .sp-subpage-head{margin-top:0!important;padding-top:0!important;min-height:0!important;margin-bottom:20px!important}
+
+/* Mobil menü ayrı bir footer alanı ayırmadan içeriğin üzerinde durur. */
+@media(max-width:999px){
+  #appPhone > .bottom-nav{
+    position:fixed!important;left:12px!important;right:12px!important;
+    bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;
+    margin:0!important;width:auto!important;z-index:40;
+  }
+  #appPhone .scroll-area > .app-scroll{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important}
+  #appPhone::after,
+  body:has(#appPhone)::after{content:none!important;display:none!important}
+}
 
 /* ---------- TÜM PENCERELER: ortak açılış ve kapanış ---------- */
 #appPhone > :is(.bottom-sheet,.topic-sheet){

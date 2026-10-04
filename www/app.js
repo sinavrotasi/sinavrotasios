@@ -1535,7 +1535,7 @@ function bankView() {
 
   return `<section class="screen content-screen sp-subscreen bank-screen bank-v2">
     <header class="sp-page-head sp-subpage-head statistics-head">
-      <button class="sp-back" data-module-back type="button" aria-label="Ana sayfaya dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+      <button class="sp-back" data-module-back type="button" aria-label="Ana sayfaya dön">${backButtonContent()}</button>
       <h1>Deneme Sınavları</h1>
     </header>
 
@@ -1765,7 +1765,7 @@ function mistakesView() {
 
   return `<section class="screen content-screen sp-subscreen mistakes-screen mistakes-reference" aria-label="Yanlışlarım">
     <header class="sp-page-head sp-subpage-head statistics-head">
-      <button class="sp-back" data-module-back type="button" aria-label="Ana sayfaya dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+      <button class="sp-back" data-module-back type="button" aria-label="Ana sayfaya dön">${backButtonContent()}</button>
       <h1>Yanlışlarım</h1>
     </header>
     <article class="mistakes-ref-hero"><div class="mistakes-ref-hero-copy"><h3>Bugünün Yanlışları</h3><p>${repeatCount ? `Bugün tekrar zamanı gelen<br><strong>${repeatCount} soru</strong> seni bekliyor.` : 'Şu an tekrar bekleyen<br>yanlış sorun bulunmuyor.'}</p><button class="mistakes-ref-start" id="startWrongPoolButton" type="button" ${repeatCount ? '' : 'disabled'}><span class="mistakes-ref-start-play" aria-hidden="true"></span>Gözden Geçir</button></div>${heroArt}</article>
@@ -1988,7 +1988,7 @@ function cardsView() {
 
   return `<section class="screen content-screen sp-subscreen cards-dashboard" aria-label="Kartlarım">
     <header class="sp-page-head sp-subpage-head statistics-head">
-      <button class="sp-back" data-module-back type="button" aria-label="Ana sayfaya dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+      <button class="sp-back" data-module-back type="button" aria-label="Ana sayfaya dön">${backButtonContent()}</button>
       <h1>Kartlarım</h1>
     </header>
 
@@ -2723,7 +2723,7 @@ function studyPreferencesView() {
   ];
   return `<section class="screen content-screen sp-subscreen study-preferences-page">
     <header class="sp-page-head sp-subpage-head">
-      <button class="sp-back" id="studyPrefsBackButton" type="button">${svg('back')}</button>
+      <button class="sp-back" id="studyPrefsBackButton" type="button">${backButtonContent()}</button>
       <h1>Çalışma tercihlerim</h1>
     </header>
 
@@ -2774,7 +2774,7 @@ function appearanceSettingsView() {
 
   return `<section class="screen content-screen sp-subscreen appearance-page">
     <header class="sp-page-head sp-subpage-head">
-      <button class="sp-back" id="appearanceBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <button class="sp-back" id="appearanceBackButton" type="button" aria-label="Profile dön">${backButtonContent()}</button>
       <h1>Görünüm ve yazı boyutu</h1>
     </header>
 
@@ -2866,7 +2866,7 @@ function dataAccountView() {
 
   return `<section class="screen content-screen sp-subscreen data-account-page">
     <header class="sp-page-head sp-subpage-head">
-      <button class="sp-back" id="dataAccountBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <button class="sp-back" id="dataAccountBackButton" type="button" aria-label="Profile dön">${backButtonContent()}</button>
       <h1>Hesap ve Verilerim</h1>
     </header>
 
@@ -2920,7 +2920,7 @@ function profileEditView() {
 
   return `<section class="screen content-screen sp-subscreen profile-edit-page">
     <header class="sp-page-head sp-subpage-head">
-      <button class="sp-back" id="profileEditBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <button class="sp-back" id="profileEditBackButton" type="button" aria-label="Profile dön">${backButtonContent()}</button>
       <h1>Profilimi düzenle</h1>
     </header>
 
@@ -2959,7 +2959,7 @@ function goalSettingsView() {
   const goal = Number(progress.dailyGoal || DEFAULT_DAILY_GOAL);
   return `<section class="screen content-screen sp-subscreen goal-settings-page">
     <header class="sp-page-head sp-subpage-head">
-      <button class="sp-back" id="goalSettingsBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <button class="sp-back" id="goalSettingsBackButton" type="button" aria-label="Profile dön">${backButtonContent()}</button>
       <h1>Günlük hedef</h1>
     </header>
 
@@ -3263,7 +3263,7 @@ function statisticsView() {
 
   return `<section class="screen content-screen statistics-page sp-subscreen">
     <header class="sp-page-head sp-subpage-head statistics-head">
-      <button class="sp-back" id="statisticsBackButton" type="button" aria-label="Ana sayfaya dön">${svg('back')}</button>
+      <button class="sp-back" id="statisticsBackButton" type="button" aria-label="Ana sayfaya dön">${backButtonContent()}</button>
       <h1>İstatistiklerim</h1>
     </header>
 
@@ -3383,7 +3383,7 @@ function achievementsView() {
   const unlockedCount = badges.filter(badge => badge.unlocked).length;
   return `<section class="screen content-screen achievements-page">
     <header class="sp-page-head sp-subpage-head">
-      <button class="sp-back" id="achievementsBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <button class="sp-back" id="achievementsBackButton" type="button" aria-label="Profile dön">${backButtonContent()}</button>
       <h1>Başarılarım</h1>
     </header>
 
@@ -3415,6 +3415,11 @@ function achievementsView() {
 }
 
 // A separate navigation surface keeps content out of the status-bar area.
+// Gönderilen paketteki Denemeler/Kartlarım geri düğmesinin ortak içeriği.
+function backButtonContent() {
+  return `${svg('back')}<span>Geri</span>`;
+}
+
 function syncPageNavigation() {
   const nav=document.getElementById('pageNavigation');
   if(!nav || nav.hidden)return;
@@ -3428,7 +3433,7 @@ function updatePageNavigation() {
   let nav=document.getElementById('pageNavigation');
   if(!nav){
     nav=document.createElement('nav'); nav.id='pageNavigation'; nav.className='page-navigation'; nav.setAttribute('aria-label','Sayfa gezinmesi');
-    nav.innerHTML=`<div class="page-navigation-row"><button type="button" class="page-navigation-back" aria-label="Geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button><span class="page-navigation-title"></span><span class="page-navigation-spacer" aria-hidden="true"></span></div>`;
+    nav.innerHTML=`<div class="page-navigation-row"><button type="button" class="page-navigation-back" aria-label="Geri dön">${backButtonContent()}</button><span class="page-navigation-title"></span><span class="page-navigation-spacer" aria-hidden="true"></span></div>`;
     phone.appendChild(nav);
     nav.querySelector('button').addEventListener('click',()=>{
       const back=app.querySelector('.sp-subpage-head .sp-back');
@@ -4457,7 +4462,7 @@ function applySheetHeader({ title, subtitle, eyebrow, icon = 'book', iconClass =
 
 function renderBreadcrumb(label, onClick) {
   topicBreadcrumbWrap.innerHTML = `<div class="topic-breadcrumb-wrap">
-      <button class="topic-breadcrumb-back" id="sheetBackButton" type="button" aria-label="Geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+      <button class="topic-breadcrumb-back" id="sheetBackButton" type="button" aria-label="Geri dön">${backButtonContent()}</button>
       <span class="topic-breadcrumb-pill">${escapeHtml(label)}</span>
     </div>`;
   document.getElementById('sheetBackButton').addEventListener('click', () => { haptic(14); onClick(); });
@@ -4704,7 +4709,7 @@ function renderStudyModeHubFresh(item, categoryKey, initialFilter = 'all') {
   const completed = attempts.filter(entry => entry.status === 'completed').length;
   topicList.innerHTML = `<div class="study-mode-hub">
     <header class="study-hub-header">
-      <button type="button" class="study-hub-book" aria-label="Ana konuya geri dön" title="Ana konuya geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+      <button type="button" class="study-hub-book" aria-label="Ana konuya geri dön" title="Ana konuya geri dön">${backButtonContent()}</button>
       <div class="study-hub-heading"><h3>${escapeHtml(item.title)}</h3><p>${countText} soru <span>•</span> %${percentage} ilerleme</p>
       <div class="study-hub-progress"><div class="study-hub-track" role="progressbar" aria-label="Konu ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percentage}"><span style="width:${percentage}%"></span></div><strong>%${percentage}</strong></div></div>
     </header>
@@ -5261,7 +5266,7 @@ function renderTrueFalse() {
     <div class="tf-shell">
       <div class="tf-header">
         <div class="tf-header-row">
-          <button type="button" class="tf-icon-btn" id="tfClose" aria-label="Geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+          <button type="button" class="tf-icon-btn" id="tfClose" aria-label="Geri dön">${backButtonContent()}</button>
           <h2 class="tf-header-title"><span class="tf-title-correct">Doğru</span> <span class="tf-title-slash">/</span> <span class="tf-title-wrong">Yanlış</span></h2>
           <span class="tf-icon-btn" aria-hidden="true" style="visibility:hidden"></span>
         </div>
@@ -5432,7 +5437,7 @@ function renderTrueFalseResult() {
     <div class="tf-shell">
       <div class="tf-header">
         <div class="tf-header-row">
-          <button type="button" class="tf-icon-btn" id="tfResultClose" aria-label="Geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+          <button type="button" class="tf-icon-btn" id="tfResultClose" aria-label="Geri dön">${backButtonContent()}</button>
           <h2 class="tf-header-title">Sonuç</h2>
           <span class="tf-icon-btn" aria-hidden="true" style="visibility:hidden"></span>
         </div>
@@ -5781,7 +5786,7 @@ function renderQuiz() {
     <div class="quiz-premium-layout">
       <div class="quiz-premium-header">
         <div class="quiz-premium-topbar">
-          <button id="quizBackButton" type="button" aria-label="Geri"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+          <button id="quizBackButton" type="button" aria-label="Geri">${backButtonContent()}</button>
           <div class="quiz-premium-titles">
             <h2>${escapeHtml(quiz.title)}</h2>
           </div>
