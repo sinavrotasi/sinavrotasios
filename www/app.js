@@ -259,7 +259,11 @@ const statisticsUi = {
 
 let accountConfirmAction = null;
 
+// Ana sayfadaki "Test Çöz": kadroya göre tüm konular tek listede (sanal kategori).
+const ALL_TESTS_KEY = 'all-tests';
+const itemCategoryKeys = new WeakMap();
 const state = {
+  testsMerged: false,
   view: 'home',
   catalogue: null,
   catalogueError: '',
@@ -294,7 +298,7 @@ const routeSettings = {
 
 // Native (Capacitor) katmanı — ana uygulama koyu header'a sahip olduğu için
 // durum çubuğu açık/beyaz ikonlarla başlatılır. Web'de tamamen etkisizdir.
-window.NativeUX?.init({ statusBarStyle: 'DARK' });
+window.NativeUX?.init({ statusBarStyle: 'LIGHT' });
 applyUiPrefs();
 
 const app = document.getElementById('app');
@@ -458,6 +462,9 @@ const iconPaths = {
   target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
   compass: '<path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/>',
   book: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>',
+  needle: '<path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/>',
+  xMark: '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
+  barsChart: '<path d="M6 20v-6"/><path d="M12 20V6"/><path d="M18 20v-9"/>',
   trophy: '<path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"/><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"/><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"/>',
   flame: '<path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
@@ -1209,7 +1216,7 @@ function closeAllSheets(exceptSheet = null) {
 window.go = function go(view) {
   if(closeAllSheets()===false)return;
   state.view = view;
-  setNav(view);
+  setNav(['bank', 'cards', 'mistakes'].includes(view) ? 'home' : view);
   render();
   scrollArea.scrollTop = 0;
 };
@@ -1232,10 +1239,15 @@ function normalizeItem(item) {
 }
 
 function getCategory(categoryKey) {
+  if (categoryKey === ALL_TESTS_KEY) return state.catalogue ? { title: 'Test Çöz', subtitle: 'Kadronuza göre tüm konular', topics: [] } : null;
   return state.catalogue && state.catalogue[categoryKey];
 }
 
 function getCategoryItems(categoryKey) {
+  if (categoryKey === ALL_TESTS_KEY) {
+    // Tüm kategorilerin (kadroya göre süzülmüş) konuları; her konu kendi kategorisini hatırlar.
+    return getCategories().flatMap(([key]) => getCategoryItems(key).map(item => { itemCategoryKeys.set(item, key); return item; }));
+  }
   const category = getCategory(categoryKey);
   const role = progress.selectedRole;
   return category ? (category.topics || []).map(normalizeItem).filter(item => !role || !item.kadrolar || item.kadrolar.includes(role)) : [];
@@ -1306,6 +1318,7 @@ function getActiveDocuments() {
 
 function categoryCardMeta(categoryKey) {
   const presets = {
+    [ALL_TESTS_KEY]: { title: 'Test Çöz', description: 'Kadronuza göre tüm konular.', icon: 'target', iconClass: 'red' },
     'general-legislation': { title: 'Mevzuat', description: 'Kanunlar, yönetmelikler ve resmi düzenlemeler.', icon: 'scale', iconClass: '' },
     'general-culture': { title: 'Ortak Alan Bilgisi', description: 'Türkçe, Genel Kültür gibi mevzuatta yer almayan konular.', icon: 'landmark', iconClass: 'blue' },
     'meb-legislation': { title: 'MEB Mevzuatı', description: 'Millî Eğitim Bakanlığı mevzuat ve yönergeleri.', icon: 'schoolbook', iconClass: 'red' }
@@ -1382,31 +1395,33 @@ function renderBankProgressWidget(stats) {
 
 function homeView() {
   if (!state.catalogue) return state.catalogueError ? errorView() : loadingView();
-  const stats = getStats();
-  const categories = getCategories().filter(([key]) => getCategoryItems(key).length > 0).map(([key]) => {
-    const meta = categoryCardMeta(key);
-    const topics = getCategoryItems(key);
-    const activePackages = topics.filter(item => item.questionFile).length;
-    const metaText = activePackages ? `${topics.length} başlık • ${activePackages} aktif paket` : `${topics.length} başlık • içerik planlanıyor`;
-    return `<article class="category" role="button" tabindex="0" data-open-category="${key}">
-      <div class="cat-icon ${meta.iconClass}">${svg(meta.icon)}</div>
-      <div class="cat-copy"><h4>${escapeHtml(meta.title)}</h4><p>${escapeHtml(meta.description)}</p><small>${metaText}</small></div>
-      <div class="chevron">${svg('arrow')}</div>
-    </article>`;
-  }).join('');
+  // Tasarım 3 (Dinamik Gradient): 4 satırlık modül kartları + Bugünkü Rota satırı.
+  // "Test Çöz" kadroya göre tüm konuları tek listede açar (sanal kategori).
+  const modules = [
+    { attr: `data-home-sheet="${ALL_TESTS_KEY}"`, tone: 'red',    icon: 'target',     title: 'Test Çöz',    desc: 'Kendini ölç, ilerle.' },
+    { attr: 'data-home-go="mistakes"',            tone: 'blue',   icon: 'xMark',      title: 'Yanlışlarım', desc: 'Eksiklerini tamamla.' },
+    { attr: 'data-home-go="cards"',               tone: 'violet', icon: 'flashcards', title: 'Kartlarım',   desc: 'Bilgini pekiştir.' },
+    { attr: 'data-home-go="bank"',                tone: 'teal',   icon: 'barsChart',  title: 'Denemeler',   desc: 'Gerçek sınav deneyimini yaşa.' }
+  ].map(item => `<button class="home-v3-card tone-${item.tone}" type="button" ${item.attr}>
+      <span class="home-v3-card-icon">${svg(item.icon)}</span>
+      <span class="home-v3-card-copy"><strong class="home-v3-card-title">${item.title}</strong><span class="home-v3-card-desc">${item.desc}</span></span>
+      <span class="home-v3-card-chevron">${svg('arrow')}</span>
+    </button>`).join('');
 
-  return `<section class="screen home-screen">
-    ${renderBankProgressWidget(stats)}
-    <div class="section-head"><h3>Test Kategorileri</h3></div>
-    <section class="categories">${categories}</section>
-    
-    <!-- BUGÜNKÜ ROTA BUTONU -->
-    <button class="cta-btn" id="openRouteSheetButton" type="button">
-      <div class="cta-icon">${svg('compass')}</div><div><strong>Bugünkü Rota</strong><span>Önerilen planı gör veya özelleştir</span></div><span class="chevron-w">${svg('arrow')}</span>
+  return `<section class="screen home-screen home-v3">
+    <div class="home-v3-grid">${modules}</div>
+
+    <!-- BUGÜNKÜ ROTA -->
+    <button class="home-v3-row" id="openRouteSheetButton" type="button">
+      <span class="home-v3-row-icon">${svg('needle')}</span>
+      <span class="home-v3-row-copy"><strong>Bugünkü Rota</strong><span>Planını görüntüle ve devam et.</span></span>
+      <span class="home-v3-row-chevron">${svg('arrow')}</span>
     </button>
     ${state.totalDueFlashcards > 0 ? `
-    <button class="cta-btn cta-btn-flashcards" id="openDueFlashcardsButton" type="button">
-      <div class="cta-icon">${svg('gavel')}</div><div><strong>Bugün ${state.totalDueFlashcards} kart tekrar seni bekliyor</strong><span>Leitner kutu sistemine göre öncelikli</span></div><span class="chevron-w">${svg('arrow')}</span>
+    <button class="home-v3-row tone-green" id="openDueFlashcardsButton" type="button">
+      <span class="home-v3-row-icon">${svg('gavel')}</span>
+      <span class="home-v3-row-copy"><strong>Bugün ${state.totalDueFlashcards} kart tekrar seni bekliyor</strong><span>Leitner kutu sistemine göre öncelikli</span></span>
+      <span class="home-v3-row-chevron">${svg('arrow')}</span>
     </button>` : ''}
   </section>`;
 }
@@ -1471,6 +1486,11 @@ function formatCompletedDate(iso) {
   return date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+// Ana sayfadan açılan modüllerde her zaman görünür bir dönüş yolu.
+function homeModuleBackButton() {
+  return `<div class="home-module-navigation"><button class="home-module-back" data-back-home type="button" aria-label="Ana sayfaya dön">${svg('back')}<span>Geri</span></button></div>`;
+}
+
 function bankView() {
   const stats = getStats();
   const examSummary = getCompletedKadroExamSummary();
@@ -1499,6 +1519,7 @@ function bankView() {
     ${examSummary.count > 3 ? `<button type="button" class="bank-v2-show-all" id="showAllExamsButton" aria-expanded="${state.showAllCompletedExams ? 'true' : 'false'}" aria-controls="completedExamResults" data-total="${examSummary.count}">${state.showAllCompletedExams ? 'Daha az göster' : (examSummary.count > 50 ? `Son 50 denemeyi göster (${examSummary.count})` : `Tümünü göster (${examSummary.count})`)}</button>` : ''}` : '';
 
   return `<section class="screen content-screen bank-screen bank-v2">
+    ${homeModuleBackButton()}
     <header class="bank-v2-heading">
       <div class="bank-v2-heading-copy">
         <h2>Deneme Sınavları</h2>
@@ -1735,6 +1756,7 @@ function mistakesView() {
   }).join('');
 
   return `<section class="screen content-screen mistakes-screen mistakes-reference" aria-label="Yanlışlarım">
+    ${homeModuleBackButton()}
     <header class="mistakes-ref-heading"><div class="mistakes-ref-heading-copy"><h2>Yanlışlarım</h2><p>Yaptığın hatalardan öğren,<br>her denemede daha güçlü ol.</p></div>${headingArt}</header>
     <article class="mistakes-ref-hero"><div class="mistakes-ref-hero-copy"><h3>Bugünün Yanlışları</h3><p>${repeatCount ? `Bugün tekrar zamanı gelen<br><strong>${repeatCount} soru</strong> seni bekliyor.` : 'Şu an tekrar bekleyen<br>yanlış sorun bulunmuyor.'}</p><button class="mistakes-ref-start" id="startWrongPoolButton" type="button" ${repeatCount ? '' : 'disabled'}><span class="mistakes-ref-start-play" aria-hidden="true"></span>Gözden Geçir</button></div>${heroArt}</article>
     <section class="mistakes-ref-metrics" aria-label="Yanlış soru özeti">
@@ -1959,6 +1981,7 @@ function cardsView() {
     </div>`;
 
   return `<section class="screen content-screen cards-dashboard" aria-label="Kartlarım">
+    ${homeModuleBackButton()}
     <header class="cards-dashboard-heading">
       <h2>Kartlarım</h2>
       <p>Konu kartlarıyla bilgini pekiştir, hedeflerine daha hızlı ulaş.</p>
@@ -2542,13 +2565,13 @@ function renderProfileDay(day) {
 }
 
 function profileView() {
-  const stats = getStats();
+  const dailyGoal = getDailyGoal();
   const user = window.currentUser;
   const fullName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Aday';
   const { first, second } = getAvatarInitials(fullName);
   const roleLabel = ROLES.find(r => r.key === progress.selectedRole)?.label || 'Hedef belirlenmedi';
   const prefs = progress.notificationPrefs || DEFAULT_NOTIFICATION_PREFS;
-  const goalPreset = getDailyGoalPreset(stats.dailyGoal);
+  const goalPreset = getDailyGoalPreset(dailyGoal);
   const examLabel = 'Kadronu değiştir';
 
   const targetIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.8 9.2 21 3m0 0v5m0-5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>`;
@@ -2607,7 +2630,7 @@ function profileView() {
     <section class="sp-study-card sp-study-card-daily-only">
       <div class="sp-daily-premium">
         <div class="sp-daily-head">
-          <div><h2 class="sp-daily-title">Günlük çalışma ilerlemesi</h2></div>
+          <div><h2 class="sp-daily-title">Günlük çalışma hedefi</h2></div>
         </div>
         <div class="sp-goal-segments" role="group" aria-label="Günlük hedef yoğunluğu">
           <button type="button" data-goal-preset="20" class="${goalPreset === 'light' ? 'active' : ''}">Hafif</button>
@@ -2615,7 +2638,7 @@ function profileView() {
           <button type="button" data-goal-preset="60" class="${goalPreset === 'intense' ? 'active' : ''}">Yoğun</button>
         </div>
         <div class="sp-goal-bottom">
-          <div class="sp-goal-number"><strong>${stats.dailyGoal}</strong><span>soru / gün</span></div>
+          <div class="sp-goal-number"><strong>${dailyGoal}</strong><span>soru / gün</span></div>
           <button class="sp-customize" id="profileCustomizeGoalButton" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10m4 0h2M4 17h3m4 0h9M14 4v6m-7 4v6"/></svg>
             <span>Özelleştir</span>
@@ -2656,22 +2679,6 @@ function profileView() {
         <button class="sp-switch${studyPrefs.focusMode ? ' on' : ''}" id="profileFocusModeButton" type="button" role="switch" aria-checked="${studyPrefs.focusMode ? 'true' : 'false'}" aria-label="Odak modu"><i></i></button>
       </div>
     </section>
-
-    <button class="sp-statistics-entry" id="openStatisticsButton" type="button">
-      <span class="sp-statistics-entry-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M5 19V11"></path>
-          <path d="M12 19V5"></path>
-          <path d="M19 19V9"></path>
-        </svg>
-      </span>
-      <span class="sp-statistics-entry-copy">
-        <strong>İstatistiklerim</strong>
-        <small>Performansını ve çalışma eğilimlerini görüntüle</small>
-      </span>
-      <span class="sp-statistics-entry-arrow">›</span>
-    </button>
-
     <button class="sp-study-preferences-entry" id="studyPreferencesButton" type="button">
       <span class="sp-study-preferences-icon">${studyPreferencesIcon}</span>
       <span class="sp-study-preferences-copy">
@@ -3258,7 +3265,7 @@ function statisticsView() {
 
   return `<section class="screen content-screen statistics-page sp-subscreen">
     <header class="sp-page-head sp-subpage-head statistics-head">
-      <button class="sp-back" id="statisticsBackButton" type="button" aria-label="Profile dön">${svg('back')}</button>
+      <button class="sp-back" id="statisticsBackButton" type="button" aria-label="Ana sayfaya dön">${svg('back')}</button>
       <h1>İstatistiklerim</h1>
     </header>
 
@@ -3425,20 +3432,26 @@ function updatePageNavigation() {
     nav=document.createElement('nav'); nav.id='pageNavigation'; nav.className='page-navigation'; nav.setAttribute('aria-label','Sayfa gezinmesi');
     nav.innerHTML=`<div class="page-navigation-row"><button type="button" class="page-navigation-back" aria-label="Geri dön">${svg('back')}</button><span class="page-navigation-title"></span><span class="page-navigation-spacer" aria-hidden="true"></span></div>`;
     phone.appendChild(nav);
-    nav.querySelector('button').addEventListener('click',()=>app.querySelector('.sp-subpage-head .sp-back')?.click());
+    nav.querySelector('button').addEventListener('click',()=>{
+      const back=app.querySelector('.sp-subpage-head .sp-back');
+      if(back)back.click();
+      else if(['bank','cards','mistakes'].includes(state.view))window.go('home');
+    });
     scrollArea.addEventListener('scroll',syncPageNavigation,{passive:true});
     window.addEventListener('resize',syncPageNavigation);
   }
   const subhead=app.querySelector('.sp-subpage-head');
-  const mainTitles={bank:'Deneme Sınavları',cards:'Kartlarım',mistakes:'Yanlışlarım',profile:'Profil'};
+  const mainTitles={profile:'Profil'};
   const title=subhead?.querySelector('h1')?.textContent || mainTitles[state.view];
   const active=Boolean(title);
   nav.hidden=!active; phone.classList.toggle('has-page-navigation',active);
   phone.classList.toggle('native-ios-navigation',window.Capacitor?.getPlatform?.()==='ios');
   if(!active)return;
   nav.querySelector('.page-navigation-title').textContent=title;
-  nav.querySelector('button').hidden=!subhead?.querySelector('.sp-back');
-  nav.classList.toggle('has-back',Boolean(subhead?.querySelector('.sp-back')));
+  const homeChild=['bank','cards','mistakes'].includes(state.view);
+  const hasBack=Boolean(subhead?.querySelector('.sp-back'))||homeChild;
+  nav.querySelector('button').hidden=!hasBack;
+  nav.classList.toggle('has-back',hasBack);
   nav.classList.remove('always-title');
   subhead?.classList.add('page-navigation-source');
   syncPageNavigation();
@@ -3457,6 +3470,7 @@ function render() {
 }
 
 function bindViewEvents() {
+  app.querySelectorAll('[data-back-home]').forEach(button => button.addEventListener('click', () => window.go('home')));
   const showAllExamsButton = document.getElementById('showAllExamsButton');
   showAllExamsButton?.addEventListener('click', () => {
     state.showAllCompletedExams = !state.showAllCompletedExams;
@@ -3475,6 +3489,10 @@ function bindViewEvents() {
   });
   app.querySelectorAll('[data-stat-target]').forEach(element => element.addEventListener('click', () => window.go(element.dataset.statTarget)));
   
+  // Ana sayfa modül kartları (Test Çöz / Yanlışlarım / Kartlarım / Denemeler)
+  app.querySelectorAll('[data-home-go]').forEach(element => element.addEventListener('click', () => window.go(element.dataset.homeGo)));
+  app.querySelectorAll('[data-home-sheet]').forEach(element => element.addEventListener('click', () => openTopicSheet(element.dataset.homeSheet)));
+
   // Rota panelini açma butonu
   document.getElementById('openRouteSheetButton')?.addEventListener('click', openRouteSheet);
   document.getElementById('openDueFlashcardsButton')?.addEventListener('click', openDueReviewSession);
@@ -3581,19 +3599,7 @@ function bindViewEvents() {
     showToast(next ? 'Odak modu açıldı.' : 'Odak modu kapatıldı.');
   });
 
-  document.getElementById('openStatisticsButton')?.addEventListener('click', () => {
-    profileReturnScrollTop = scrollArea.scrollTop;
-    state.view = 'statistics';
-    setNav('profile');
-    render();
-    scrollArea.scrollTop = 0;
-  });
-  document.getElementById('statisticsBackButton')?.addEventListener('click', () => {
-    state.view = 'profile';
-    setNav('profile');
-    render();
-    restoreProfilePosition();
-  });
+  document.getElementById('statisticsBackButton')?.addEventListener('click', () => window.go('home'));
 
   document.getElementById('statisticsOverviewRangeButton')?.addEventListener('click', event => {
     event.stopPropagation();
@@ -4089,7 +4095,7 @@ function updateHeader() {
   solved.textContent = stats.todayAnswers;
   total.textContent = stats.dailyGoal;
   progressFill.style.width = `${stats.dailyPercentage}%`;
-  if (message) message.textContent = stats.dailyPercentage >= 100 ? 'Günlük hedefini tamamladın. Harika iş!' : stats.todayAnswers ? 'Hedefine düzenli biçimde yaklaşıyorsun.' : 'İlk soruyla günlük hedefini başlat.';
+  if (message) message.textContent = stats.dailyPercentage >= 100 ? 'Günlük hedefini tamamladın. Harika iş!' : 'Bugünkü hedefine ulaşmanın en güvenilir yoludur.';
 }
 
 async function resetProgress(options = {}) {
@@ -4298,6 +4304,7 @@ function runSearch(query) {
 }
 
 function openSearchResult(result) {
+  state.testsMerged = false;
   closeAllSheets(topicSheet);
   if (result.type === 'section' || result.type === 'article') {
     renderSummary(result.item, result.categoryKey);
@@ -4389,6 +4396,7 @@ function navigateTopicView(kind,item,categoryKey,renderFresh,filter=null) {
   finish();
 }
 function renderCategoryLevel(categoryKey) {
+  if (state.testsMerged) categoryKey = ALL_TESTS_KEY; // Test Çöz'den girildiyse geri = birleşik liste
   return navigateTopicView('category',null,categoryKey,()=>renderCategoryLevelFresh(categoryKey));
 }
 function renderStudyModeHub(item,categoryKey,initialFilter=null) {
@@ -4410,6 +4418,7 @@ function resetSheetClasses() {
 function openTopicSheet(categoryKey) {
   const category = getCategory(categoryKey);
   if (!category) return showToast('Kategori bulunamadı.');
+  state.testsMerged = categoryKey === ALL_TESTS_KEY;
   clearInterval(timerInterval);
   timerInterval = null;
   closeAllSheets(topicSheet);
@@ -4484,7 +4493,7 @@ function renderCategoryLevelFresh(categoryKey) {
   applyCategoryProgressTone(categoryKey);
   topicSheet.classList.add('category-glass');
   const meta = categoryCardMeta(categoryKey);
-  applySheetHeader({ title: category.title, subtitle: categoryKey === 'general-culture' ? String(category.subtitle || '').replace(/Coğrafya\s*,?\s*/gi, '').replace(/,\s*,/g, ',') : category.subtitle, eyebrow: 'KONU KATEGORİSİ', icon: meta.icon, iconClass: meta.iconClass });
+  applySheetHeader({ title: category.title, subtitle: categoryKey === 'general-culture' ? String(category.subtitle || '').replace(/Coğrafya\s*,?\s*/gi, '').replace(/,\s*,/g, ',') : category.subtitle, eyebrow: categoryKey === ALL_TESTS_KEY ? 'TÜM KONULAR' : 'KONU KATEGORİSİ', icon: meta.icon, iconClass: meta.iconClass });
   topicBreadcrumbWrap.innerHTML = '';
   const categoryCompletion = getCategoryCompletion(categoryKey);
   const progressPercent = categoryCompletion.percentage;
@@ -4501,8 +4510,9 @@ function renderCategoryLevelFresh(categoryKey) {
   topicList.querySelectorAll('[data-topic-index]').forEach(element => {
     const open = () => {
       const item = items[Number(element.dataset.topicIndex)];
-      if (item.type === 'document') renderDocumentHub(item, categoryKey);
-      else renderTopicPlan(item, categoryKey);
+      const itemCategoryKey = itemCategoryKeys.get(item) || categoryKey;
+      if (item.type === 'document') renderDocumentHub(item, itemCategoryKey);
+      else renderTopicPlan(item, itemCategoryKey);
     };
     element.addEventListener('click', open);
     element.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
@@ -4680,7 +4690,7 @@ function renderStudyModeHubFresh(item, categoryKey, initialFilter = 'all') {
   topicSheet.classList.remove('category-glass', 'quiz-active', 'card-study-active');
   topicSheet.classList.add('document-flow');
   applySheetHeader({ title:item.title, subtitle:statLine(item), eyebrow:'', icon:categoryCardMeta(categoryKey).icon, iconClass:categoryCardMeta(categoryKey).iconClass });
-  renderBreadcrumb(getCategory(categoryKey).title, () => renderCategoryLevel(categoryKey));
+  renderBreadcrumb(getCategory(state.testsMerged ? ALL_TESTS_KEY : categoryKey).title, () => renderCategoryLevel(categoryKey));
   const percentage = Math.min(100, Math.max(0, Number(getDocumentProgress(item)) || 0));
   setSheetProgress('Henüz çalışılmadı', percentage);
   const count = Number.isFinite(Number(item.questionCount)) && item.questionCount !== null ? Math.max(0, Number(item.questionCount)) : null;
@@ -6400,6 +6410,8 @@ function renderQuizResult() {
 }
 
 navButtons.forEach(button => button.addEventListener('click', () => window.go(button.dataset.nav)));
+// Ana sayfa özet kartındaki ok: Bugünkü Rota panelini açar (header statik HTML).
+document.getElementById('heroRouteButton')?.addEventListener('click', () => openRouteSheet());
 closeTopicSheetButton.addEventListener('click', closeTopicSheet);
 topicBackdrop.addEventListener('click', () => closeAllSheets());
 
@@ -6459,7 +6471,7 @@ function handleHardwareBack() {
     });
     return true;
   }
-  if (['statistics', 'achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance'].includes(state.view)) {
+  if (['achievements', 'profile-edit', 'goal-settings', 'data-account', 'appearance'].includes(state.view)) {
     state.view = 'profile';
     setNav('profile');
     render();
@@ -6797,6 +6809,7 @@ function updateNotifBadge() {
   if (openNotifButton) {
     openNotifButton.setAttribute('aria-label', unread ? `Bildirimler, ${unread} okunmamış` : 'Bildirimler');
   }
+
   if (notifClearButton) notifClearButton.hidden = notifications.length === 0;
 }
 
