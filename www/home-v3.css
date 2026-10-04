@@ -129,9 +129,9 @@
   display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0;
   width:auto!important;height:auto!important;min-height:0!important;
   margin:8px 12px calc(8px + env(safe-area-inset-bottom,0px))!important;padding:8px 6px!important;
-  border:1px solid rgba(154,179,223,.26)!important;border-radius:28px!important;
-  background:linear-gradient(120deg,rgba(23,31,57,.97),rgba(14,32,58,.97))!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)!important;overflow:hidden!important;
+  border:1px solid rgba(255,255,255,.88)!important;border-radius:28px!important;
+  background:linear-gradient(120deg,rgba(255,255,255,.84),rgba(242,246,253,.76))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 1px rgba(184,201,225,.22)!important;overflow:hidden!important;
   backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important;
 }
 #appPhone > .bottom-nav::before,
@@ -141,16 +141,16 @@
 #appPhone > .bottom-nav button{
   position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
   min-width:0;min-height:58px;height:auto;padding:4px 2px;gap:5px;border:0;
-  border-radius:20px;background:transparent!important;color:#9bb1d0;
+  border-radius:20px;background:transparent!important;color:#536c91;
 }
-#appPhone > .bottom-nav button > svg{width:25px;height:25px;min-width:25px;stroke-width:1.9}
+#appPhone > .bottom-nav button > svg{color:inherit!important;stroke:currentColor!important;width:25px;height:25px;min-width:25px;stroke-width:1.9}
 #appPhone > .bottom-nav button > span{font-size:11.5px;line-height:14px;font-weight:600;color:inherit}
 #appPhone > .bottom-nav .nav-icon-solid{display:none}
-#appPhone > .bottom-nav button.active{color:#ff3947;background:transparent!important}
+#appPhone > .bottom-nav button.active{color:#e5303a;background:transparent!important}
 #appPhone > .bottom-nav button.active .nav-icon-outline{display:none}
-#appPhone > .bottom-nav button.active .nav-icon-solid{display:inline}
+#appPhone > .bottom-nav button.active .nav-icon-solid{display:inline;fill:currentColor}
 #appPhone > .bottom-nav button.active > span{color:inherit;font-weight:700}
-#appPhone > .bottom-nav button:focus-visible{outline:2px solid #9bb1d0;outline-offset:-2px}
+#appPhone > .bottom-nav button:focus-visible{outline:2px solid #536c91;outline-offset:-2px}
 #appPhone .scroll-area > .app-scroll{padding-bottom:14px!important}
 
 /* ---------- KÜÇÜK EKRANLAR ---------- */
@@ -184,52 +184,20 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen){
 html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.app-scroll,
 #appPhone .scroll-area:has(>.app-scroll>.home-screen)>.app-scroll{background:transparent}
 
-/* ---------- iOS ÜST GEZİNME ---------- */
+/* Mevcut İstatistikler üst gezinmesinin konumu ve yüksekliği style.css'ten gelir. */
 :root{--ios-panel-duration:360ms;--ios-panel-easing:cubic-bezier(.22,1,.36,1)}
-#appPhone{position:relative;display:flex;flex-direction:column}
-#appPhone > .scroll-area{flex:1 1 auto;min-height:0}
-#appPhone > #pageNavigation{
-  position:relative!important;inset:auto!important;z-index:30;flex:0 0 auto;width:100%;box-sizing:border-box;
-  padding:calc(max(8px,env(safe-area-inset-top,0px)) + 4px) 14px 6px!important;
-  margin:0!important;border:0;border-bottom:1px solid transparent;background:#f7f9fd;
-  box-shadow:none!important;transition:background .2s ease,border-color .2s ease;
+#appPhone .page-navigation-row{grid-template-columns:82px minmax(0,1fr) 82px}
+#appPhone .page-navigation-back{
+  display:inline-flex;align-items:center;justify-content:flex-start;gap:5px;
+  width:82px!important;min-height:44px;padding:0 2px!important;
+  border:0!important;border-radius:10px!important;background:transparent!important;box-shadow:none!important;
+  font:inherit;font-size:16px;font-weight:600;color:#071f49;white-space:nowrap;
 }
-#appPhone > #pageNavigation[hidden]{display:none!important}
-#appPhone > #pageNavigation .page-navigation-row{
-  display:grid;grid-template-columns:86px minmax(0,1fr) 86px;align-items:center;gap:4px;height:48px;
-}
-#appPhone > #pageNavigation .page-navigation-back{
-  display:inline-flex;align-items:center;justify-content:flex-start;gap:5px;width:auto!important;height:44px!important;
-  min-width:76px;padding:0 2px!important;border:0!important;border-radius:10px!important;
-  background:transparent!important;color:#071f49;font:inherit;font-size:16px;font-weight:600;white-space:nowrap;
-  box-shadow:none!important;cursor:pointer;-webkit-tap-highlight-color:transparent;
-}
-#appPhone > #pageNavigation .page-navigation-back[hidden]{visibility:hidden;display:flex!important}
-#appPhone > #pageNavigation .page-navigation-back::before,
-#appPhone > #pageNavigation .page-navigation-back::after{content:none!important;display:none!important}
-#appPhone > #pageNavigation .page-navigation-back:active{opacity:.55}
-#appPhone > #pageNavigation .page-navigation-back:focus-visible{outline:2px solid #e5303a!important;outline-offset:2px}
+#appPhone .page-navigation-back[hidden]{display:none!important}
+#appPhone .page-navigation-back::before,
+#appPhone .page-navigation-back::after{content:none!important;display:none!important}
+#appPhone .page-navigation-spacer{width:82px}
 #appPhone .ios-back-chevron{font-family:Arial,sans-serif;font-size:25px;font-weight:400;line-height:1}
-#appPhone > #pageNavigation .page-navigation-title{
-  display:block!important;min-width:0;text-align:center;color:#071f49;font-size:17px;font-weight:700;line-height:1.25;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translateY(5px);
-  transition:opacity .2s ease,transform .2s ease;
-}
-#appPhone > #pageNavigation.is-scrolled{background:rgba(249,250,253,.96);border-bottom-color:#e3e9f2;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-#appPhone > #pageNavigation.is-scrolled .page-navigation-title{opacity:1;transform:none}
-#appPhone > #pageNavigation .page-navigation-spacer{width:86px}
-#appPhone.has-page-navigation > .scroll-area{padding-top:0!important;margin-top:0!important}
-#appPhone .sp-subpage-head > .sp-back{display:none!important}
-#appPhone :is(.topic-breadcrumb-back,.study-hub-book,#quizBackButton,#tfClose){
-  display:inline-flex;align-items:center;justify-content:center;gap:5px;width:auto!important;min-width:76px;
-  min-height:44px;padding:6px 10px;white-space:nowrap;font:inherit;font-size:14px;font-weight:600;
-}
-#appPhone #tfClose{flex-shrink:0}
-@media(max-width:999px){
-  #appPhone{height:var(--app-height,100dvh)!important;max-height:none!important;min-height:0!important;overflow:hidden!important}
-  html.native-ios-scroll #appPhone > .scroll-area,
-  #appPhone > .scroll-area{flex:1 1 auto!important;height:auto!important;min-height:0!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
-}
 
 /* ---------- TÜM PENCERELER: ortak açılış ve kapanış ---------- */
 #appPhone > :is(.bottom-sheet,.topic-sheet){
@@ -247,7 +215,7 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.ap
 #appPhone > #topicBackdrop.open{opacity:1!important;visibility:visible;pointer-events:auto!important;transition-delay:0s!important}
 #appPhone :is(.quiz-nav-overlay,.quiz-finish-modal-overlay),
 #roleGate{
-  display:flex!important;align-items:center;justify-content:center;animation:none!important;opacity:0!important;
+  animation:none!important;opacity:0!important;
   visibility:hidden!important;pointer-events:none!important;
   transition:opacity var(--ios-panel-duration) var(--ios-panel-easing)!important;
 }
@@ -262,8 +230,6 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.ap
 }
 #appPhone :is(.quiz-nav-overlay,.quiz-finish-modal-overlay).open > :is(.quiz-nav-sheet,.quiz-finish-modal),
 #roleGate.open > .role-gate-card{transform:translate3d(0,0,0)!important;opacity:1!important}
-#appPhone .quiz-nav-overlay{z-index:100!important}
-#appPhone .quiz-finish-modal-overlay{z-index:110!important}
 #appPhone .sp-time-dialog{
   animation:none!important;transform:translate3d(0,40px,0);opacity:0;
   transition:transform var(--ios-panel-duration) var(--ios-panel-easing),opacity var(--ios-panel-duration) var(--ios-panel-easing)!important;
@@ -272,20 +238,22 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.ap
 #appPhone .sp-time-dialog::backdrop{background:rgba(7,19,40,.35);opacity:0;transition:opacity var(--ios-panel-duration) var(--ios-panel-easing)}
 #appPhone .sp-time-dialog.open::backdrop{opacity:1}
 
-/* Konu panelinin kapatma düğmesi tek simgeden oluşur. */
-#appPhone #topicSheet > #closeTopicSheet{
-  position:absolute!important;top:18px!important;right:14px!important;left:auto!important;bottom:auto!important;z-index:8!important;
-  display:grid!important;place-items:center;width:36px!important;height:36px!important;min-width:36px!important;
-  padding:8px!important;border:0!important;border-radius:50%!important;color:#52647f!important;
-  background:#edf1f6!important;background-image:none!important;box-shadow:none!important;line-height:1!important;cursor:pointer;
+/* Eski kapatma düğmesinin konumu korunur; üst üste iki X çizilmez. */
+#appPhone #closeTopicSheet{background-image:none!important}
+#appPhone #closeTopicSheet::before,
+#appPhone #closeTopicSheet::after{content:none!important;display:none!important}
+#appPhone #closeTopicSheet svg{display:block;width:20px;height:20px;pointer-events:none}
+
+/* Bildirim ve arama: daha uzun, yavaşça duran hareket ve kademeli görünürlük. */
+#appPhone > :is(#notifSheet,#searchSheet){
+  --ios-panel-duration:520ms;--ios-panel-easing:cubic-bezier(.16,1,.3,1);
+  transition:transform var(--ios-panel-duration) var(--ios-panel-easing),opacity 320ms ease-out!important;
 }
-#appPhone #topicSheet > #closeTopicSheet::before,
-#appPhone #topicSheet > #closeTopicSheet::after{content:none!important;display:none!important}
-#appPhone #topicSheet > #closeTopicSheet svg{display:block;width:20px;height:20px;pointer-events:none}
-#appPhone #topicSheet > .topic-sheet-head .topic-heading-wrap{padding-right:44px}
-#appPhone #topicSheet.quiz-active > #closeTopicSheet{display:none!important}
+#appPhone > :is(#notifSheet,#searchSheet).closing{
+  --ios-panel-easing:cubic-bezier(.4,0,.2,1);
+  transition:transform var(--ios-panel-duration) var(--ios-panel-easing),opacity 420ms ease-in!important;
+}
 @media(prefers-reduced-motion:reduce){
   :root{--ios-panel-duration:0ms}
-  #appPhone > #pageNavigation,
-  #appPhone > #pageNavigation .page-navigation-title{transition:none!important}
+  #appPhone > :is(#notifSheet,#searchSheet){--ios-panel-duration:0ms;transition:none!important}
 }

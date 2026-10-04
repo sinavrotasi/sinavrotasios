@@ -1136,9 +1136,9 @@ const allSheets = [routeSheet, topicSheet, searchSheet, notifSheet];
 const sheetCloseTimers = new WeakMap();
 const sheetOpenFrames = new WeakMap();
 
-function panelMotionDuration() {
+function panelMotionDuration(sheet = null) {
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return 0;
-  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ios-panel-duration')) || 360;
+  return parseFloat(getComputedStyle(sheet || document.documentElement).getPropertyValue('--ios-panel-duration')) || 360;
 }
 
 function setSheetOpen(sheet, isOpen, onClosed = null) {
@@ -1178,7 +1178,7 @@ function setSheetOpen(sheet, isOpen, onClosed = null) {
     sheet.classList.remove('closing');
     sheet.setAttribute('aria-hidden', 'true');
     onClosed?.();
-  }, panelMotionDuration()));
+  }, panelMotionDuration(sheet)));
 }
 
 function setReminderDialogOpen(dialog, isOpen) {
@@ -1227,6 +1227,8 @@ function closeAllSheets(exceptSheet = null) {
   if(exceptSheet!==topicSheet)resetTopicViewCache();
   allSheets.forEach(sheet => setSheetOpen(sheet, sheet === exceptSheet, sheet === topicSheet && sheet !== exceptSheet ? resetSheetClasses : null));
   if (exceptSheet !== searchSheet) clearSearchState();
+  const backdropDuration = Math.max(0, ...allSheets.filter(sheet => sheet.getAttribute('aria-hidden') === 'false').map(sheet => panelMotionDuration(sheet)));
+  topicBackdrop.style.setProperty('--ios-panel-duration', `${backdropDuration}ms`);
   topicBackdrop.classList.toggle('open', Boolean(exceptSheet));
   return true;
 }
@@ -1531,16 +1533,10 @@ function bankView() {
     </div>
     ${examSummary.count > 3 ? `<button type="button" class="bank-v2-show-all" id="showAllExamsButton" aria-expanded="${state.showAllCompletedExams ? 'true' : 'false'}" aria-controls="completedExamResults" data-total="${examSummary.count}">${state.showAllCompletedExams ? 'Daha az göster' : (examSummary.count > 50 ? `Son 50 denemeyi göster (${examSummary.count})` : `Tümünü göster (${examSummary.count})`)}</button>` : ''}` : '';
 
-  return `<section class="screen content-screen bank-screen bank-v2">
-    <header class="bank-v2-heading">
-      <div class="bank-v2-heading-copy">
-        <h2>Deneme Sınavları</h2>
-        <p>Hedefine bir adım daha yaklaş.</p>
-      </div>
-      <div class="bank-v2-heading-art" aria-hidden="true">
-        <span class="bank-v2-paper">${svg('statTrials')}</span>
-        <span class="bank-v2-clock">${svg('clock')}</span>
-      </div>
+  return `<section class="screen content-screen sp-subscreen bank-screen bank-v2">
+    <header class="sp-page-head sp-subpage-head statistics-head">
+      <button class="sp-back" data-module-back type="button" aria-label="Ana sayfaya dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+      <h1>Deneme Sınavları</h1>
     </header>
 
     <article class="bank-v2-hero">
@@ -1767,8 +1763,11 @@ function mistakesView() {
     </article>`;
   }).join('');
 
-  return `<section class="screen content-screen mistakes-screen mistakes-reference" aria-label="Yanlışlarım">
-    <header class="mistakes-ref-heading"><div class="mistakes-ref-heading-copy"><h2>Yanlışlarım</h2><p>Yaptığın hatalardan öğren,<br>her denemede daha güçlü ol.</p></div>${headingArt}</header>
+  return `<section class="screen content-screen sp-subscreen mistakes-screen mistakes-reference" aria-label="Yanlışlarım">
+    <header class="sp-page-head sp-subpage-head statistics-head">
+      <button class="sp-back" data-module-back type="button" aria-label="Ana sayfaya dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+      <h1>Yanlışlarım</h1>
+    </header>
     <article class="mistakes-ref-hero"><div class="mistakes-ref-hero-copy"><h3>Bugünün Yanlışları</h3><p>${repeatCount ? `Bugün tekrar zamanı gelen<br><strong>${repeatCount} soru</strong> seni bekliyor.` : 'Şu an tekrar bekleyen<br>yanlış sorun bulunmuyor.'}</p><button class="mistakes-ref-start" id="startWrongPoolButton" type="button" ${repeatCount ? '' : 'disabled'}><span class="mistakes-ref-start-play" aria-hidden="true"></span>Gözden Geçir</button></div>${heroArt}</article>
     <section class="mistakes-ref-metrics" aria-label="Yanlış soru özeti">
       <article class="mistakes-ref-metric metric-wrong"><span class="mistakes-ref-metric-icon">${metricWrongIcon}</span><div><small>Toplam Yanlış</small><span class="mistakes-ref-metric-value"><strong>${totalWrongCount}</strong><em>Soru</em></span></div></article>
@@ -1987,13 +1986,10 @@ function cardsView() {
       </article>
     </div>`;
 
-  return `<section class="screen content-screen cards-dashboard" aria-label="Kartlarım">
-    <header class="cards-dashboard-heading">
-      <h2>Kartlarım</h2>
-      <p>Konu kartlarıyla bilgini pekiştir, hedeflerine daha hızlı ulaş.</p>
-      <div class="cards-dashboard-mark" aria-hidden="true">
-        <span></span><span></span><span>${svg('schoolbook')}</span>
-      </div>
+  return `<section class="screen content-screen sp-subscreen cards-dashboard" aria-label="Kartlarım">
+    <header class="sp-page-head sp-subpage-head statistics-head">
+      <button class="sp-back" data-module-back type="button" aria-label="Ana sayfaya dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
+      <h1>Kartlarım</h1>
     </header>
 
     <article class="cards-smart-review${dueCount ? '' : ' is-empty'}">
@@ -3433,7 +3429,7 @@ function updatePageNavigation() {
   if(!nav){
     nav=document.createElement('nav'); nav.id='pageNavigation'; nav.className='page-navigation'; nav.setAttribute('aria-label','Sayfa gezinmesi');
     nav.innerHTML=`<div class="page-navigation-row"><button type="button" class="page-navigation-back" aria-label="Geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button><span class="page-navigation-title"></span><span class="page-navigation-spacer" aria-hidden="true"></span></div>`;
-    phone.insertBefore(nav,scrollArea);
+    phone.appendChild(nav);
     nav.querySelector('button').addEventListener('click',()=>{
       const back=app.querySelector('.sp-subpage-head .sp-back');
       if(back)back.click();
@@ -3456,7 +3452,7 @@ function updatePageNavigation() {
   nav.querySelector('button').hidden=!hasBack;
   nav.classList.toggle('has-back',hasBack);
   nav.classList.remove('always-title');
-  subhead?.classList.remove('page-navigation-source');
+  subhead?.classList.add('page-navigation-source');
   syncPageNavigation();
   requestAnimationFrame(syncPageNavigation);
 }
@@ -3473,6 +3469,7 @@ function render() {
 }
 
 function bindViewEvents() {
+  app.querySelectorAll('[data-module-back]').forEach(button => button.addEventListener('click', () => window.go('home')));
   const showAllExamsButton = document.getElementById('showAllExamsButton');
   showAllExamsButton?.addEventListener('click', () => {
     state.showAllCompletedExams = !state.showAllCompletedExams;
