@@ -1120,12 +1120,112 @@ function setNav(name) {
     if (active) button.setAttribute('aria-current', 'page');
     else button.removeAttribute('aria-current');
   });
+  syncBottomMenu();
+}
+
+// iOS menü seçimi: arama bir paneldir, diğer düğmeler sayfa sekmesidir.
+function bottomMenuButtons(menu = document.querySelector('.bottom-nav')) {
+  return menu ? [...menu.querySelectorAll('[data-nav], #openSearchButton')] : [];
+}
+
+function positionMenuIndicator(menu, button) {
+  if (!menu || !button) return;
+  const bounds = menu.getBoundingClientRect();
+  const rect = button.getBoundingClientRect();
+  menu.style.setProperty('--menu-pill-x', `${rect.left - bounds.left}px`);
+  menu.style.setProperty('--menu-pill-width', `${rect.width}px`);
+}
+
+function syncBottomMenu() {
   const menu = document.querySelector('.bottom-nav');
   if (!menu) return;
-  const items = [...menu.querySelectorAll('[data-nav]')];
-  const index = items.findIndex(button => button.dataset.nav === name);
-  menu.style.setProperty('--nav-visible', index < 0 ? '0' : '1');
-  if (index >= 0) menu.style.setProperty('--nav-index', String(index));
+  const items = bottomMenuButtons(menu);
+  const search = items.find(button => button.id === 'openSearchButton');
+  const searching = searchSheet?.getAttribute('aria-hidden') === 'false' && !searchSheet.inert;
+  const page = items.find(button => button.getAttribute('aria-current') === 'page');
+  const selected = (searching ? search : page) || items[0];
+  items.forEach(button => button.classList.toggle('active', button === selected));
+  search?.setAttribute('aria-expanded', searching ? 'true' : 'false');
+  const index = items.indexOf(selected);
+  menu.style.setProperty('--nav-index', String(Math.max(0, index)));
+  menu.style.setProperty('--nav-visible', selected ? '1' : '0');
+  if (!menu.classList.contains('is-dragging')) positionMenuIndicator(menu, selected);
+}
+
+function activateBottomMenuButton(button) {
+  if (!button) return;
+  if (button.id === 'openSearchButton') openSearchSheet();
+  else if (button.dataset.nav !== state.view) window.go(button.dataset.nav);
+  syncBottomMenu();
+}
+
+function initBottomMenuGestures() {
+  const menu = document.querySelector('.bottom-nav');
+  if (!menu) return;
+  let drag = null;
+  let suppressClickUntil = 0;
+  const nearestButton = x => bottomMenuButtons(menu).reduce((best, button) => {
+    const rect = button.getBoundingClientRect();
+    const distance = Math.abs(x - (rect.left + rect.width / 2));
+    return !best || distance < best.distance ? { button, distance } : best;
+  }, null)?.button;
+
+  menu.addEventListener('pointerdown', event => {
+    if (!event.isPrimary || event.button !== 0) return;
+    drag = { pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, moved:false, button:nearestButton(event.clientX) };
+  });
+  menu.addEventListener('pointermove', event => {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (!drag.moved) {
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) { drag = null; return; }
+      if (Math.abs(dx) < 8) return;
+      drag.moved = true;
+      menu.setPointerCapture?.(event.pointerId);
+      menu.classList.add('is-dragging');
+    }
+    event.preventDefault();
+    drag.button = nearestButton(event.clientX);
+    positionMenuIndicator(menu, drag.button);
+    const menuRect = menu.getBoundingClientRect();
+    const buttons = bottomMenuButtons(menu);
+    const first = buttons[0].getBoundingClientRect();
+    const last = buttons[buttons.length - 1].getBoundingClientRect();
+    const width = drag.button.getBoundingClientRect().width;
+    const left = Math.max(first.left - menuRect.left, Math.min(last.left - menuRect.left, event.clientX - menuRect.left - width / 2));
+    menu.style.setProperty('--menu-pill-x', `${left}px`);
+  });
+  const endDrag = (event, commit) => {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const finished = drag;
+    drag = null;
+    menu.classList.remove('is-dragging');
+    if (menu.hasPointerCapture?.(event.pointerId)) menu.releasePointerCapture(event.pointerId);
+    if (finished.moved) {
+      suppressClickUntil = performance.now() + 400;
+      if (commit) activateBottomMenuButton(finished.button);
+      else syncBottomMenu();
+    }
+  };
+  menu.addEventListener('pointerup', event => endDrag(event, true));
+  menu.addEventListener('pointercancel', event => endDrag(event, false));
+  menu.addEventListener('lostpointercapture', event => endDrag(event, false));
+  menu.addEventListener('click', event => {
+    if (performance.now() < suppressClickUntil) { event.preventDefault(); event.stopImmediatePropagation(); }
+  }, true);
+  menu.addEventListener('keydown', event => {
+    if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+    const buttons = bottomMenuButtons(menu);
+    const index = buttons.indexOf(document.activeElement);
+    if (index < 0) return;
+    event.preventDefault();
+    const next = buttons[(index + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length];
+    next.focus();
+    activateBottomMenuButton(next);
+  });
+  window.addEventListener('resize', syncBottomMenu);
+  window.requestAnimationFrame(syncBottomMenu);
 }
 
 // --- SHEET DURUM YÖNETİMİ ---
@@ -1230,6 +1330,7 @@ function closeAllSheets(exceptSheet = null) {
   const backdropDuration = Math.max(0, ...allSheets.filter(sheet => sheet.getAttribute('aria-hidden') === 'false').map(sheet => panelMotionDuration(sheet)));
   topicBackdrop.style.setProperty('--ios-panel-duration', `${backdropDuration}ms`);
   topicBackdrop.classList.toggle('open', Boolean(exceptSheet));
+  syncBottomMenu();
   return true;
 }
 
@@ -6410,6 +6511,7 @@ function renderQuizResult() {
 }
 
 navButtons.forEach(button => button.addEventListener('click', () => window.go(button.dataset.nav)));
+initBottomMenuGestures();
 // Ana sayfa özet kartındaki ok: Bugünkü Rota panelini açar (header statik HTML).
 closeTopicSheetButton.addEventListener('click', closeTopicSheet);
 topicBackdrop.addEventListener('click', () => closeAllSheets());
