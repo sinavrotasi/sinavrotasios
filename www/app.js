@@ -1134,43 +1134,61 @@ function setNav(name) {
 // kapanış yolunu kullanır.
 const allSheets = [routeSheet, topicSheet, searchSheet, notifSheet];
 const sheetCloseTimers = new WeakMap();
+const sheetOpenFrames = new WeakMap();
 
-function setSheetOpen(sheet, isOpen) {
-  if (!sheet) return;
+function panelMotionDuration() {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return 0;
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ios-panel-duration')) || 360;
+}
+
+function setSheetOpen(sheet, isOpen, onClosed = null) {
+  if (!sheet) { onClosed?.(); return; }
   const pending = sheetCloseTimers.get(sheet);
-  if (pending) {
-    window.clearTimeout(pending);
-    sheetCloseTimers.delete(sheet);
-  }
+  if (pending !== undefined) window.clearTimeout(pending);
+  sheetCloseTimers.delete(sheet);
+  const frame = sheetOpenFrames.get(sheet);
+  if (frame !== undefined) window.cancelAnimationFrame(frame);
+  sheetOpenFrames.delete(sheet);
 
   if (isOpen) {
     sheet.classList.remove('closing');
     sheet.setAttribute('aria-hidden', 'false');
     sheet.inert = false;
-    // iOS sheet hissi: önce görünür yap, ardından sonraki karede yukarı kaydır.
-    window.requestAnimationFrame(() => sheet.classList.add('open'));
+    if (sheet.classList.contains('open')) return;
+    // Görünür başlangıç karesi ile açılış karesini ayır.
+    sheet.getBoundingClientRect();
+    sheetOpenFrames.set(sheet, window.requestAnimationFrame(() => {
+      sheetOpenFrames.delete(sheet);
+      sheet.classList.add('open');
+    }));
     return;
   }
 
   sheet.inert = true;
   if (!sheet.classList.contains('open') && !sheet.classList.contains('closing')) {
     sheet.setAttribute('aria-hidden', 'true');
+    onClosed?.();
     return;
   }
-
-  // aria-hidden kapanışın sonunda verilir; aksi halde CSS visibility:hidden
-  // dönüş animasyonunu ilk karede kesiyordu.
   sheet.classList.remove('open');
   sheet.classList.add('closing');
   sheet.setAttribute('aria-hidden', 'false');
-  const timer = window.setTimeout(() => {
-    if (!sheet.classList.contains('open')) {
-      sheet.classList.remove('closing');
-      sheet.setAttribute('aria-hidden', 'true');
-    }
+  sheetCloseTimers.set(sheet, window.setTimeout(() => {
     sheetCloseTimers.delete(sheet);
-  }, 430);
-  sheetCloseTimers.set(sheet, timer);
+    sheet.classList.remove('closing');
+    sheet.setAttribute('aria-hidden', 'true');
+    onClosed?.();
+  }, panelMotionDuration()));
+}
+
+function setReminderDialogOpen(dialog, isOpen) {
+  if (!dialog) return;
+  if (isOpen) {
+    dialog.showModal();
+    setSheetOpen(dialog, true);
+    return;
+  }
+  setSheetOpen(dialog, false, () => dialog.close());
 }
 
 function restoreSearchScrollPosition() {
@@ -1207,7 +1225,7 @@ function closeAllSheets(exceptSheet = null) {
     if(!pauseStudyAttempts(true))return false;
   }
   if(exceptSheet!==topicSheet)resetTopicViewCache();
-  allSheets.forEach(sheet => setSheetOpen(sheet, sheet === exceptSheet));
+  allSheets.forEach(sheet => setSheetOpen(sheet, sheet === exceptSheet, sheet === topicSheet && sheet !== exceptSheet ? resetSheetClasses : null));
   if (exceptSheet !== searchSheet) clearSearchState();
   topicBackdrop.classList.toggle('open', Boolean(exceptSheet));
   return true;
@@ -1486,11 +1504,6 @@ function formatCompletedDate(iso) {
   return date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-// Ana sayfadan açılan modüllerde her zaman görünür bir dönüş yolu.
-function homeModuleBackButton() {
-  return `<div class="home-module-navigation"><button class="home-module-back" data-back-home type="button" aria-label="Ana sayfaya dön">${svg('back')}<span>Geri</span></button></div>`;
-}
-
 function bankView() {
   const stats = getStats();
   const examSummary = getCompletedKadroExamSummary();
@@ -1519,7 +1532,6 @@ function bankView() {
     ${examSummary.count > 3 ? `<button type="button" class="bank-v2-show-all" id="showAllExamsButton" aria-expanded="${state.showAllCompletedExams ? 'true' : 'false'}" aria-controls="completedExamResults" data-total="${examSummary.count}">${state.showAllCompletedExams ? 'Daha az göster' : (examSummary.count > 50 ? `Son 50 denemeyi göster (${examSummary.count})` : `Tümünü göster (${examSummary.count})`)}</button>` : ''}` : '';
 
   return `<section class="screen content-screen bank-screen bank-v2">
-    ${homeModuleBackButton()}
     <header class="bank-v2-heading">
       <div class="bank-v2-heading-copy">
         <h2>Deneme Sınavları</h2>
@@ -1756,7 +1768,6 @@ function mistakesView() {
   }).join('');
 
   return `<section class="screen content-screen mistakes-screen mistakes-reference" aria-label="Yanlışlarım">
-    ${homeModuleBackButton()}
     <header class="mistakes-ref-heading"><div class="mistakes-ref-heading-copy"><h2>Yanlışlarım</h2><p>Yaptığın hatalardan öğren,<br>her denemede daha güçlü ol.</p></div>${headingArt}</header>
     <article class="mistakes-ref-hero"><div class="mistakes-ref-hero-copy"><h3>Bugünün Yanlışları</h3><p>${repeatCount ? `Bugün tekrar zamanı gelen<br><strong>${repeatCount} soru</strong> seni bekliyor.` : 'Şu an tekrar bekleyen<br>yanlış sorun bulunmuyor.'}</p><button class="mistakes-ref-start" id="startWrongPoolButton" type="button" ${repeatCount ? '' : 'disabled'}><span class="mistakes-ref-start-play" aria-hidden="true"></span>Gözden Geçir</button></div>${heroArt}</article>
     <section class="mistakes-ref-metrics" aria-label="Yanlış soru özeti">
@@ -1771,9 +1782,7 @@ function openMistakeCategorySheet(categoryKey) {
   clearInterval(timerInterval);
   timerInterval = null;
   closeAllSheets(topicSheet);
-  topicSheet.classList.add('open');
-  topicSheet.setAttribute('aria-hidden', 'false');
-  topicBackdrop.classList.add('open');
+
   renderMistakeCategoryLevel(categoryKey);
 }
 
@@ -1835,9 +1844,7 @@ function startWrongPool() {
   const questions = Object.values(progress.wrongQuestions);
   if (!questions.length) return showToast('Tekrar edilecek soru yok.');
   closeAllSheets(topicSheet);
-  topicSheet.classList.add('open');
-  topicSheet.setAttribute('aria-hidden', 'false');
-  topicBackdrop.classList.add('open');
+
   startQuiz({
     questions,
     kind: 'wrong-pool',
@@ -1981,7 +1988,6 @@ function cardsView() {
     </div>`;
 
   return `<section class="screen content-screen cards-dashboard" aria-label="Kartlarım">
-    ${homeModuleBackButton()}
     <header class="cards-dashboard-heading">
       <h2>Kartlarım</h2>
       <p>Konu kartlarıyla bilgini pekiştir, hedeflerine daha hızlı ulaş.</p>
@@ -2032,9 +2038,7 @@ function openCardCategorySheet(categoryKey) {
   clearInterval(timerInterval);
   timerInterval = null;
   closeAllSheets(topicSheet);
-  topicSheet.classList.add('open');
-  topicSheet.setAttribute('aria-hidden', 'false');
-  topicBackdrop.classList.add('open');
+
   renderCardCategoryLevel(categoryKey);
 }
 
@@ -2261,9 +2265,7 @@ async function openDueReviewSession() {
     const virtualDoc = { id: null, title: 'Bugünün Tekrarı' };
     const cards = due.map(c => ({ id: c.id, question: c.question, answer: c.answer, deckId: c.deckId }));
     closeAllSheets(topicSheet);
-    topicSheet.classList.add('open');
-    topicSheet.setAttribute('aria-hidden', 'false');
-    topicBackdrop.classList.add('open');
+
     state.cardStudy = { doc: virtualDoc, categoryKey: null, cards, index: 0, flipped: false, seenIndices: new Set(), progressMap, isRealFlashcardDeck: true };
     renderCardStudy();
   } catch (error) {
@@ -3430,8 +3432,8 @@ function updatePageNavigation() {
   let nav=document.getElementById('pageNavigation');
   if(!nav){
     nav=document.createElement('nav'); nav.id='pageNavigation'; nav.className='page-navigation'; nav.setAttribute('aria-label','Sayfa gezinmesi');
-    nav.innerHTML=`<div class="page-navigation-row"><button type="button" class="page-navigation-back" aria-label="Geri dön">${svg('back')}</button><span class="page-navigation-title"></span><span class="page-navigation-spacer" aria-hidden="true"></span></div>`;
-    phone.appendChild(nav);
+    nav.innerHTML=`<div class="page-navigation-row"><button type="button" class="page-navigation-back" aria-label="Geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button><span class="page-navigation-title"></span><span class="page-navigation-spacer" aria-hidden="true"></span></div>`;
+    phone.insertBefore(nav,scrollArea);
     nav.querySelector('button').addEventListener('click',()=>{
       const back=app.querySelector('.sp-subpage-head .sp-back');
       if(back)back.click();
@@ -3439,9 +3441,10 @@ function updatePageNavigation() {
     });
     scrollArea.addEventListener('scroll',syncPageNavigation,{passive:true});
     window.addEventListener('resize',syncPageNavigation);
+    window.addEventListener('scroll',syncPageNavigation,{passive:true});
   }
   const subhead=app.querySelector('.sp-subpage-head');
-  const mainTitles={profile:'Profil'};
+  const mainTitles={bank:'Deneme Sınavları',cards:'Kartlarım',mistakes:'Yanlışlarım',profile:'Profil'};
   const title=subhead?.querySelector('h1')?.textContent || mainTitles[state.view];
   const active=Boolean(title);
   nav.hidden=!active; phone.classList.toggle('has-page-navigation',active);
@@ -3453,7 +3456,7 @@ function updatePageNavigation() {
   nav.querySelector('button').hidden=!hasBack;
   nav.classList.toggle('has-back',hasBack);
   nav.classList.remove('always-title');
-  subhead?.classList.add('page-navigation-source');
+  subhead?.classList.remove('page-navigation-source');
   syncPageNavigation();
   requestAnimationFrame(syncPageNavigation);
 }
@@ -3470,7 +3473,6 @@ function render() {
 }
 
 function bindViewEvents() {
-  app.querySelectorAll('[data-back-home]').forEach(button => button.addEventListener('click', () => window.go('home')));
   const showAllExamsButton = document.getElementById('showAllExamsButton');
   showAllExamsButton?.addEventListener('click', () => {
     state.showAllCompletedExams = !state.showAllCompletedExams;
@@ -3547,20 +3549,21 @@ function bindViewEvents() {
     setReminderTime(event.target.value);
   });
   const reminderDialog = document.getElementById('profileReminderDialog');
+  reminderDialog?.addEventListener('cancel', event => { event.preventDefault(); setReminderDialogOpen(reminderDialog, false); });
   const reminderEdit = document.getElementById('profileReminderEditButton');
   reminderEdit?.addEventListener('click', () => {
     const [hour, minute] = (progress.notificationPrefs?.reminderTime || '20:00').split(':');
     document.getElementById('profileReminderHour').value = hour;
     document.getElementById('profileReminderMinute').value = minute;
-    reminderDialog.showModal();
+    setReminderDialogOpen(reminderDialog, true);
   });
-  document.getElementById('profileReminderCancel')?.addEventListener('click', () => reminderDialog.close());
+  document.getElementById('profileReminderCancel')?.addEventListener('click', () => setReminderDialogOpen(reminderDialog, false));
   document.getElementById('profileReminderSave')?.addEventListener('click', () => {
     const value = `${document.getElementById('profileReminderHour').value}:${document.getElementById('profileReminderMinute').value}`;
     if (!setReminderTime(value)) return;
     document.getElementById('profileReminderTimeValue').textContent = value;
     reminderEdit.setAttribute('aria-label', `Hatırlatma saatini değiştir: ${value}`);
-    reminderDialog.close();
+    setReminderDialogOpen(reminderDialog, false);
     showToast(progress.notificationPrefs.dailyReminder ? 'Hatırlatma saati kaydedildi.' : 'Saat kaydedildi. Bildirim almak için hatırlatmayı aç.');
   });
   bindWeeklyFlowEvents();
@@ -4146,8 +4149,7 @@ function openRouteSheet() {
   if (summaryMode) summaryMode.textContent = routeSettings.mode;
   updateRouteSummary();
   closeAllSheets(routeSheet);
-  routeSheet.classList.add('open');
-  topicBackdrop.classList.add('open');
+
 }
 
 function closeRouteSheet() {
@@ -4359,7 +4361,7 @@ function suspendTopicView() { captureTopicView();currentTopicView=null;topicView
 function animateTopicContent(back) {
   if(!topicSheet.classList.contains('open') || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
   topicList.getAnimations?.().forEach(animation=>animation.cancel());
-  topicList.animate?.([{transform:`translateX(${back?-20:20}px)`,opacity:.85},{transform:'translateX(0)',opacity:1}],{duration:180,easing:'cubic-bezier(.2,.7,.2,1)'});
+  topicList.animate?.([{transform:`translateX(${back?-20:20}px)`,opacity:.85},{transform:'translateX(0)',opacity:1}],{duration:panelMotionDuration(),easing:'cubic-bezier(.22,1,.36,1)'});
 }
 function navigateTopicView(kind,item,categoryKey,renderFresh,filter=null) {
   if(topicViewScope!==studySessionScope())resetTopicViewCache();
@@ -4426,9 +4428,7 @@ function openTopicSheet(categoryKey) {
   state.activeDocument = null;
   resetTopicViewCache();
   state.navStack = [{ kind: 'category', categoryKey }];
-  topicSheet.classList.add('open');
-  topicSheet.setAttribute('aria-hidden', 'false');
-  topicBackdrop.classList.add('open');
+
   renderCategoryLevel(categoryKey);
 }
 
@@ -4440,7 +4440,6 @@ function closeTopicSheet() {
   timerInterval = null;
   state.quiz = null;
   state.cardStudy = null;
-  resetSheetClasses();
   // GÜVENLİK KİLİDİ: Eskiden burada backdrop sadece routeSheet'e bakılarak
   // kapatılıyordu; searchSheet açıkken bile backdrop kapanabiliyordu. Bu da
   // arama panelinin arkasındaki tıklama-engelleme katmanını kaybetmesine,
@@ -4461,7 +4460,7 @@ function applySheetHeader({ title, subtitle, eyebrow, icon = 'book', iconClass =
 
 function renderBreadcrumb(label, onClick) {
   topicBreadcrumbWrap.innerHTML = `<div class="topic-breadcrumb-wrap">
-      <button class="topic-breadcrumb-back" id="sheetBackButton" type="button" aria-label="Geri dön">${svg('back')}</button>
+      <button class="topic-breadcrumb-back" id="sheetBackButton" type="button" aria-label="Geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
       <span class="topic-breadcrumb-pill">${escapeHtml(label)}</span>
     </div>`;
   document.getElementById('sheetBackButton').addEventListener('click', () => { haptic(14); onClick(); });
@@ -4658,8 +4657,7 @@ function resumeStudyAttempt(id,item,categoryKey,returnView=null) {
   const session={...snapshot,documentItem:item,categoryKey,studySessionId:entry.id,studyScope:studySessionScope(),studyStartedAt:entry.startedAt,
     returnView:returnView || (()=>renderStudyModeHub(item,categoryKey,'started'))};
   session.index=Math.max(0,Math.min(Number(session.index)||0,session.questions.length-1));
-  topicSheet.classList.add('open','quiz-active');topicSheet.classList.remove('document-flow','category-glass','card-study-active');
-  topicSheet.setAttribute('aria-hidden','false');topicBackdrop.classList.add('open');
+  closeAllSheets(topicSheet);topicSheet.classList.add('quiz-active');topicSheet.classList.remove('document-flow','category-glass','card-study-active');
   if(entry.type==='truefalse'){state.tfQuiz=session;renderTrueFalse();}
   else {
     // Reuse this exact server session and question order; never request another random test.
@@ -4709,7 +4707,7 @@ function renderStudyModeHubFresh(item, categoryKey, initialFilter = 'all') {
   const completed = attempts.filter(entry => entry.status === 'completed').length;
   topicList.innerHTML = `<div class="study-mode-hub">
     <header class="study-hub-header">
-      <button type="button" class="study-hub-book" aria-label="Ana konuya geri dön" title="Ana konuya geri dön">${svg('back')}<span>Geri</span></button>
+      <button type="button" class="study-hub-book" aria-label="Ana konuya geri dön" title="Ana konuya geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
       <div class="study-hub-heading"><h3>${escapeHtml(item.title)}</h3><p>${countText} soru <span>•</span> %${percentage} ilerleme</p>
       <div class="study-hub-progress"><div class="study-hub-track" role="progressbar" aria-label="Konu ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percentage}"><span style="width:${percentage}%"></span></div><strong>%${percentage}</strong></div></div>
     </header>
@@ -5088,21 +5086,21 @@ async function refreshPremiumStatus() {
 function openPremiumModal() {
   const overlay = document.getElementById('premiumModalOverlay');
   if (!overlay) return;
-  overlay.classList.add('open');
+  setSheetOpen(overlay, true);
   updatePremiumButtonPrices();
 }
 
 function initPremiumModal() {
   const overlay = document.getElementById('premiumModalOverlay');
   if (!overlay) return;
-  document.getElementById('premiumModalClose')?.addEventListener('click', () => overlay.classList.remove('open'));
+  document.getElementById('premiumModalClose')?.addEventListener('click', () => setSheetOpen(overlay, false));
   overlay.addEventListener('click', (event) => {
-    if (event.target.id === 'premiumModalOverlay') overlay.classList.remove('open');
+    if (event.target.id === 'premiumModalOverlay') setSheetOpen(overlay, false);
   });
   overlay.querySelectorAll('.premium-buy-btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const result = await purchasePremiumProduct(btn.dataset.productId, btn);
-      if (result) overlay.classList.remove('open');
+      if (result) setSheetOpen(overlay, false);
     });
   });
 }
@@ -5266,7 +5264,7 @@ function renderTrueFalse() {
     <div class="tf-shell">
       <div class="tf-header">
         <div class="tf-header-row">
-          <button type="button" class="tf-icon-btn" id="tfClose" aria-label="Geri dön">${svg('back')}</button>
+          <button type="button" class="tf-icon-btn" id="tfClose" aria-label="Geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
           <h2 class="tf-header-title"><span class="tf-title-correct">Doğru</span> <span class="tf-title-slash">/</span> <span class="tf-title-wrong">Yanlış</span></h2>
           <span class="tf-icon-btn" aria-hidden="true" style="visibility:hidden"></span>
         </div>
@@ -5437,7 +5435,7 @@ function renderTrueFalseResult() {
     <div class="tf-shell">
       <div class="tf-header">
         <div class="tf-header-row">
-          <button type="button" class="tf-icon-btn" id="tfResultClose" aria-label="Geri dön">${svg('back')}</button>
+          <button type="button" class="tf-icon-btn" id="tfResultClose" aria-label="Geri dön"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
           <h2 class="tf-header-title">Sonuç</h2>
           <span class="tf-icon-btn" aria-hidden="true" style="visibility:hidden"></span>
         </div>
@@ -5594,9 +5592,7 @@ async function startSmartPractice() {
   const questions = shuffle(dedupeQuestionsById(pool)).slice(0, Math.min(routeSettings.questions, pool.length));
 
   closeAllSheets(topicSheet);
-  topicSheet.classList.add('open');
-  topicSheet.setAttribute('aria-hidden', 'false');
-  topicBackdrop.classList.add('open');
+
 
   startQuiz({
     questions,
@@ -5698,15 +5694,18 @@ function quizScore(quiz) {
   return quiz.questions.filter(question => question.userSelected === question.answerIndex).length;
 }
 
-function closeQuizFinishModal() {
-  document.getElementById('quizFinishModal')?.remove();
+function closeQuizFinishModal(onClosed = null, immediate = false) {
+  const modal = document.getElementById('quizFinishModal');
+  if (!modal) { onClosed?.(); return; }
+  if (immediate) { setSheetOpen(modal, false); modal.remove(); onClosed?.(); return; }
+  setSheetOpen(modal, false, () => { modal.remove(); onClosed?.(); });
 }
 
 function openQuizFinishModal() {
   const quiz = state.quiz;
   if (!quiz) return;
 
-  closeQuizFinishModal();
+  closeQuizFinishModal(null, true);
 
   const answeredCount = quiz.questions.filter(q => q.userSelected !== null && q.userSelected !== undefined).length;
   const remaining = Math.max(0, quiz.questions.length - answeredCount);
@@ -5745,6 +5744,7 @@ function openQuizFinishModal() {
   `;
 
   topicSheet.appendChild(modal);
+  setSheetOpen(modal, true);
 
   const close = () => closeQuizFinishModal();
   document.getElementById('quizFinishModalCancel')?.addEventListener('click', close);
@@ -5753,21 +5753,22 @@ function openQuizFinishModal() {
   });
 
   document.getElementById('quizFinishModalConfirm')?.addEventListener('click', () => {
-    close();
-    document.getElementById('quizNavOverlay')?.classList.remove('open');
-    finalizeQuestionAnswer(quiz.questions[quiz.index]);
-    if (DEFERRED_REVEAL_KINDS.includes(quiz.kind) && !quiz.revealed) {
-      revealDeferredQuizAndFinish();
-    } else {
-      renderQuizResult();
-    }
+    closeQuizFinishModal(() => {
+      setSheetOpen(document.getElementById('quizNavOverlay'), false);
+      finalizeQuestionAnswer(quiz.questions[quiz.index]);
+      if (DEFERRED_REVEAL_KINDS.includes(quiz.kind) && !quiz.revealed) {
+        revealDeferredQuizAndFinish();
+      } else {
+        renderQuizResult();
+      }
+    });
   });
 }
 
 
 function renderQuiz() {
   saveQuizAttempt();
-  closeQuizFinishModal();
+  closeQuizFinishModal(null, true);
   const quiz = state.quiz;
   if (!quiz) return;
   topicSheet.classList.add('quiz-active');
@@ -5783,7 +5784,7 @@ function renderQuiz() {
     <div class="quiz-premium-layout">
       <div class="quiz-premium-header">
         <div class="quiz-premium-topbar">
-          <button id="quizBackButton" type="button" aria-label="Geri">${svg('back')}</button>
+          <button id="quizBackButton" type="button" aria-label="Geri"><span class="ios-back-chevron" aria-hidden="true">&lt;</span><span>Geri</span></button>
           <div class="quiz-premium-titles">
             <h2>${escapeHtml(quiz.title)}</h2>
           </div>
@@ -6006,7 +6007,7 @@ async function purchasePremiumProduct(productId, buttonEl) {
     // O-09: Premium durumunu sunucudan yeniden oku (tahmin etme).
     await refreshPremiumStatus();
     showToast('Premium aktif edildi!');
-    document.getElementById('premiumModalOverlay')?.classList.remove('open');
+    setSheetOpen(document.getElementById('premiumModalOverlay'), false);
     render();
     return result;
   } catch (error) {
@@ -6114,18 +6115,18 @@ function reportQuestion(question, rerender) {
   document.getElementById('reportModalUndoContent').style.display = isReported ? 'block' : 'none';
   if (!isReported) document.getElementById('reportModalNote').value = '';
 
-  overlay.classList.add('open');
+  setSheetOpen(overlay, true);
 
   updateReportKeyboardViewport();
-  const closeModal = () => {
+  const closeModal = (onClosed = null) => {
     if (overlay.contains(document.activeElement)) document.activeElement.blur();
     window.NativeUX?.hideKeyboard?.();
-    overlay.classList.remove('open');
+    setSheetOpen(overlay, false, onClosed);
   };
   const feedbackQuestionId = Object.prototype.hasOwnProperty.call(question, 'feedbackQuestionId')
     ? question.feedbackQuestionId
     : question.id;
-  document.getElementById('reportModalClose').onclick = closeModal;
+  document.getElementById('reportModalClose').onclick = () => closeModal();
   overlay.onclick = e => { if (e.target === overlay) closeModal(); };
 
   // Geri al
@@ -6134,8 +6135,7 @@ function reportQuestion(question, rerender) {
     window.SRProgressSync.deleteKey(progress, 'reportedQuestions', question.id);
     haptic(14);
     saveProgress();
-    closeModal();
-    doRerender();
+    closeModal(doRerender);
 
     try {
       await sendQuestionReport({
@@ -6155,11 +6155,10 @@ function reportQuestion(question, rerender) {
   // Gönder
   document.getElementById('reportModalSend').onclick = async () => {
     const note = document.getElementById('reportModalNote').value.trim();
-    closeModal();
     window.SRProgressSync.setKey(progress, 'reportedQuestions', question.id, true);
     haptic(14);
     saveProgress();
-    doRerender();
+    closeModal(doRerender);
 
     try {
       await sendQuestionReport({
@@ -6195,10 +6194,9 @@ function openQuizNav() {
   grid.querySelectorAll('[data-jump-index]').forEach(button => button.addEventListener('click', () => {
     finalizeQuestionAnswer(quiz.questions[quiz.index]);
     quiz.index = Number(button.dataset.jumpIndex);
-    overlay.classList.remove('open');
-    renderQuiz();
+    setSheetOpen(overlay, false, renderQuiz);
   }));
-  overlay.classList.add('open');
+  setSheetOpen(overlay, true);
 }
 
 // Aktif sınavı kapatıp quiz.returnView() ile önceki konu listesine döner.
@@ -6277,11 +6275,11 @@ function bindQuizEvents() {
   document.getElementById('quizGridButton')?.addEventListener('click', openQuizNav);
   document.getElementById('quizNavClose')?.addEventListener('click', () => {
     const overlay = document.getElementById('quizNavOverlay');
-    if (overlay) overlay.classList.remove('open');
+    if (overlay) setSheetOpen(overlay, false);
   });
   
   document.getElementById('quizNavOverlay')?.addEventListener('click', event => {
-    if (event.target.id === 'quizNavOverlay') event.currentTarget.classList.remove('open');
+    if (event.target.id === 'quizNavOverlay') setSheetOpen(event.currentTarget, false);
   });
 
   // NOT (2026-09-05): eskiden sınavı tamamlamanın tek yolu son soruya kadar
@@ -6411,7 +6409,6 @@ function renderQuizResult() {
 
 navButtons.forEach(button => button.addEventListener('click', () => window.go(button.dataset.nav)));
 // Ana sayfa özet kartındaki ok: Bugünkü Rota panelini açar (header statik HTML).
-document.getElementById('heroRouteButton')?.addEventListener('click', () => openRouteSheet());
 closeTopicSheetButton.addEventListener('click', closeTopicSheet);
 topicBackdrop.addEventListener('click', () => closeAllSheets());
 
@@ -6428,19 +6425,23 @@ function handleHardwareBack() {
   if (roleGate && roleGate.getAttribute('aria-hidden') === 'false') {
     return false;
   }
+  const finishModal = document.getElementById('quizFinishModal');
+  if (finishModal?.classList.contains('open')) { closeQuizFinishModal(); return true; }
+  const reminderDialog = document.getElementById('profileReminderDialog');
+  if (reminderDialog?.open) { setReminderDialogOpen(reminderDialog, false); return true; }
   const premiumOverlay = document.getElementById('premiumModalOverlay');
   if (premiumOverlay && premiumOverlay.classList.contains('open')) {
-    premiumOverlay.classList.remove('open');
+    setSheetOpen(premiumOverlay, false);
     return true;
   }
   const reportOverlay = document.getElementById('reportModalOverlay');
   if (reportOverlay && reportOverlay.classList.contains('open')) {
-    reportOverlay.classList.remove('open');
+    setSheetOpen(reportOverlay, false);
     return true;
   }
   const quizNavOverlay = document.getElementById('quizNavOverlay');
   if (quizNavOverlay && quizNavOverlay.classList.contains('open')) {
-    quizNavOverlay.classList.remove('open');
+    setSheetOpen(quizNavOverlay, false);
     return true;
   }
   if (searchSheet.classList.contains('open')) { closeSearchSheet(); return true; }
@@ -6696,11 +6697,11 @@ function openRoleGate(allowClose = false, selectedRole = null, mode = 'initial')
   if (desc) desc.textContent = mode === 'change'
     ? 'Yanlış seçtiğin hedef kadroyu buradan değiştirebilirsin.'
     : 'Sana uygun çalışma planını hazırlayalım.';
-  roleGate.setAttribute('aria-hidden', 'false');
+  setSheetOpen(roleGate, true);
 }
 
 function closeRoleGate() {
-  roleGate.setAttribute('aria-hidden', 'true');
+  setSheetOpen(roleGate, false);
 }
 document.getElementById('roleGateClose')?.addEventListener('click', closeRoleGate);
 
@@ -7016,9 +7017,8 @@ async function openNotificationQuestion(notificationId) {
       };
 
       closeAllSheets(topicSheet);
-      topicSheet.classList.add('open', 'quiz-active');
-      topicSheet.setAttribute('aria-hidden', 'false');
-      topicBackdrop.classList.add('open');
+      topicSheet.classList.add('quiz-active');
+
       startQuiz({
         questions: [question],
         documentItem,
@@ -7061,10 +7061,9 @@ async function openNotificationQuestion(notificationId) {
         returnView: () => documentItem && categoryKey ? renderDocumentHub(documentItem, categoryKey) : closeTopicSheet()
       };
       closeAllSheets(topicSheet);
-      topicSheet.classList.add('open', 'quiz-active');
+      topicSheet.classList.add('quiz-active');
       topicSheet.classList.remove('document-flow', 'card-study-active');
-      topicSheet.setAttribute('aria-hidden', 'false');
-      topicBackdrop.classList.add('open');
+
       renderTrueFalse();
     }
   } catch (error) {
@@ -7463,9 +7462,7 @@ async function startQuickMiniExam() {
     if (pool.length < 20) showToast(`Havuzda ${pool.length} benzersiz soru bulundu.`);
     else if (missingTopics.length) showToast('Bazı konu kotaları içerik durumuna göre diğer kadro konularından tamamlandı.');
     closeAllSheets(topicSheet);
-    topicSheet.classList.add('open');
-    topicSheet.setAttribute('aria-hidden', 'false');
-    topicBackdrop.classList.add('open');
+
     startQuiz({
       questions: pool,
       kind: 'mini-exam',
@@ -7489,9 +7486,7 @@ async function startMixedGeneralExam() {
     if (!questions.length) return showToast('Şu an hazır bir soru paketi bulunamadı.');
     if (questions.length < 40) showToast(`Aktif konularda ${questions.length} benzersiz soru bulundu.`);
     closeAllSheets(topicSheet);
-    topicSheet.classList.add('open');
-    topicSheet.setAttribute('aria-hidden', 'false');
-    topicBackdrop.classList.add('open');
+
     startQuiz({
       questions,
       kind: 'mixed-exam',
@@ -7552,9 +7547,7 @@ async function startKadroExam() {
       showToast(`Bazı konularda içerik eksik: ${missingTopics.slice(0, 2).join(', ')}${missingTopics.length > 2 ? '…' : ''}`);
     }
     closeAllSheets(topicSheet);
-    topicSheet.classList.add('open');
-    topicSheet.setAttribute('aria-hidden', 'false');
-    topicBackdrop.classList.add('open');
+
     const roleLabel = ROLES.find(r => r.key === roleKey)?.label || '';
     const customTimeSeconds = blueprint.durationMinutes ? blueprint.durationMinutes * 60 : null;
     startQuiz({

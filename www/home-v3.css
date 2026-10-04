@@ -71,13 +71,6 @@
   order:3;margin:0;max-width:180px;font-size:12px;line-height:1.45;color:#5f77a0;font-weight:500;
 }
 #appPhone .hero-progress-card-solo .hero-progress-bar{display:none}
-#appPhone .hero-arrow{
-  position:absolute;z-index:3;right:12px;bottom:10px;width:40px;height:34px;padding:0;border:0;background:transparent;
-  color:#e5303a;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent;
-}
-#appPhone .hero-arrow svg{width:21px;height:21px;stroke-width:1.9}
-#appPhone .hero-arrow:active{transform:translateX(2px)}
-
 /* ---------- MODÜL KARTLARI (1x4, dört satır) ---------- */
 #appPhone .home-v3{padding:12px 14px 10px}
 #appPhone .home-v3-grid{display:grid;grid-template-columns:minmax(0,1fr)!important;gap:10px}
@@ -130,33 +123,35 @@
 #appPhone .home-v3-row-chevron{color:#16346a;display:grid;place-items:center}
 #appPhone .home-v3-row-chevron svg{width:16px;height:16px;stroke-width:2.2}
 
-/* ---------- ALT MENÜ: 3 SEKME, SADECE KENDİ ZEMİNİ ---------- */
-  #appPhone > .bottom-nav{
-    position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;flex:0 0 auto;
-    display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0;height:auto!important;min-height:0!important;
-    margin:0!important;padding:8px 6px calc(6px + env(safe-area-inset-bottom,0px))!important;
-    border:0!important;border-top:1px solid #e3e9f2!important;border-radius:0!important;
-    background:#fff!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;overflow:visible!important;
-  }
-  #appPhone > .bottom-nav::before,
-  #appPhone > .bottom-nav::after{content:none!important;display:none!important}
-  #appPhone > .bottom-nav button{
-    position:relative;height:auto;min-height:52px;padding:4px 0 9px;gap:5px;color:#243b66;
-    border-radius:14px;background:transparent;justify-content:center;
-  }
-  #appPhone > .bottom-nav button > svg{width:24px;height:24px;min-width:24px;stroke-width:1.9}
-  #appPhone > .bottom-nav button > span{font-size:11.5px;line-height:14px;font-weight:600;color:inherit}
-  #appPhone > .bottom-nav button.active{color:#e5303a;background:transparent!important}
-  #appPhone > .bottom-nav button.active > svg{color:#e5303a}
-  #appPhone > .bottom-nav button.active > svg .nav-icon-outline{display:none}
-  #appPhone > .bottom-nav button.active > svg .nav-icon-solid{display:inline}
-  #appPhone > .bottom-nav button.active > span{color:#e5303a;font-weight:700}
-  #appPhone > .bottom-nav button.active::before{content:none!important}
-  #appPhone > .bottom-nav button.active::after{
-    content:""!important;display:block!important;position:absolute;left:22%;right:22%;bottom:0;height:2.5px;
-    border-radius:2px;background:#e5303a;
-  }
-  #appPhone .scroll-area > .app-scroll{padding-bottom:14px!important}
+/* ---------- ALT MENÜ: tek iOS yüzeyi, üç sekme ---------- */
+#appPhone > .bottom-nav{
+  position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;flex:0 0 auto;
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0;
+  width:auto!important;height:auto!important;min-height:0!important;
+  margin:8px 12px calc(8px + env(safe-area-inset-bottom,0px))!important;padding:8px 6px!important;
+  border:1px solid rgba(154,179,223,.26)!important;border-radius:28px!important;
+  background:linear-gradient(120deg,rgba(23,31,57,.97),rgba(14,32,58,.97))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)!important;overflow:hidden!important;
+  backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important;
+}
+#appPhone > .bottom-nav::before,
+#appPhone > .bottom-nav::after,
+#appPhone > .bottom-nav button::before,
+#appPhone > .bottom-nav button::after{content:none!important;display:none!important}
+#appPhone > .bottom-nav button{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:0;min-height:58px;height:auto;padding:4px 2px;gap:5px;border:0;
+  border-radius:20px;background:transparent!important;color:#9bb1d0;
+}
+#appPhone > .bottom-nav button > svg{width:25px;height:25px;min-width:25px;stroke-width:1.9}
+#appPhone > .bottom-nav button > span{font-size:11.5px;line-height:14px;font-weight:600;color:inherit}
+#appPhone > .bottom-nav .nav-icon-solid{display:none}
+#appPhone > .bottom-nav button.active{color:#ff3947;background:transparent!important}
+#appPhone > .bottom-nav button.active .nav-icon-outline{display:none}
+#appPhone > .bottom-nav button.active .nav-icon-solid{display:inline}
+#appPhone > .bottom-nav button.active > span{color:inherit;font-weight:700}
+#appPhone > .bottom-nav button:focus-visible{outline:2px solid #9bb1d0;outline-offset:-2px}
+#appPhone .scroll-area > .app-scroll{padding-bottom:14px!important}
 
 /* ---------- KÜÇÜK EKRANLAR ---------- */
 @media(max-width:370px){
@@ -189,15 +184,108 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen){
 html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.app-scroll,
 #appPhone .scroll-area:has(>.app-scroll>.home-screen)>.app-scroll{background:transparent}
 
-/* Alt menü ikonları ve modül geri düğmeleri */
-#appPhone > .bottom-nav .nav-icon-solid{display:none}
-#appPhone .home-module-navigation{display:flex;align-items:center;margin:0 0 12px;position:relative;z-index:1}
-#appPhone .home-module-back{
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  min-width:76px;min-height:44px;padding:8px 12px;border:1px solid #e3e9f2;
-  border-radius:12px;background:#fff;color:#071f49;font:inherit;font-size:14px;font-weight:600;cursor:pointer;
-  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+/* ---------- iOS ÜST GEZİNME ---------- */
+:root{--ios-panel-duration:360ms;--ios-panel-easing:cubic-bezier(.22,1,.36,1)}
+#appPhone{position:relative;display:flex;flex-direction:column}
+#appPhone > .scroll-area{flex:1 1 auto;min-height:0}
+#appPhone > #pageNavigation{
+  position:relative!important;inset:auto!important;z-index:30;flex:0 0 auto;width:100%;box-sizing:border-box;
+  padding:calc(max(8px,env(safe-area-inset-top,0px)) + 4px) 14px 6px!important;
+  margin:0!important;border:0;border-bottom:1px solid transparent;background:#f7f9fd;
+  box-shadow:none!important;transition:background .2s ease,border-color .2s ease;
 }
-#appPhone .home-module-back svg{width:20px;height:20px;flex:0 0 20px}
-#appPhone .home-module-back:active{background:#edf2fa}
-#appPhone .home-module-back:focus-visible{outline:2px solid #e5303a;outline-offset:3px}
+#appPhone > #pageNavigation[hidden]{display:none!important}
+#appPhone > #pageNavigation .page-navigation-row{
+  display:grid;grid-template-columns:86px minmax(0,1fr) 86px;align-items:center;gap:4px;height:48px;
+}
+#appPhone > #pageNavigation .page-navigation-back{
+  display:inline-flex;align-items:center;justify-content:flex-start;gap:5px;width:auto!important;height:44px!important;
+  min-width:76px;padding:0 2px!important;border:0!important;border-radius:10px!important;
+  background:transparent!important;color:#071f49;font:inherit;font-size:16px;font-weight:600;white-space:nowrap;
+  box-shadow:none!important;cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+#appPhone > #pageNavigation .page-navigation-back[hidden]{visibility:hidden;display:flex!important}
+#appPhone > #pageNavigation .page-navigation-back::before,
+#appPhone > #pageNavigation .page-navigation-back::after{content:none!important;display:none!important}
+#appPhone > #pageNavigation .page-navigation-back:active{opacity:.55}
+#appPhone > #pageNavigation .page-navigation-back:focus-visible{outline:2px solid #e5303a!important;outline-offset:2px}
+#appPhone .ios-back-chevron{font-family:Arial,sans-serif;font-size:25px;font-weight:400;line-height:1}
+#appPhone > #pageNavigation .page-navigation-title{
+  display:block!important;min-width:0;text-align:center;color:#071f49;font-size:17px;font-weight:700;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translateY(5px);
+  transition:opacity .2s ease,transform .2s ease;
+}
+#appPhone > #pageNavigation.is-scrolled{background:rgba(249,250,253,.96);border-bottom-color:#e3e9f2;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+#appPhone > #pageNavigation.is-scrolled .page-navigation-title{opacity:1;transform:none}
+#appPhone > #pageNavigation .page-navigation-spacer{width:86px}
+#appPhone.has-page-navigation > .scroll-area{padding-top:0!important;margin-top:0!important}
+#appPhone .sp-subpage-head > .sp-back{display:none!important}
+#appPhone :is(.topic-breadcrumb-back,.study-hub-book,#quizBackButton,#tfClose){
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;width:auto!important;min-width:76px;
+  min-height:44px;padding:6px 10px;white-space:nowrap;font:inherit;font-size:14px;font-weight:600;
+}
+#appPhone #tfClose{flex-shrink:0}
+@media(max-width:999px){
+  #appPhone{height:var(--app-height,100dvh)!important;max-height:none!important;min-height:0!important;overflow:hidden!important}
+  html.native-ios-scroll #appPhone > .scroll-area,
+  #appPhone > .scroll-area{flex:1 1 auto!important;height:auto!important;min-height:0!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+}
+
+/* ---------- TÜM PENCERELER: ortak açılış ve kapanış ---------- */
+#appPhone > :is(.bottom-sheet,.topic-sheet){
+  animation:none!important;transform:translate3d(0,110%,0)!important;opacity:0!important;visibility:hidden!important;
+  pointer-events:none!important;will-change:transform,opacity;
+  transition:transform var(--ios-panel-duration) var(--ios-panel-easing),opacity var(--ios-panel-duration) var(--ios-panel-easing)!important;
+}
+#appPhone > :is(.bottom-sheet,.topic-sheet):is(.open,.closing){visibility:visible!important}
+#appPhone > :is(.bottom-sheet,.topic-sheet).open{transform:translate3d(0,0,0)!important;opacity:1!important;pointer-events:auto!important}
+#appPhone > :is(.bottom-sheet,.topic-sheet).closing{pointer-events:none!important}
+#appPhone > #topicBackdrop{
+  animation:none!important;opacity:0!important;visibility:hidden;pointer-events:none!important;
+  transition:opacity var(--ios-panel-duration) var(--ios-panel-easing),visibility 0s var(--ios-panel-duration)!important;
+}
+#appPhone > #topicBackdrop.open{opacity:1!important;visibility:visible;pointer-events:auto!important;transition-delay:0s!important}
+#appPhone :is(.quiz-nav-overlay,.quiz-finish-modal-overlay),
+#roleGate{
+  display:flex!important;align-items:center;justify-content:center;animation:none!important;opacity:0!important;
+  visibility:hidden!important;pointer-events:none!important;
+  transition:opacity var(--ios-panel-duration) var(--ios-panel-easing)!important;
+}
+#appPhone :is(.quiz-nav-overlay,.quiz-finish-modal-overlay):is(.open,.closing),
+#roleGate:is(.open,.closing){visibility:visible!important}
+#appPhone :is(.quiz-nav-overlay,.quiz-finish-modal-overlay).open,
+#roleGate.open{opacity:1!important;pointer-events:auto!important}
+#appPhone :is(.quiz-nav-overlay,.quiz-finish-modal-overlay) > :is(.quiz-nav-sheet,.quiz-finish-modal),
+#roleGate > .role-gate-card{
+  animation:none!important;transform:translate3d(0,40px,0)!important;opacity:0!important;
+  transition:transform var(--ios-panel-duration) var(--ios-panel-easing),opacity var(--ios-panel-duration) var(--ios-panel-easing)!important;
+}
+#appPhone :is(.quiz-nav-overlay,.quiz-finish-modal-overlay).open > :is(.quiz-nav-sheet,.quiz-finish-modal),
+#roleGate.open > .role-gate-card{transform:translate3d(0,0,0)!important;opacity:1!important}
+#appPhone .quiz-nav-overlay{z-index:100!important}
+#appPhone .quiz-finish-modal-overlay{z-index:110!important}
+#appPhone .sp-time-dialog{
+  animation:none!important;transform:translate3d(0,40px,0);opacity:0;
+  transition:transform var(--ios-panel-duration) var(--ios-panel-easing),opacity var(--ios-panel-duration) var(--ios-panel-easing)!important;
+}
+#appPhone .sp-time-dialog.open{transform:translate3d(0,0,0);opacity:1}
+#appPhone .sp-time-dialog::backdrop{background:rgba(7,19,40,.35);opacity:0;transition:opacity var(--ios-panel-duration) var(--ios-panel-easing)}
+#appPhone .sp-time-dialog.open::backdrop{opacity:1}
+
+/* Konu panelinin kapatma düğmesi tek simgeden oluşur. */
+#appPhone #topicSheet > #closeTopicSheet{
+  position:absolute!important;top:18px!important;right:14px!important;left:auto!important;bottom:auto!important;z-index:8!important;
+  display:grid!important;place-items:center;width:36px!important;height:36px!important;min-width:36px!important;
+  padding:8px!important;border:0!important;border-radius:50%!important;color:#52647f!important;
+  background:#edf1f6!important;background-image:none!important;box-shadow:none!important;line-height:1!important;cursor:pointer;
+}
+#appPhone #topicSheet > #closeTopicSheet::before,
+#appPhone #topicSheet > #closeTopicSheet::after{content:none!important;display:none!important}
+#appPhone #topicSheet > #closeTopicSheet svg{display:block;width:20px;height:20px;pointer-events:none}
+#appPhone #topicSheet > .topic-sheet-head .topic-heading-wrap{padding-right:44px}
+#appPhone #topicSheet.quiz-active > #closeTopicSheet{display:none!important}
+@media(prefers-reduced-motion:reduce){
+  :root{--ios-panel-duration:0ms}
+  #appPhone > #pageNavigation,
+  #appPhone > #pageNavigation .page-navigation-title{transition:none!important}
+}
