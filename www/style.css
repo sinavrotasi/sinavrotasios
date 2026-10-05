@@ -7530,3 +7530,31 @@ html[data-focus-mode="true"]:has(#topicSheet.open:is(.quiz-active,.card-study-ac
 .study-feedback-row p {margin:7px 0 0;font-size:12px;line-height:1.55;color:#778399;}
 .study-feedback-row .sp-switch.on {background:#e93238;}
 .study-feedback-row .sp-switch:focus-visible {outline:2px solid #e93238;outline-offset:4px;}
+
+/* ================= SHEET SÜRÜKLEME TUTAMACI + BİLGİ KARTI ÜST BÖLÜM (v95) ================= */
+/* Tutamaç: görünür çubuk küçük, dokunma alanı geniş. */
+.topic-handle,.sheet-handle{position:relative;touch-action:none;cursor:grab;-webkit-tap-highlight-color:transparent;}
+#topicSheet.topic-sheet>.topic-handle{position:absolute;z-index:6;}
+.topic-handle::before,.sheet-handle::before{content:'';position:absolute;inset:-18px -52px;}
+.topic-sheet.is-sheet-dragging,.bottom-sheet.is-sheet-dragging,#topicSheet.topic-sheet.is-sheet-dragging{transition:none!important;}
+.topic-sheet.open.is-sheet-dragging,.bottom-sheet.open.is-sheet-dragging,#topicSheet.topic-sheet.open.is-sheet-dragging{transform:translateY(var(--sheet-drag-y,0px))!important;}
+@media(min-width:641px){
+  .topic-sheet.open.is-sheet-dragging,.bottom-sheet.open.is-sheet-dragging,#topicSheet.topic-sheet.open.is-sheet-dragging{transform:translate(-50%,var(--sheet-drag-y,0px))!important;}
+}
+
+/* Doğru/Yanlış: tam ekran kabuğunda da tutamaç görünür. */
+#topicSheet.topic-sheet.quiz-active:has(.tf-shell)>.topic-handle{display:block!important;position:absolute;top:calc(8px + env(safe-area-inset-top));left:calc(50% - 20px);width:40px;height:5px;margin:0;background:#c4cddc;}
+#topicSheet.topic-sheet.quiz-active:has(.tf-shell) .tf-header{padding-top:calc(24px + env(safe-area-inset-top));}
+
+/* Bilgi kartları: test ekranlarıyla aynı kabuk — X ve tutamaç üst şeritte, başlık kartı altında. */
+#topicSheet.topic-sheet.card-study-active{padding:52px 14px max(10px,env(safe-area-inset-bottom))!important;}
+#topicSheet.topic-sheet.card-study-active>.topic-close{top:10px;right:12px;width:40px;height:40px;background:#fff;}
+#topicSheet.card-study-active .topic-header-card{padding:14px 16px;}
+#topicSheet.card-study-active .topic-header-decor-blob,
+#topicSheet.card-study-active .topic-header-decor-icon{display:none;}
+#topicSheet.card-study-active .topic-heading-wrap{gap:12px;align-items:center;}
+/* Sol ikonun yerine geri düğmesi */
+#topicSheet.card-study-active .topic-heading-icon.topic-heading-back{width:auto;height:auto;border-radius:0;background:none;box-shadow:none;overflow:visible;}
+#topicSheet.card-study-active .topic-heading-back .topic-breadcrumb-back{margin:0;}
+#topicSheet.card-study-active #topicBreadcrumbWrap{display:none;}
+#topicSheet.topic-sheet.card-study-active{height:92%;max-height:92%;}

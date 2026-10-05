@@ -2394,7 +2394,7 @@ function renderCardStudy() {
 
   if (current.upsell) {
     applySheetHeader({ title: study.doc.title, subtitle: 'Premium içerik', eyebrow: 'BİLGİ KARTLARI', icon: 'gavel', iconClass: category.iconClass });
-    renderBreadcrumb(category.title, () => { exitCardStudy(study); });
+    placeHeaderBackButton(() => { exitCardStudy(study); });
     setSheetProgress('', 100);
     topicList.innerHTML = `
       <div class="card-study-wrap">
@@ -2435,7 +2435,7 @@ function renderCardStudy() {
   }
 
   applySheetHeader({ title: study.doc.title, subtitle: `${study.index + 1} / ${study.cards.length}`, eyebrow: 'BİLGİ KARTLARI', icon: 'gavel', iconClass: category.iconClass });
-  renderBreadcrumb(category.title, () => { exitCardStudy(study); });
+  placeHeaderBackButton(() => { exitCardStudy(study); });
   setSheetProgress('', Math.round(((study.index + 1) / study.cards.length) * 100));
   // Leitner puanlama butonları: sadece gerçek flashcard destesinde, kullanıcı
   // giriş yapmışsa ve kart geri çevrilmişse gösterilir. topicId'den (quiz-derived)
@@ -4569,6 +4569,15 @@ function renderBreadcrumb(label, onClick) {
   document.getElementById('sheetBackButton').addEventListener('click', () => { haptic(14); onClick(); });
 }
 
+// Bilgi kartı ekranı: geri düğmesi sol ikonun yerine, başlık kartının içine yerleşir.
+// Kategori adı ("Ortak Alan Bilgisi" vb.) rozeti gösterilmez.
+function placeHeaderBackButton(onClick) {
+  topicBreadcrumbWrap.innerHTML = '';
+  topicHeadingIcon.className = 'topic-heading-icon topic-heading-back';
+  topicHeadingIcon.innerHTML = `<button class="topic-breadcrumb-back" id="sheetBackButton" type="button" aria-label="Geri dön">${backButtonContent()}</button>`;
+  document.getElementById('sheetBackButton').addEventListener('click', () => { haptic(14); onClick(); });
+}
+
 function applyCategoryProgressTone(categoryKey) {
   const tone = ({
     'general-legislation': 'navy',
@@ -6515,6 +6524,56 @@ initBottomMenuGestures();
 // Ana sayfa özet kartındaki ok: Bugünkü Rota panelini açar (header statik HTML).
 closeTopicSheetButton.addEventListener('click', closeTopicSheet);
 topicBackdrop.addEventListener('click', () => closeAllSheets());
+
+// ================= SHEET SÜRÜKLEME TUTAMACI =================
+// Tüm alt panellerde (konu paneli, rota, bildirim, arama) tutamacı aşağı
+// sürükleyerek kapatma. Yeterli mesafe veya hızlı çekme paneli kapatır,
+// aksi halde panel yerine geri oturur.
+function initSheetDragHandles() {
+  let drag = null;
+  const DISMISS_DISTANCE = 0.22; // panel yüksekliğine oranla
+  const DISMISS_VELOCITY = 0.6;  // px/ms
+
+  function finish(commit) {
+    if (!drag) return;
+    const { sheet, handle, pointerId, dy, velocity } = drag;
+    drag = null;
+    try { handle.releasePointerCapture(pointerId); } catch (_) {}
+    const shouldClose = commit && dy > 8 && (dy > sheet.offsetHeight * DISMISS_DISTANCE || velocity > DISMISS_VELOCITY);
+    sheet.classList.remove('is-sheet-dragging');
+    sheet.style.removeProperty('--sheet-drag-y');
+    if (!shouldClose) return;
+    haptic(10);
+    if (sheet === topicSheet) closeTopicSheet();
+    else closeAllSheets();
+  }
+
+  document.addEventListener('pointerdown', event => {
+    if (event.button !== undefined && event.button !== 0) return;
+    const handle = event.target.closest?.('.topic-handle, .sheet-handle');
+    if (!handle) return;
+    const sheet = handle.closest('.topic-sheet, .bottom-sheet');
+    if (!sheet || !sheet.classList.contains('open')) return;
+    drag = { sheet, handle, pointerId: event.pointerId, startY: event.clientY, lastY: event.clientY, lastT: event.timeStamp, dy: 0, velocity: 0 };
+    try { handle.setPointerCapture(event.pointerId); } catch (_) {}
+  });
+  document.addEventListener('pointermove', event => {
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dy = Math.max(0, event.clientY - drag.startY); // yukarı çekme yok
+    const dt = Math.max(1, event.timeStamp - drag.lastT);
+    drag.velocity = (event.clientY - drag.lastY) / dt;
+    drag.lastY = event.clientY; drag.lastT = event.timeStamp;
+    drag.dy = dy;
+    if (dy > 0) {
+      drag.sheet.classList.add('is-sheet-dragging');
+      drag.sheet.style.setProperty('--sheet-drag-y', `${dy}px`);
+      event.preventDefault();
+    }
+  }, { passive: false });
+  document.addEventListener('pointerup', event => { if (drag && drag.pointerId === event.pointerId) finish(true); });
+  document.addEventListener('pointercancel', event => { if (drag && drag.pointerId === event.pointerId) finish(false); });
+}
+initSheetDragHandles();
 
 // ================= ANDROID DONANIM GERİ TUŞU =================
 // native-ux.js, App plugin'in 'backButton' event'ini burada dinlenebilecek genel
