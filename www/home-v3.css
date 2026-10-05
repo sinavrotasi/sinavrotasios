@@ -187,16 +187,16 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.ap
 /* Mevcut İstatistikler üst gezinmesinin konumu ve yüksekliği style.css'ten gelir. */
 :root{--ios-panel-duration:360ms;--ios-panel-easing:cubic-bezier(.22,1,.36,1)}
 /* Geri düğmeleri, referans paketteki home-module-back ile aynı tasarım. */
-#appPhone .page-navigation-row{grid-template-columns:82px minmax(0,1fr) 82px}
+#appPhone .page-navigation-row{grid-template-columns:66px minmax(0,1fr) 66px}
 #appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"],[id="tfResultClose"]){
   display:inline-flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:6px!important;
-  width:auto!important;min-width:76px!important;min-height:44px!important;height:auto!important;
-  padding:8px 12px!important;border:1px solid #e3e9f2!important;border-radius:12px!important;
-  background:#fff!important;color:#071f49!important;font:inherit;font-size:14px!important;font-weight:600!important;
+  width:66px!important;min-width:66px!important;min-height:36px!important;height:36px!important;flex:0 0 66px!important;position:relative!important;inset:auto!important;transform:none!important;
+  padding:6px 8px!important;border:1px solid #e3e9f2!important;border-radius:10px!important;
+  background:#fff!important;color:#071f49!important;font:inherit;font-size:13px!important;font-weight:600!important;
   cursor:pointer;white-space:nowrap;box-shadow:none!important;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
 }
 #appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"],[id="tfResultClose"]) svg{
-  display:block!important;width:20px!important;height:20px!important;flex:0 0 20px!important;color:inherit!important;
+  display:block!important;width:17px!important;height:17px!important;flex:0 0 17px!important;color:inherit!important;
 }
 #appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"],[id="tfResultClose"]) span{
   font:inherit!important;line-height:1.2!important;color:inherit!important;margin:0!important;
@@ -207,7 +207,7 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.ap
 #appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"],[id="tfResultClose"])::after{content:none!important;display:none!important}
 #appPhone .page-navigation-source > .sp-back,
 #appPhone .page-navigation-back[hidden]{display:none!important}
-#appPhone .page-navigation-spacer{width:82px}
+#appPhone .page-navigation-spacer{width:66px}
 
 /* Alt sayfaların başlık ve içerik aralığı; kaydırma/viewport yapısı korunur. */
 #appPhone .sp-subscreen{padding-top:16px!important}
@@ -300,3 +300,14 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.ap
 #appPhone .study-hub-header{display:grid!important;grid-template-columns:max-content minmax(0,1fr)!important;align-items:start;gap:12px}
 #appPhone .study-hub-header .study-hub-book{align-self:start;transform:none!important}
 @media(prefers-reduced-motion:reduce){#appPhone > .bottom-nav .ios-nav-indicator{transition:none!important}}
+
+/* 2026-10-05: ortak kompakt başlık ve dokunmatik menü düzeltmeleri. */
+#appPhone #topicProgressCount{display:none!important}
+#appPhone #topicSheet.card-study-active .topic-heading-wrap{display:grid!important;grid-template-columns:66px minmax(0,1fr)!important;gap:12px!important;align-items:center!important}
+#appPhone #topicSheet.card-study-active .topic-heading-icon.topic-heading-back{position:static!important;width:66px!important;min-width:66px!important;height:auto!important;min-height:0!important;padding:0!important;margin:0!important;transform:none!important;background:none!important;box-shadow:none!important;border:0!important;border-radius:0!important}
+#appPhone #topicSheet.card-study-active .topic-heading-wrap>div:last-child{min-width:0!important;width:auto!important;padding:0!important;margin:0!important}
+#appPhone #topicSheet.card-study-active #topicSheetTitle{font-size:15px!important;line-height:1.3!important;overflow-wrap:anywhere;letter-spacing:-.2px}
+#appPhone #topicSheet.card-study-active #topicSheetSubtitle{font-size:16px!important;line-height:1.3!important;font-weight:800!important;margin-top:7px!important;padding:3px 8px!important}
+#appPhone #topicSheet.card-study-active .card-nav-count{font-size:16px!important;min-width:76px;font-variant-numeric:tabular-nums}
+#appPhone>.bottom-nav,#appPhone>.bottom-nav button{touch-action:none!important}
+#appPhone>.scroll-area{touch-action:pan-y!important}

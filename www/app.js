@@ -1164,14 +1164,16 @@ function initPageTabGestures() {
   let gesture = null;
   let suppressClickUntil = 0;
   const tabs = () => [...navButtons].map(button => button.dataset.nav);
+  const activeTab = () => ['bank', 'cards', 'mistakes'].includes(state.view) ? 'home' :
+    (tabs().includes(state.view) ? state.view : document.querySelector('.bottom-nav [aria-current="page"]')?.dataset.nav);
   const blocked = () => roleGate?.getAttribute('aria-hidden') === 'false' ||
-    state.quiz || state.tfQuiz || allSheets.some(sheet => sheet.classList.contains('open')) ||
+    allSheets.some(sheet => sheet.classList.contains('open')) ||
     document.querySelector('.quiz-nav-overlay.open, .quiz-finish-modal-overlay.open, dialog[open]');
   const reset = () => { gesture = null; };
 
   scrollArea.addEventListener('touchstart', event => {
     reset();
-    if (event.touches.length !== 1 || blocked() || !tabs().includes(state.view)) return;
+    if (event.touches.length !== 1 || blocked() || !tabs().includes(activeTab())) return;
     const target = event.target;
     if (target.closest('input, textarea, select, [contenteditable], [role="slider"], [data-no-swipe], [data-no-swipe-back]')) return;
     // İç içe yatay listeler ve grafikler kendi hareketlerini korur.
@@ -1183,8 +1185,8 @@ function initPageTabGestures() {
     // Sistem/uygulama kenardan geri hareketine alan bırak.
     if (touch.clientX <= rect.left + 24 || touch.clientX >= rect.right - 24) return;
     gesture = { x:touch.clientX, y:touch.clientY, dx:0, dy:0, locked:false,
-      view:state.view, origin:app.firstElementChild, started:performance.now() };
-  }, { passive:true });
+      view:state.view, tab:activeTab(), origin:app.firstElementChild, started:performance.now() };
+  }, { passive:true, capture:true });
   scrollArea.addEventListener('touchmove', event => {
     const g = gesture;
     if (!g) return;
@@ -1198,7 +1200,7 @@ function initPageTabGestures() {
       g.locked = true;
     }
     if (event.cancelable) event.preventDefault();
-  }, { passive:false });
+  }, { passive:false, capture:true });
   scrollArea.addEventListener('touchend', event => {
     const g = gesture;
     reset();
@@ -1212,10 +1214,10 @@ function initPageTabGestures() {
     if (elapsed > 1800 || distance < Math.abs(g.dy) * 1.5 ||
       !(distance >= 64 || (distance >= 36 && distance / Math.max(1, elapsed) >= 0.45))) return;
     const pages = tabs();
-    const next = pages[pages.indexOf(g.view) + (g.dx < 0 ? 1 : -1)];
+    const next = pages[pages.indexOf(g.tab) + (g.dx < 0 ? 1 : -1)];
     if (next) window.go(next);
-  }, { passive:true });
-  scrollArea.addEventListener('touchcancel', reset, { passive:true });
+  }, { passive:true, capture:true });
+  scrollArea.addEventListener('touchcancel', reset, { passive:true, capture:true });
   scrollArea.addEventListener('click', event => {
     if (performance.now() < suppressClickUntil) { event.preventDefault(); event.stopImmediatePropagation(); }
   }, true);
@@ -1232,11 +1234,11 @@ function initBottomMenuGestures() {
     return !best || distance < best.distance ? { button, distance } : best;
   }, null)?.button;
 
-  menu.addEventListener('pointerdown', event => {
+  const startDrag = event => {
     if (!event.isPrimary || event.button !== 0) return;
     drag = { pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, moved:false, button:nearestButton(event.clientX) };
-  });
-  menu.addEventListener('pointermove', event => {
+  };
+  const moveDrag = event => {
     if (!drag || drag.pointerId !== event.pointerId) return;
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
@@ -1244,10 +1246,10 @@ function initBottomMenuGestures() {
       if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) { drag = null; return; }
       if (Math.abs(dx) < 8) return;
       drag.moved = true;
-      menu.setPointerCapture?.(event.pointerId);
+      if (event.pointerId !== 'touch') { try { menu.setPointerCapture?.(event.pointerId); } catch (_) {} }
       menu.classList.add('is-dragging');
     }
-    event.preventDefault();
+    if (event.cancelable) event.preventDefault();
     drag.button = nearestButton(event.clientX);
     positionMenuIndicator(menu, drag.button);
     const menuRect = menu.getBoundingClientRect();
@@ -1257,22 +1259,38 @@ function initBottomMenuGestures() {
     const width = drag.button.getBoundingClientRect().width;
     const left = Math.max(first.left - menuRect.left, Math.min(last.left - menuRect.left, event.clientX - menuRect.left - width / 2));
     menu.style.setProperty('--menu-pill-x', `${left}px`);
-  });
+  };
   const endDrag = (event, commit) => {
     if (!drag || drag.pointerId !== event.pointerId) return;
     const finished = drag;
     drag = null;
     menu.classList.remove('is-dragging');
-    if (menu.hasPointerCapture?.(event.pointerId)) menu.releasePointerCapture(event.pointerId);
+    if (event.pointerId !== 'touch' && menu.hasPointerCapture?.(event.pointerId)) menu.releasePointerCapture(event.pointerId);
     if (finished.moved) {
       suppressClickUntil = performance.now() + 400;
       if (commit) activateBottomMenuButton(finished.button);
       else syncBottomMenu();
     }
   };
-  menu.addEventListener('pointerup', event => endDrag(event, true));
-  menu.addEventListener('pointercancel', event => endDrag(event, false));
-  menu.addEventListener('lostpointercapture', event => endDrag(event, false));
+  const touchEvent = (event, touch) => ({
+    pointerId:'touch', isPrimary:true, button:0, clientX:touch.clientX, clientY:touch.clientY,
+    cancelable:event.cancelable, preventDefault:() => event.preventDefault()
+  });
+  menu.addEventListener('touchstart', event => {
+    if (event.touches.length !== 1) { if (drag) endDrag({pointerId:drag.pointerId}, false); return; }
+    startDrag(touchEvent(event, event.touches[0]));
+  }, {passive:true});
+  menu.addEventListener('touchmove', event => {
+    if (event.touches.length !== 1) { if (drag) endDrag({pointerId:drag.pointerId}, false); return; }
+    moveDrag(touchEvent(event, event.touches[0]));
+  }, {passive:false});
+  menu.addEventListener('touchend', event => endDrag({pointerId:'touch'}, event.touches.length === 0));
+  menu.addEventListener('touchcancel', () => endDrag({pointerId:'touch'}, false));
+  menu.addEventListener('pointerdown', event => { if (event.pointerType !== 'touch') startDrag(event); });
+  menu.addEventListener('pointermove', event => { if (event.pointerType !== 'touch') moveDrag(event); });
+  menu.addEventListener('pointerup', event => { if (event.pointerType !== 'touch') endDrag(event, true); });
+  menu.addEventListener('pointercancel', event => { if (event.pointerType !== 'touch') endDrag(event, false); });
+  menu.addEventListener('lostpointercapture', event => { if (event.pointerType !== 'touch') endDrag(event, false); });
   menu.addEventListener('click', event => {
     if (performance.now() < suppressClickUntil) { event.preventDefault(); event.stopImmediatePropagation(); }
   }, true);
@@ -4652,11 +4670,8 @@ function applyCategoryProgressTone(categoryKey) {
 function setSheetProgress(label, percentage, completedLabel = 'tamamlandı', completedCount = null, totalCount = null) {
   topicProgressPercent.textContent = `%${percentage || 0}`;
   topicProgressBar.style.width = `${percentage}%`;
-  if (completedCount !== null && totalCount !== null) {
-    topicProgressCount.textContent = `${completedCount} / ${totalCount} soru ${completedLabel}`;
-  } else {
-    topicProgressCount.textContent = percentage ? `%${percentage} ${completedLabel}` : label;
-  }
+  topicProgressCount.textContent = '';
+  topicProgressCount.hidden = true;
 }
 
 function renderCategoryLevelFresh(categoryKey) {
@@ -4882,7 +4897,7 @@ function renderStudyModeHubFresh(item, categoryKey, initialFilter = 'all') {
   topicList.innerHTML = `<div class="study-mode-hub">
     <header class="study-hub-header">
       <button type="button" class="study-hub-book" aria-label="Ana konuya geri dön" title="Ana konuya geri dön">${backButtonContent()}</button>
-      <div class="study-hub-heading"><h3>${escapeHtml(item.title)}</h3><p>${countText} soru <span>•</span> %${percentage} ilerleme</p>
+      <div class="study-hub-heading"><h3>${escapeHtml(item.title)}</h3><p>${countText} soru</p>
       <div class="study-hub-progress"><div class="study-hub-track" role="progressbar" aria-label="Konu ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percentage}"><span style="width:${percentage}%"></span></div><strong>%${percentage}</strong></div></div>
     </header>
     <div class="study-hub-tabs" role="group" aria-label="Çalışma durumuna göre filtrele">
@@ -4946,7 +4961,7 @@ function renderStudyModeHubFresh(item, categoryKey, initialFilter = 'all') {
     hub.querySelector('[data-hub-filter="completed"]').textContent=`Tamamlanan (${attempts.filter(e=>e.status==='completed').length})`;
     const count=Number(item.questionCount);
     const pct=Math.min(100,Math.max(0,Number(getDocumentProgress(item))||0));
-    hub.querySelector('.study-hub-heading p').textContent=`${Number.isFinite(count)?count:'—'} soru • %${pct} ilerleme`;
+    hub.querySelector('.study-hub-heading p').textContent=`${Number.isFinite(count)?count:'—'} soru`;
     hub.querySelector('.study-hub-track').setAttribute('aria-valuenow',pct);
     hub.querySelector('.study-hub-track>span').style.width=pct+'%';
     hub.querySelector('.study-hub-progress>strong').textContent='%'+pct;
@@ -6727,7 +6742,7 @@ function edgeBackStart(event) {
   const phone=document.querySelector('.phone');if(!phone)return;
   const touch=event.touches[0],rect=phone.getBoundingClientRect();
   if(touch.clientX<rect.left || touch.clientX>rect.left+24)return;
-  if(event.target.closest('input,textarea,select,[contenteditable="true"],[data-no-swipe-back]'))return;
+  if(event.target.closest('.bottom-nav,input,textarea,select,[contenteditable="true"],[data-no-swipe-back]'))return;
   const openSheet=allSheets.some(sheet=>sheet.classList.contains('open'));
   if(!openSheet&&state.view==='home')return;
   edgeBackGesture={x:touch.clientX,y:touch.clientY,dx:0,dy:0,started:performance.now(),phone,
