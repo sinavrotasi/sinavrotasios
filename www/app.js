@@ -2223,7 +2223,7 @@ function renderCardCategoryLevel(categoryKey) {
   const category = getCardCatalogue()[categoryKey];
   applyCategoryProgressTone(categoryKey);
   resetSheetClasses();
-  applySheetHeader({ title: category.title, subtitle: 'Çalışmak istediğin kaynağı seç.', eyebrow: 'BİLGİ KARTLARI', icon: category.icon, iconClass: category.iconClass });
+  applySheetHeader({ title: category.title, subtitle: 'Çalışmak istediğin kaynağı seç.', eyebrow: '', icon: category.icon, iconClass: category.iconClass });
   topicBreadcrumbWrap.innerHTML = '';
 
   // Kategori ilerlemesi artık sabit %0 değil; gerçek tamamlanan kart
@@ -2473,7 +2473,7 @@ function renderCardStudy() {
   const current = study.cards[study.index];
 
   if (current.upsell) {
-    applySheetHeader({ title: study.doc.title, subtitle: 'Premium içerik', eyebrow: 'BİLGİ KARTLARI', icon: 'gavel', iconClass: category.iconClass });
+    applySheetHeader({ title: study.doc.title, subtitle: 'Premium içerik', eyebrow: '', icon: 'gavel', iconClass: category.iconClass });
     placeHeaderBackButton(() => { exitCardStudy(study); });
     setSheetProgress('', 100);
     topicList.innerHTML = `
@@ -2514,7 +2514,7 @@ function renderCardStudy() {
     return;
   }
 
-  applySheetHeader({ title: study.doc.title, subtitle: `${study.index + 1} / ${study.cards.length}`, eyebrow: 'BİLGİ KARTLARI', icon: 'gavel', iconClass: category.iconClass });
+  applySheetHeader({ title: study.doc.title, subtitle: `${study.index + 1} / ${study.cards.length}`, eyebrow: '', icon: 'gavel', iconClass: category.iconClass });
   placeHeaderBackButton(() => { exitCardStudy(study); });
   setSheetProgress('', Math.round(((study.index + 1) / study.cards.length) * 100));
   // Leitner puanlama butonları: sadece gerçek flashcard destesinde, kullanıcı
@@ -5447,14 +5447,13 @@ function renderTrueFalse() {
   const progressPct = Math.round((tf.index / total) * 100);
   const tagMeta = categoryCardMeta(tf.categoryKey);
   const tagLabel = tf.documentItem?.title || tagMeta.title;
-  const bookmarked = !!progress.flaggedQuestions[q.id];
 
   topicList.innerHTML = `
     <div class="tf-shell">
       <div class="tf-header">
         <div class="tf-header-row">
           <button type="button" class="tf-icon-btn" id="tfClose" aria-label="Geri dön">${backButtonContent()}</button>
-          <h2 class="tf-header-title"><span class="tf-title-correct">Doğru</span> <span class="tf-title-slash">/</span> <span class="tf-title-wrong">Yanlış</span></h2>
+          <span class="tf-header-spacer" aria-hidden="true"></span>
           <span class="tf-icon-btn" aria-hidden="true" style="visibility:hidden"></span>
         </div>
         <div class="tf-progress-row">
@@ -5471,14 +5470,15 @@ function renderTrueFalse() {
                 <button type="button" class="tf-icon-btn tf-report-inline${progress.reportedQuestions[q.id] ? ' is-active' : ''}" id="tfReport" aria-label="${progress.reportedQuestions[q.id] ? 'Bildirimi Geri Al' : 'Soruyu Bildir'}">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
                 </button>
-                <button type="button" class="tf-icon-btn tf-bookmark-inline${bookmarked ? ' is-active' : ''}" id="tfBookmark" aria-label="Soruyu kaydet" aria-pressed="${bookmarked}">${svg('bookmark')}</button>
               </div>
             </div>
+            <div class="tf-statement-panel">
             ${q.prompt ? `<span class="tf-prompt-label">SORU</span><p class="tf-prompt">${escapeHtml(q.prompt)}</p>` : ''}
-            <span class="tf-answer-label">${q.prompt ? 'GÖSTERİLEN CEVAP' : 'İFADE'}</span>
+            ${q.prompt ? '<span class="tf-answer-label">GÖSTERİLEN CEVAP</span>' : ''}
             <div class="tf-answer-chip">${escapeHtml(q.displayAnswer)}</div>
+            </div>
           </div>
-          <p class="tf-question-cue">Bu cevap doğru mu?</p>
+          <p class="tf-question-cue">Bu ifade doğru mu?</p>
           <div class="tf-buttons">
             <button type="button" class="tf-btn tf-btn-neutral" id="tfWrong" aria-label="Bu ifade yanlış">
               <span class="tf-btn-glow" aria-hidden="true"></span>
@@ -5504,17 +5504,6 @@ function renderTrueFalse() {
     tf.returnView();
   };
   document.getElementById('tfClose').onclick = exit;
-
-  document.getElementById('tfBookmark').onclick = () => {
-    const nowBookmarked = !progress.flaggedQuestions[q.id];
-    if (nowBookmarked) window.SRProgressSync.setKey(progress, 'flaggedQuestions', q.id, true);
-    else window.SRProgressSync.deleteKey(progress, 'flaggedQuestions', q.id);
-    saveProgress();
-    const btn = document.getElementById('tfBookmark');
-    btn.classList.toggle('is-active', nowBookmarked);
-    btn.setAttribute('aria-pressed', String(nowBookmarked));
-    showToast(nowBookmarked ? 'Soru kaydedildi' : 'Kaydedilenlerden çıkarıldı');
-  };
 
   document.getElementById('tfReport').onclick = () => reportQuestion(q, renderTrueFalse);
 

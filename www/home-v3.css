@@ -170,14 +170,10 @@
 html.native-ios-scroll,
 html.native-ios-scroll body:not(.auth-page){background-color:#f4f7fb}
 html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen){
-  background:
-    radial-gradient(ellipse 80% 40% at 100% 0%,rgba(150,185,240,.14),transparent 70%),
-    linear-gradient(180deg,#fafcff 0%,#f3f6fb 100%);
+  background:var(--sr-main-background);
 }
 #appPhone .scroll-area:has(>.app-scroll>.home-screen){
-  background:
-    radial-gradient(ellipse 80% 40% at 100% 0%,rgba(150,185,240,.14),transparent 70%),
-    linear-gradient(180deg,#fafcff 0%,#f3f6fb 100%);
+  background:var(--sr-main-background);
 }
 
 /* Header ile içerik arasında zemin dikişi olmasın (native kural app-scroll'u düz boyuyordu) */
@@ -185,7 +181,7 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.ap
 #appPhone .scroll-area:has(>.app-scroll>.home-screen)>.app-scroll{background:transparent}
 
 /* Mevcut İstatistikler üst gezinmesinin konumu ve yüksekliği style.css'ten gelir. */
-:root{--ios-panel-duration:360ms;--ios-panel-easing:cubic-bezier(.22,1,.36,1)}
+:root{--sr-main-background:radial-gradient(ellipse 80% 40% at 100% 0%,rgba(150,185,240,.14),transparent 70%), linear-gradient(180deg,#fafcff 0%,#f3f6fb 100%);--ios-panel-duration:360ms;--ios-panel-easing:cubic-bezier(.22,1,.36,1)}
 /* Geri düğmeleri, referans paketteki home-module-back ile aynı tasarım. */
 #appPhone .page-navigation-row{grid-template-columns:66px minmax(0,1fr) 66px}
 #appPhone :is(.page-navigation-back,.sp-back,.topic-breadcrumb-back,.study-hub-book,[id="quizBackButton"],[id="tfClose"],[id="tfResultClose"]){
@@ -311,3 +307,46 @@ html.native-ios-scroll #appPhone>.scroll-area:has(>.app-scroll>.home-screen)>.ap
 #appPhone #topicSheet.card-study-active .card-nav-count{font-size:16px!important;min-width:76px;font-variant-numeric:tabular-nums}
 #appPhone>.bottom-nav,#appPhone>.bottom-nav button{touch-action:none!important}
 #appPhone>.scroll-area{touch-action:pan-y!important}
+
+/* Kartlarım: boş üst etiket yer kaplamaz. */
+#appPhone #topicEyebrow:empty{display:none!important}
+
+/* Seçilen D/Y: bölünmüş kart + katmanlı iç gövde, ana uygulama zemini. */
+#appPhone #topicSheet.quiz-active:has(.tf-shell){background:var(--sr-main-background)!important}
+#appPhone .tf-shell{background:var(--sr-main-background);min-height:0}
+#appPhone .tf-header-row{display:grid;grid-template-columns:66px minmax(0,1fr) 66px;gap:8px;align-items:center}
+#appPhone .tf-header-title{text-align:center;font-size:17px;letter-spacing:-.3px}
+#appPhone .tf-header-title span{color:var(--navy)}
+#appPhone .tf-progress-track{height:5px;background:#e2e7ef;border-radius:10px}
+#appPhone .tf-progress-fill{background:var(--red)}
+#appPhone .tf-progress-label{font-size:14px;font-weight:750;color:var(--navy);font-variant-numeric:tabular-nums}
+#appPhone .tf-body{min-height:0;padding:24px 16px calc(24px + env(safe-area-inset-bottom));overflow-y:auto}
+#appPhone .tf-card{position:relative;isolation:isolate;border:1px solid #e7edf4;border-radius:24px;padding:0;background:#fff;box-shadow:0 10px 28px #1735550b;max-width:560px;margin:0 auto}
+#appPhone .tf-card::before,#appPhone .tf-card::after{content:'';position:absolute;pointer-events:none;border:1px solid #e7edf4;border-radius:24px;background:#ffffffa6;z-index:-1}
+#appPhone .tf-card::before{inset:-9px 12px -9px}
+#appPhone .tf-card::after{content:none}
+#appPhone .tf-content-box{background:#fff;border-radius:24px 24px 0 0;padding:16px;margin:0}
+#appPhone .tf-content-box::before{content:none}
+#appPhone .tf-card-top{gap:12px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid #e7edf4;align-items:center}
+#appPhone .tf-topic-tag{min-width:0;max-width:calc(100% - 48px);font-size:12px;line-height:1.35;padding:6px 10px 6px 6px;background:#edf3fb;overflow-wrap:anywhere}
+#appPhone .tf-card-top-actions{flex:0 0 auto}
+#appPhone .tf-report-inline{width:36px;height:36px;min-width:36px;color:var(--red);background:#fff4f5;border:1px solid #f4dfe2;border-radius:12px}
+#appPhone .tf-report-inline:hover,#appPhone .tf-report-inline.is-active{color:var(--red);background:#ffe9ec;border-color:#edb9c1}
+#appPhone .tf-report-inline.is-active svg{fill:#e9323820}
+#appPhone .tf-statement-panel{padding:20px 18px;background:#fff;border:0;border-radius:20px;min-height:190px;display:flex;flex-direction:column;justify-content:center}
+#appPhone .tf-answer-chip{background:transparent;border:0;border-radius:0;padding:0;margin:0;font-size:18px;line-height:1.55;font-weight:650;overflow-wrap:anywhere;color:var(--navy)}
+#appPhone .tf-prompt{font-size:17px;line-height:1.5;font-weight:650}
+#appPhone .tf-buttons{grid-template-columns:repeat(2,minmax(0,130px));justify-content:center;gap:12px;padding:12px 16px 18px;background:#f7f9fc;border-top:0;border-radius:0 0 24px 24px}
+#appPhone .tf-btn{flex-direction:row;gap:8px;min-height:46px;padding:8px 12px;border-radius:15px;font-size:14px;font-weight:750;border:1px solid transparent;box-shadow:0 3px 10px #17355506}
+#appPhone #tfWrong{background:#fff0f2;color:var(--navy)}
+#appPhone #tfCorrect{background:#ecf8f1;color:var(--navy)}
+#appPhone #tfWrong .tf-btn-icon{background:#fde0e5;color:var(--red)}
+#appPhone #tfCorrect .tf-btn-icon{background:#d9f2e5;color:var(--green)}
+#appPhone #tfWrong.is-selected{border-color:var(--red)}
+#appPhone #tfCorrect.is-selected{border-color:var(--green)}
+#appPhone .tf-btn.is-muted{opacity:.4}
+#appPhone .tf-result{margin:0;padding:0 16px 16px;background:#fff;border-radius:0 0 24px 24px}
+#appPhone .tf-sticky-footer{background:linear-gradient(180deg,#f3f6fb00,#f3f6fb 35%)}
+@media(max-width:360px){#appPhone .tf-body{padding-left:12px;padding-right:12px}#appPhone .tf-content-box{padding:12px}#appPhone .tf-statement-panel{padding:16px;min-height:170px}#appPhone .tf-answer-chip{font-size:17px}#appPhone .tf-header-title{font-size:15px}}
+
+#appPhone .tf-question-cue{margin:0;padding:18px 16px 0;background:#f7f9fc;border-top:1px solid #e7edf4;color:var(--navy);font-size:14px;line-height:1.4;font-weight:650;text-align:center}
