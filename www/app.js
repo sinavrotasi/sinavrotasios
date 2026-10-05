@@ -1159,6 +1159,68 @@ function activateBottomMenuButton(button) {
   syncBottomMenu();
 }
 
+// İçerikte yatay kaydırma: yalnızca ana sekmeler; arama ayrı paneldir.
+function initPageTabGestures() {
+  let gesture = null;
+  let suppressClickUntil = 0;
+  const tabs = () => [...navButtons].map(button => button.dataset.nav);
+  const blocked = () => roleGate?.getAttribute('aria-hidden') === 'false' ||
+    state.quiz || state.tfQuiz || allSheets.some(sheet => sheet.classList.contains('open')) ||
+    document.querySelector('.quiz-nav-overlay.open, .quiz-finish-modal-overlay.open, dialog[open]');
+  const reset = () => { gesture = null; };
+
+  scrollArea.addEventListener('touchstart', event => {
+    reset();
+    if (event.touches.length !== 1 || blocked() || !tabs().includes(state.view)) return;
+    const target = event.target;
+    if (target.closest('input, textarea, select, [contenteditable], [role="slider"], [data-no-swipe], [data-no-swipe-back]')) return;
+    // İç içe yatay listeler ve grafikler kendi hareketlerini korur.
+    for (let node = target; node && node !== scrollArea; node = node.parentElement) {
+      if (node.scrollWidth > node.clientWidth + 2 && /auto|scroll/.test(getComputedStyle(node).overflowX)) return;
+    }
+    const touch = event.touches[0];
+    const rect = scrollArea.getBoundingClientRect();
+    // Sistem/uygulama kenardan geri hareketine alan bırak.
+    if (touch.clientX <= rect.left + 24 || touch.clientX >= rect.right - 24) return;
+    gesture = { x:touch.clientX, y:touch.clientY, dx:0, dy:0, locked:false,
+      view:state.view, origin:app.firstElementChild, started:performance.now() };
+  }, { passive:true });
+  scrollArea.addEventListener('touchmove', event => {
+    const g = gesture;
+    if (!g) return;
+    if (event.touches.length !== 1 || blocked() || state.view !== g.view || app.firstElementChild !== g.origin) { reset(); return; }
+    g.dx = event.touches[0].clientX - g.x;
+    g.dy = event.touches[0].clientY - g.y;
+    if (!g.locked) {
+      if (Math.abs(g.dy) > 10 && Math.abs(g.dy) >= Math.abs(g.dx)) { reset(); return; }
+      if (Math.abs(g.dx) < 16 || Math.abs(g.dx) < Math.abs(g.dy) * 1.5) return;
+      if (!event.cancelable) { reset(); return; }
+      g.locked = true;
+    }
+    if (event.cancelable) event.preventDefault();
+  }, { passive:false });
+  scrollArea.addEventListener('touchend', event => {
+    const g = gesture;
+    reset();
+    if (!g?.locked) return;
+    suppressClickUntil = performance.now() + 400;
+    if (event.touches.length || blocked() || state.view !== g.view || app.firstElementChild !== g.origin) return;
+    const last = event.changedTouches[0];
+    if (last) { g.dx = last.clientX - g.x; g.dy = last.clientY - g.y; }
+    const elapsed = performance.now() - g.started;
+    const distance = Math.abs(g.dx);
+    if (elapsed > 1800 || distance < Math.abs(g.dy) * 1.5 ||
+      !(distance >= 64 || (distance >= 36 && distance / Math.max(1, elapsed) >= 0.45))) return;
+    const pages = tabs();
+    const next = pages[pages.indexOf(g.view) + (g.dx < 0 ? 1 : -1)];
+    if (next) window.go(next);
+  }, { passive:true });
+  scrollArea.addEventListener('touchcancel', reset, { passive:true });
+  scrollArea.addEventListener('click', event => {
+    if (performance.now() < suppressClickUntil) { event.preventDefault(); event.stopImmediatePropagation(); }
+  }, true);
+}
+
 function initBottomMenuGestures() {
   const menu = document.querySelector('.bottom-nav');
   if (!menu) return;
@@ -6521,6 +6583,7 @@ function renderQuizResult() {
 
 navButtons.forEach(button => button.addEventListener('click', () => window.go(button.dataset.nav)));
 initBottomMenuGestures();
+initPageTabGestures();
 // Ana sayfa özet kartındaki ok: Bugünkü Rota panelini açar (header statik HTML).
 closeTopicSheetButton.addEventListener('click', closeTopicSheet);
 topicBackdrop.addEventListener('click', () => closeAllSheets());
