@@ -27,6 +27,15 @@ workflows:
           set -euo pipefail
           npx cap add ios
 
+      - name: Register Apple billing plugin
+        script: |
+          set -euo pipefail
+          if ! ruby -e 'require "xcodeproj"' 2>/dev/null; then
+            gem install --user-install xcodeproj --no-document
+            export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
+          fi
+          ruby scripts/install-apple-billing.rb
+
       - name: Restore native scroll bounce
         script: |
           set -euo pipefail
@@ -296,6 +305,15 @@ workflows:
         script: |
           set -euo pipefail
           npx cap add ios
+
+      - name: Register Apple billing plugin
+        script: |
+          set -euo pipefail
+          if ! ruby -e 'require "xcodeproj"' 2>/dev/null; then
+            gem install --user-install xcodeproj --no-document
+            export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
+          fi
+          ruby scripts/install-apple-billing.rb
 
       - name: Restore native scroll bounce
         script: |
@@ -617,6 +635,15 @@ workflows:
           set -euo pipefail
           npx cap add ios
 
+      - name: Register Apple billing plugin
+        script: |
+          set -euo pipefail
+          if ! ruby -e 'require "xcodeproj"' 2>/dev/null; then
+            gem install --user-install xcodeproj --no-document
+            export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
+          fi
+          ruby scripts/install-apple-billing.rb
+
       - name: Restore native scroll bounce
         script: |
           set -euo pipefail
@@ -787,6 +814,15 @@ workflows:
         script: |
           set -euo pipefail
           npx cap add ios
+
+      - name: Register Apple billing plugin
+        script: |
+          set -euo pipefail
+          if ! ruby -e 'require "xcodeproj"' 2>/dev/null; then
+            gem install --user-install xcodeproj --no-document
+            export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
+          fi
+          ruby scripts/install-apple-billing.rb
 
       - name: Restore native scroll bounce
         script: |
