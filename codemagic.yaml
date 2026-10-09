@@ -93,6 +93,12 @@ workflows:
           set -euo pipefail
           npx cap sync ios
 
+      - name: Verify Apple billing after sync
+        script: |
+          set -euo pipefail
+          export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
+          ruby scripts/install-apple-billing.rb --verify
+
       - name: Verify deep link after sync
         script: |
           set -euo pipefail
@@ -368,6 +374,12 @@ workflows:
         script: |
           set -euo pipefail
           npx cap sync ios
+
+      - name: Verify Apple billing after sync
+        script: |
+          set -euo pipefail
+          export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
+          ruby scripts/install-apple-billing.rb --verify
 
       - name: Verify native configuration
         script: |
@@ -704,6 +716,12 @@ workflows:
           set -euo pipefail
           npx cap sync ios
 
+      - name: Verify Apple billing after sync
+        script: |
+          set -euo pipefail
+          export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
+          ruby scripts/install-apple-billing.rb --verify
+
       - name: Build unsigned iPhone app (DEV)
         script: |
           set -euo pipefail
@@ -906,6 +924,12 @@ workflows:
         script: |
           set -euo pipefail
           npx cap sync ios
+
+      - name: Verify Apple billing after sync
+        script: |
+          set -euo pipefail
+          export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
+          ruby scripts/install-apple-billing.rb --verify
 
       - name: Set App Store build number
         script: |

@@ -1013,9 +1013,20 @@ function premiumBilling() {
   const cap = window.Capacitor;
   const ios = cap?.getPlatform?.() === 'ios';
   if (!ios) return cap?.Plugins?.PlayBilling;
-  if (cap?.isPluginAvailable && !cap.isPluginAvailable('AppleBilling')) return null;
-  return cap?.Plugins?.AppleBilling || (typeof cap?.registerPlugin === 'function'
-    ? (appleBillingProxy ||= cap.registerPlugin('AppleBilling')) : null);
+  // Resolve the JS bridge before checking availability. Some injected runtimes
+  // report only JS-registered plugins from isPluginAvailable().
+  const existing = cap?.Plugins?.AppleBilling;
+  if (existing && typeof existing.getProductDetails === 'function') return existing;
+  if (typeof cap?.registerPlugin === 'function') {
+    return (appleBillingProxy ||= cap.registerPlugin('AppleBilling'));
+  }
+  console.error('AppleBilling bridge unavailable', {
+    platform: cap?.getPlatform?.(),
+    available: cap?.isPluginAvailable?.('AppleBilling'),
+    hasNativeHeader: cap?.PluginHeaders?.some(header => header.name === 'AppleBilling'),
+    hasRegisterPlugin: typeof cap?.registerPlugin === 'function'
+  });
+  return null;
 }
 function premiumMessage(message) {
   showToast(message);
@@ -1151,6 +1162,9 @@ async function updatePremiumButtonPrices() {
     if (requestId !== premiumPriceRequestId) return;
     if (isIOS) buttons.forEach(button => setPrice(button, "Fiyat alınamadı"));
     console.error("Mağaza fiyatları alınamadı:", error);
+    if (isIOS) premiumMessage(error?.code === 'UNIMPLEMENTED'
+      ? 'Apple ödeme bağlantısı bu sürümde kullanılamıyor. Lütfen uygulamayı güncelle ve yeniden dene.'
+      : 'App Store fiyatları alınamadı. Bağlantını kontrol edip bu pencereyi yeniden aç.');
   } finally {
     clearTimeout(timeout);
   }
