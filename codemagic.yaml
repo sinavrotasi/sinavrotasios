@@ -796,6 +796,12 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 60
 
+    # Bağımlılık indirmelerini build'ler arasında önbelleğe alır (npm ci, cap sync, assets)
+    cache:
+      cache_paths:
+        - $HOME/.npm
+        - $HOME/Library/Caches/CocoaPods
+
     integrations:
       app_store_connect: SınavRotası - MEB GYS
 
