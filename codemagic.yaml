@@ -98,6 +98,7 @@ workflows:
           set -euo pipefail
           export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
           ruby scripts/install-apple-billing.rb --verify
+          python3 scripts/configure-apple-billing.py
 
       - name: Verify deep link after sync
         script: |
@@ -380,6 +381,7 @@ workflows:
           set -euo pipefail
           export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
           ruby scripts/install-apple-billing.rb --verify
+          python3 scripts/configure-apple-billing.py
 
       - name: Verify native configuration
         script: |
@@ -721,6 +723,7 @@ workflows:
           set -euo pipefail
           export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
           ruby scripts/install-apple-billing.rb --verify
+          python3 scripts/configure-apple-billing.py
 
       - name: Build unsigned iPhone app (DEV)
         script: |
@@ -930,6 +933,7 @@ workflows:
           set -euo pipefail
           export GEM_PATH="$(ruby -e 'puts Gem.user_dir'):${GEM_PATH:-}"
           ruby scripts/install-apple-billing.rb --verify
+          python3 scripts/configure-apple-billing.py
 
       - name: Set App Store build number
         script: |
@@ -981,6 +985,19 @@ workflows:
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
+
+      - name: Verify Apple billing in signed IPA
+        script: |
+          set -euo pipefail
+          shopt -s nullglob
+          ipa_files=(build/ios/ipa/*.ipa)
+          if [ "${#ipa_files[@]}" -eq 0 ]; then
+            echo "ERROR: Signed IPA not found."
+            exit 1
+          fi
+          for ipa_file in "${ipa_files[@]}"; do
+            python3 scripts/configure-apple-billing.py --verify-ipa "$ipa_file"
+          done
 
     artifacts:
       - build/ios/ipa/*.ipa

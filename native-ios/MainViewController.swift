@@ -1,10 +1,20 @@
 import UIKit
 import Capacitor
 
-// Android'deki MainActivity.registerPlugin(PlayBillingPlugin.class) satırının iOS karşılığı.
-// Main.storyboard'daki view controller'ın Custom Class değeri bu sınıf olmalıdır.
 class MainViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
-        bridge?.registerPluginInstance(AppleBillingPlugin())
+        super.capacitorDidLoad()
+        guard let bridge = bridge else {
+            NSLog("[AppleBilling] MainViewController bridge unavailable")
+            return
+        }
+        // Capacitor's packageClassList registers the plugin before this hook.
+        // Keep manual registration as a fallback, without creating two listeners.
+        if bridge.plugin(withName: "AppleBilling") == nil {
+            bridge.registerPluginInstance(AppleBillingPlugin())
+        }
+        NSLog("[AppleBilling] registered=%@ build=%@",
+              bridge.plugin(withName: "AppleBilling") == nil ? "false" : "true",
+              Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown")
     }
 }
